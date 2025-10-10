@@ -1,0 +1,81 @@
+# Node / PNPM
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+pnpm-lock.yaml
+
+# Build / Cache
+dist/
+build/
+.cache/
+.temp/
+.tmp/
+coverage/
+.nyc_output/
+**.turbo/
+
+# Env files
+.env
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.sublime-workspace
+*.sublime-project
+
+# Frontend (React + Electron)
+apps/web/dist/
+apps/web/.vite/
+apps/web/.parcel-cache/
+apps/web/out/
+apps/web/.next/
+apps/web/coverage/
+apps/web/node_modules/
+apps/web/electron-build/
+apps/web/release/
+
+# Electron builds
+release/
+*.asar
+*.dmg
+*.exe
+*.deb
+*.AppImage
+*.snap
+
+# Backend (Express)
+apps/server/dist/
+apps/server/node_modules/
+apps/server/coverage/
+
+# Database (Prisma / SQLite)
+prisma/dev.db
+prisma/dev.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Misc
+*.local
+*.lock
+*.bak
+*.orig
+*.rej
+
+# Tests
+coverage/
+*.spec.ts
+*.test.ts
+*.test.js

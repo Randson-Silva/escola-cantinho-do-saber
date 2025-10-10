@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "types": ["express"]
+  },
+  "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "types": [
+      "vitest/globals"
+    ],
+  "include": [
+    "src",
+    "libs",
+    "tmp",
+    "test"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
