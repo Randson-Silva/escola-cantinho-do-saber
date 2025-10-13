@@ -1,5 +1,5 @@
 import React from 'react';
 
 export function App() {
-  return <h1>Reforço App</h1>;
+  return <h1>Cantinho do saber</h1>;
 }

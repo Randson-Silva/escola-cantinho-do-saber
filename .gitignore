@@ -17,6 +17,7 @@ coverage/
 # Env files
 .env
 .env.*.local
+.env.*.development
 
 # TypeScript
 *.tsbuildinfo
@@ -29,7 +30,6 @@ logs/
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/
 *.swp
 *.swo
 *.tmp

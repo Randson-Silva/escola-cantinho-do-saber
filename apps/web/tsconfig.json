@@ -1,9 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "emitDeclarationOnly": true,
     "jsx": "react-jsx",
+    "module": "esnext",
+    "target": "esnext",
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "types": ["electron"]
   },
-  "include": ["src"]
+  "include": ["src", "src/main/**/*.ts", "src/renderer/**/*.tsx", "vite-env.d.ts"]
 }

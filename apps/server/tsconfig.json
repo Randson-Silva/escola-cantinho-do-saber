@@ -1,24 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "emitDeclarationOnly": true,
     "moduleResolution": "node",
     "types": ["express"]
   },
   "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
-    "types": [
-      "vitest/globals"
-    ],
-  "include": [
-    "src",
-    "libs",
-    "tmp",
-    "test"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "@/*": ["./src/*"]
+  },
+  "types": ["vitest/globals"],
+  "include": ["src", "libs", "tmp", "test"],
+  "exclude": ["node_modules"]
 }
