@@ -4,19 +4,6 @@ Este projeto está estruturado como um **monorepo** usando [PNPM](https://pnpm.i
 
 ---
 
-## Índice
-
-- [Visão Geral](#visão-geral)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Estrutura do Monorepo](#estrutura-do-monorepo)
-- [Configuração do Ambiente](#configuração-do-ambiente)
-- [Comandos Essenciais](#comandos-essenciais)
-- [Fluxos e Pipelines](#fluxos-e-pipelines)
-- [Boas Práticas de Contribuição](#boas-práticas-de-contribuição)
-- [Dicas](#dicas)
-
----
-
 ## Visão Geral
 
 O objetivo do projeto é oferecer uma plataforma robusta para gerenciar as operações da Escola Cantinho do Saber, facilitando cadastro de usuários, gestão acadêmica, comunicação e muito mais.
@@ -96,6 +83,8 @@ pnpm install
 
 Todos os scripts abaixo já estão configurados no package.json e utilizam o Turborepo para rodar em todos os workspaces relevantes:
 
+- `pnpm install` — Instala todas as dependências do projeto.
+- `pnpm install --filter=server ou --filter=web` — Instala dependências de apenas um ambiente.
 - `pnpm dev` — Inicia o modo desenvolvimento em todos os apps/pacotes com task "dev".
 - `pnpm build` — Builda todos os apps/pacotes conforme pipeline turbo.
 - `pnpm lint` — Roda lint (padronização de código) onde houver script "lint".
