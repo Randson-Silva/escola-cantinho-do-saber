@@ -23,6 +23,9 @@ importers:
 
   apps/server:
     dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       express:
         specifier: ^4.21.2
         version: 4.21.2
@@ -36,6 +39,9 @@ importers:
       ts-node-dev:
         specifier: ^2.0.0
         version: 2.0.0(@types/node@24.7.2)(typescript@5.9.3)
+      ulid:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   apps/web:
     dependencies:
@@ -1581,6 +1587,10 @@ packages:
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
+    hasBin: true
+
+  ulid@3.0.1:
+    resolution: {integrity: sha512-dPJyqPzx8preQhqq24bBG1YNkvigm87K8kVEHCD+ruZg24t6IFEFv00xMWfxcC4djmFtiTLdFuADn4+DOz6R7Q==}
     hasBin: true
 
   undici-types@6.21.0:
@@ -3229,6 +3239,8 @@ snapshots:
       mime-types: 2.1.35
 
   typescript@5.9.3: {}
+
+  ulid@3.0.1: {}
 
   undici-types@6.21.0: {}
 
