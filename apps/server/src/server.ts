@@ -1,8 +1,9 @@
 import * as express from 'express';
+import 'dotenv/config';
 
 const app = express();
 app.use(express.json());
 
-app.get('/', (_, res) => res.send('Server running!'));
+const PORT = process.env.EXPRESS_BACK_PORT ?? 3000;
 
-app.listen(3000, () => console.log('🚀 Server listening on http://localhost:3000'));
+app.listen(PORT, () => console.log(`🚀 Server listening on http://localhost:${PORT}`));
