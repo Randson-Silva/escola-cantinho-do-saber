@@ -1,32 +1,30 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../../styles/login-page.module.css'; // ← mudou aqui
-import formStyles from './LoginForm.module.css'; // ← mantém para estilos de formulário
+import { useForm, useToast } from '../../hooks';
+import { requestPasswordReset } from '../../services/auth';
+import styles from '../../styles/login-page.module.css';
+import formStyles from './LoginForm.module.css';
 
 function SenhaForm() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const { values, handleChange } = useForm({ email: '' });
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-      console.log('Recuperar senha para:', email);
-
-      // Simula envio de email
-      setTimeout(() => {
-        setLoading(false);
-        alert('Email de recuperação enviado!');
-      }, 2000);
-    },
-    [email],
-  );
-
-  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  }, []);
+    try {
+      await requestPasswordReset(values.email);
+      addToast('Email de recuperação enviado com sucesso!', 'success');
+      // Opcional: navigate('/login');
+    } catch (err: any) {
+      addToast(err?.message ?? 'Não foi possível enviar o email de recuperação.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -46,8 +44,8 @@ function SenhaForm() {
             type="email"
             name="email"
             placeholder="Insira seu email:"
-            value={email}
-            onChange={onChange}
+            value={values.email}
+            onChange={handleChange}
             disabled={loading}
             required
           />
@@ -73,3 +71,4 @@ function SenhaForm() {
 }
 
 export default SenhaForm;
+
