@@ -1,0 +1,99 @@
+/* Variáveis globais do tema */
+:root {
+  --page-bg: #e3f2fd;
+  --card-bg: #ffffff;
+  --text-primary: #143861;
+  --text-secondary: #143861;
+}
+
+/* Container principal - ocupa toda a viewport e centraliza o conteúdo */
+.page {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  gap: 20em;
+  align-items: center;
+  justify-content: center;
+  background: var(--page-bg);
+}
+
+/* Card/container do formulário */
+.card {
+  background: var(--card-bg);
+  border-radius: 40px;
+  box-shadow: 0 24px 24px rgba(0, 0, 0, 0.17);
+  padding: 25px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cardRequest {
+  composes: card;
+}
+
+/* Cabeçalho do card */
+.header {
+  text-align: center;
+}
+
+/* Título principal */
+.title {
+  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-align: left;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Subtítulo/descrição */
+.description {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin: 0;
+  text-align: left;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.img {
+  display: block;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: 16px; /* tamanho do texto */
+  font-weight: 400; /* 300/400/500 */
+  line-height: 1.5; /* espaçamento entre linhas */
+  margin: 4px 0 0; /* espaçamento externo */
+  text-align: left; /* left/center/right */
+  opacity: 0.9; /* suaviza a cor */
+  max-width: 46ch; /* controla largura de leitura */
+  box-shadow: #143861 0px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .page {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 24px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .description {
+    font-size: 14px;
+  }
+}
+
