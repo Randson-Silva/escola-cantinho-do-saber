@@ -1,32 +1,18 @@
 import { Entity } from './entity';
-import { Optional } from '../types/optional';
-import { Role } from '../types/roles';
-import { EntityId } from './unique-entity-id';
-import { UserStatus } from '../types/user-status';
+import { UniqueEntityId } from './unique-entity-id';
 
 export interface UserProps {
   name: string;
-  phonenumber: string;
 
   email: string;
-  password: string | null;
+  password: string;
 
-  role: Role;
-
-  status: UserStatus;
-
-  createdAt: Date;
-  updatedAt: Date | null;
-  deletedAt: Date | null;
+  profileId: string;
 }
 
-export class User<Props = any> extends Entity<Props & UserProps> {
+export class UserEntity<Props = any> extends Entity<Props & UserProps> {
   get name() {
     return this.props.name;
-  }
-
-  get phonenumber() {
-    return this.props.phonenumber;
   }
 
   get email() {
@@ -37,49 +23,13 @@ export class User<Props = any> extends Entity<Props & UserProps> {
     return this.props.password;
   }
 
-  get role() {
-    return this.props.role;
+  get profileId() {
+    return this.props.profileId;
   }
 
-  get createdAt() {
-    return this.props.createdAt;
-  }
+  static create(props: UserProps, id?: UniqueEntityId) {
+    const userEntity = new UserEntity(props, id);
 
-  get updatedAt() {
-    return this.props.updatedAt;
-  }
-
-  get deletedAt() {
-    return this.props.deletedAt;
-  }
-
-  get status() {
-    return this.props.status;
-  }
-
-  set status(status: UserStatus) {
-    this.props.status = status;
-  }
-
-  protected touch() {
-    this.props.updatedAt = new Date();
-  }
-
-  static create(
-    props: Optional<UserProps, 'status' | 'createdAt' | 'deletedAt' | 'updatedAt'>,
-    id?: EntityId,
-  ) {
-    const user = new User(
-      {
-        ...props,
-        status: 'active',
-        createdAt: props.createdAt ?? new Date(),
-        updatedAt: props.updatedAt ?? null,
-        deletedAt: props.deletedAt ?? null,
-      },
-      id,
-    );
-
-    return user;
+    return userEntity;
   }
 }
