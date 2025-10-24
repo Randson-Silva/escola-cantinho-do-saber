@@ -1,5 +1,18 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import React from 'react';
+import LoginPage from './pages/Login';
+import RecoveryPage from './pages/Recovery';
+import { ToastContainer } from './components/ToastContainer';
+import './global.css';
 
 export function App() {
-  return <h1>Cantinho do saber</h1>;
+  return (
+    <BrowserRouter>
+      <ToastContainer />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/recuperar-senha" element={<RecoveryPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
