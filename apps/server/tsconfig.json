@@ -1,9 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
+  "baseUrl": ".",
   "compilerOptions": {
     "emitDeclarationOnly": true,
     "moduleResolution": "node",
-    "types": ["express"]
+    "types": ["express"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "paths": {
     "@/*": ["./src/*"]
