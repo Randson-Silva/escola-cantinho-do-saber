@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import React from 'react';
 import LoginPage from './pages/Login';
 import RecoveryPage from './pages/Recovery';
@@ -10,6 +10,7 @@ export function App() {
     <BrowserRouter>
       <ToastContainer />
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-senha" element={<RecoveryPage />} />
       </Routes>
