@@ -10,7 +10,9 @@
     "start": "pnpm turbo run start",
     "dev": "pnpm turbo run dev",
     "build": "pnpm turbo run build",
-    "lint": "pnpm turbo run lint"
+    "lint": "pnpm turbo run lint",
+    "db:generate": "pnpm --filter=@repo/database run generate",
+    "db:run": "pnpm --filter=@repo/database run init"
   },
   "devDependencies": {
     "turbo": "^2.5.8",

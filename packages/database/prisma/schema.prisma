@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String  @id @unique @default(ulid())
+  name      String
+  email     String  @unique
+  password  String
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId String  @unique
+}
+
+enum AccessLevel {
+  ADMIN
+  COMUM
+}
+
+model Profile {
+  id          String      @id @unique @default(ulid())
+  accessLevel AccessLevel @default(COMUM)
+  user        User?
+}

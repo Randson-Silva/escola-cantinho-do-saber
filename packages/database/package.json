@@ -1,0 +1,13 @@
+{
+  "name": "@repo/database",
+  "scripts": {
+    "generate": "dotenv -e ../../apps/server/.env -- prisma generate",
+    "init": "dotenv -e ../../apps/server/.env -- prisma migrate dev --name init"
+  },
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^10.0.0"
+  }
+}

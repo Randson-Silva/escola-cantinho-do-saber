@@ -1,6 +1,6 @@
 import { ulid } from 'ulid';
 
-export class EntityId {
+export class UniqueEntityId {
   private value: string;
 
   toString() {
@@ -11,7 +11,7 @@ export class EntityId {
     this.value = value ?? ulid();
   }
 
-  equals(id: EntityId) {
+  equals(id: UniqueEntityId) {
     return id.toString() === this.value;
   }
 }
