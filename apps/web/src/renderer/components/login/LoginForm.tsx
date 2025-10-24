@@ -1,31 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
-import { Navigate, useNavigate } from 'react-router-dom';
-
-type FormState = { email: string; password: string };
-type Toast = { id: number; message: string };
+import { useNavigate } from 'react-router-dom';
+import { useForm, useAuth, useToast } from '../../hooks';
+import { login as loginApi } from '../../services/auth';
 
 function LoginForm() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<FormState>({ email: '', password: '' });
-  const [error, setError] = useState<string | null>(null);
+  const { values, handleChange } = useForm({ email: '', password: '' });
+  const { login } = useAuth();
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [capsEmail, setCapsEmail] = useState(false);
   const [capsPassword, setCapsPassword] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const showToast = useCallback((message: string) => {
-    const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, message }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3000);
-  }, []);
-
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null);
-  }
 
   function handleCaps(e: React.KeyboardEvent<HTMLInputElement>) {
     const on = e.getModifierState?.('CapsLock') ?? false;
@@ -35,29 +21,29 @@ function LoginForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
     // Validações com toasts flutuantes
-    if (!form.email.trim()) {
-      showToast('⚠️ Preencha o email');
+    if (!values.email.trim()) {
+      addToast('⚠️ Preencha o email', 'error');
       return;
     }
-    if (!form.email.includes('@')) {
-      showToast('⚠️ Email inválido');
+    if (!values.email.includes('@')) {
+      addToast('⚠️ Email inválido', 'error');
       return;
     }
-    if (!form.password.trim()) {
-      showToast('⚠️ Preencha a senha');
+    if (!values.password.trim()) {
+      addToast('⚠️ Preencha a senha', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 800));
-      console.log('Login:', form);
-      showToast('✅ Login realizado com sucesso!');
+      const response = await loginApi(values);
+      login(response.user, response.token);
+      addToast('✅ Login realizado com sucesso!', 'success');
+      // navigate('/dashboard'); // ajuste conforme sua rota
     } catch (err: any) {
-      showToast('❌ Erro ao fazer login');
+      addToast(err?.message ?? '❌ Erro ao fazer login', 'error');
     } finally {
       setLoading(false);
     }
@@ -65,15 +51,6 @@ function LoginForm() {
 
   return (
     <>
-      {/* Container de toasts flutuantes */}
-      <div className={styles.toastContainer}>
-        {toasts.map((toast) => (
-          <div key={toast.id} className={styles.toast}>
-            {toast.message}
-          </div>
-        ))}
-      </div>
-
       <form onSubmit={onSubmit} noValidate>
         <label className={styles.label}>
           Email
@@ -82,8 +59,8 @@ function LoginForm() {
             type="email"
             name="email"
             placeholder="Insira seu email:"
-            value={form.email}
-            onChange={onChange}
+            value={values.email}
+            onChange={handleChange}
             onKeyDown={handleCaps}
             onKeyUp={handleCaps}
             onBlur={() => setCapsEmail(false)}
@@ -99,8 +76,8 @@ function LoginForm() {
             type="password"
             name="password"
             placeholder="Digite sua senha:"
-            value={form.password}
-            onChange={onChange}
+            value={values.password}
+            onChange={handleChange}
             onKeyDown={handleCaps}
             onKeyUp={handleCaps}
             onBlur={() => setCapsPassword(false)}
