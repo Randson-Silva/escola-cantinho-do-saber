@@ -1,14 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 import LoginPage from './pages/Login';
-import './global.css';
 import RecoveryPage from './pages/Recovery';
+import { ToastContainer } from './components/ToastContainer';
+import './global.css';
 
 export function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
-        <Route path="/login" element={<LoginPage />} /> {/* Rota para a página de login */}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-senha" element={<RecoveryPage />} />
       </Routes>
     </BrowserRouter>
