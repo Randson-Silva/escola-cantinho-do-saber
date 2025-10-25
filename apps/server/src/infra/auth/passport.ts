@@ -5,8 +5,9 @@ import 'dotenv/config';
 
 const tokenPayloadSchema = z.object({
   sub: z.ulid(),
-  code: z.number().optional(),
+  code: z.string().optional(),
   accessLevel: z.enum(['ADMIN', 'COMUM']),
+  type: z.enum(['access', 'refresh', 'pass_reset']),
 });
 
 export type JwtPayload = z.infer<typeof tokenPayloadSchema>;

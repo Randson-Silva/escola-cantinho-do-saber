@@ -56,6 +56,7 @@ export class AuthenticateUserUseCase {
           ({
             sub: id.toString(),
             accessLevel: profile.accessLevel,
+            type: 'access',
           }) satisfies CreateAccessJwtPayload,
       }),
       this.authService.generateToken({
@@ -64,6 +65,7 @@ export class AuthenticateUserUseCase {
           ({
             sub: id.toString(),
             accessLevel: profile.accessLevel,
+            type: 'refresh',
           }) satisfies CreateRefreshJwtPayload,
         options: { expiresIn: '2h' },
       }),
