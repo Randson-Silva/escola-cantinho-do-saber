@@ -10,7 +10,10 @@ import { ProfileRepository } from './infra/database/repositories/profile.reposit
 import { UserRepository } from './infra/database/repositories/user.repository';
 import { AuthenticateUserController } from './infra/http/controllers/user/auth-user.controller';
 import { CreateUserController } from './infra/http/controllers/user/create-user.controller';
-import { checkJwt, requireRole } from './infra/auth/auth.middleware';
+import { ForgotPasswordController } from './infra/http/controllers/user/forgot-password.controller';
+import { ResetPasswordController } from './infra/http/controllers/user/reset-password.controller';
+import { VerifyCodeController } from './infra/http/controllers/user/verify-code.controller';
+import { RefreshUserSessionController } from './infra/http/controllers/user/refresh-user-session.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -39,19 +42,19 @@ configurePassport(passport);
 //#region CONTROLLERS AND ROUTES
 const createUserController = container.resolve(CreateUserController);
 const authUserController = container.resolve(AuthenticateUserController);
+const forgotPasswordController = container.resolve(ForgotPasswordController);
+const resetPasswordController = container.resolve(ResetPasswordController);
+const verifyCodeController = container.resolve(VerifyCodeController);
+const refreshUserSessionController = container.resolve(RefreshUserSessionController);
 
 router.use('/', authUserController.router);
-router.use('/', checkJwt, requireRole('ADMIN'), createUserController.router);
+router.use('/', forgotPasswordController.router);
+router.use('/', createUserController.router);
+router.use('/', resetPasswordController.router);
+router.use('/', verifyCodeController.router);
+router.use('/', refreshUserSessionController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 3000;
 
 app.listen(PORT, () => console.log(`🚀 Server listening on http://localhost:${PORT}`));
-
-router.stack
-  .filter((r) => r.route)
-  .map((r) => ({
-    path: r.route!.path,
-    methods: Object.keys(r.route!.all).join(', ').toUpperCase(),
-  }))
-  .forEach((r) => console.log(`${r.methods} ${r.path}`));
