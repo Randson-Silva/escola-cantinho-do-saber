@@ -57,7 +57,7 @@ export class AuthService {
     return jwt.sign(payload, privateKey, { algorithm });
   }
 
-  public generateSsoVerificationCode() {
+  public generateVerificationCode() {
     return crypto.randomInt(100000, 999999).toString();
   }
 }

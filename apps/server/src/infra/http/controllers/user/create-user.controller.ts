@@ -1,5 +1,3 @@
-// ! Scope not included yet
-
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { validateBody } from '../../../http-body-validator/validator.middleware';
@@ -7,6 +5,8 @@ import { CreateUserUseCase } from 'apps/server/src/domain/application/use-cases/
 import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.error';
 import { AuthService } from '../../../auth/auth.service';
 import { injectable } from 'tsyringe';
+import { CreateAccessJwtPayload } from 'apps/server/src/core/types/auth';
+import { checkJwt, requireRole } from '../../../auth/auth.middleware';
 
 const createUserBodySchema = z.object({
   name: z
@@ -46,6 +46,8 @@ export class CreateUserController {
   private registerRoutes(): void {
     this.router.post(
       '/auth/user/register',
+      checkJwt,
+      requireRole('ADMIN'),
       bodyValidationPipe,
 
       this.handle.bind(this),
@@ -57,7 +59,12 @@ export class CreateUserController {
 
     const { accessLevel, email, name, password } = body;
 
-    const result = await this.createUserUseCase.execute({ accessLevel, email, name, password });
+    const result = await this.createUserUseCase.execute({
+      accessLevel,
+      email,
+      name,
+      password,
+    });
 
     if (result.isFail()) {
       const exception = result.value;
@@ -75,10 +82,12 @@ export class CreateUserController {
 
     const accessToken = await this.authService.generateToken({
       payloadSource: { userId, accessLevel },
-      payloadGenerator: (data) => ({
-        sub: data.userId,
-        accessLevel: data.accessLevel,
-      }),
+      payloadGenerator: (data) =>
+        ({
+          sub: data.userId,
+          accessLevel: data.accessLevel,
+          type: 'access',
+        }) satisfies CreateAccessJwtPayload,
     });
 
     return res.status(200).json({ userId, accessToken });

@@ -3,7 +3,7 @@ import * as passport from 'passport';
 import { AccessLevel } from '../../core/types/role';
 import { JwtPayload } from './passport';
 
-interface IRequestWithUser extends Request {
+export interface IRequestWithUser extends Request {
   user?: JwtPayload;
 }
 
