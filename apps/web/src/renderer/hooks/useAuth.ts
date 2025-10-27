@@ -5,7 +5,15 @@ type User = { id: string; name: string; email: string };
 export function useAuth() {
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    if (!stored || stored === 'undefined' || stored === 'null') return null;
+    try {
+      return JSON.parse(stored);
+    } catch (err) {
+      // se o conteúdo armazenado estiver corrompido, remove e retorna null
+      console.error('useAuth: falha ao parsear user do localStorage', err, 'raw=', stored);
+      localStorage.removeItem('user');
+      return null;
+    }
   });
 
   const [token, setToken] = useState<string | null>(() => {
@@ -30,4 +38,3 @@ export function useAuth() {
 
   return { user, token, isAuthenticated, login, logout };
 }
-
