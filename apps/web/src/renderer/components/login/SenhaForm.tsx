@@ -16,9 +16,13 @@ function SenhaForm() {
     setLoading(true);
 
     try {
-      await requestPasswordReset(values.email);
+      const { authToken } = await requestPasswordReset(values.email);
+      // guarda o token do passo para a próxima chamada (verify-code)
+      localStorage.setItem('auth_token', authToken);
+      console.log('🔑 Token salvo:', authToken.substring(0, 20) + '...');
       addToast('Email de recuperação enviado com sucesso!', 'success');
-      // Opcional: navigate('/login');
+      // Redireciona para a tela de código
+      navigate('/senha-numero', { state: { email: values.email } });
     } catch (err: any) {
       addToast(err?.message ?? 'Não foi possível enviar o email de recuperação.', 'error');
     } finally {
@@ -71,4 +75,3 @@ function SenhaForm() {
 }
 
 export default SenhaForm;
-
