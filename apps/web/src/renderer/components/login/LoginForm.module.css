@@ -4,6 +4,17 @@
   --danger: #b00020;
   --form: #e6eaf000;
   --border: #42567400;
+  --btn-hi: #39b0ea; /* highlight sutil */
+  --btn: #267fa8; /* cor principal do botão (fallback) */
+  --link-color: #1157da;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --shadow-dark: rgba(0, 0, 0, 0.18);
+  --shadow-light: rgba(255, 255, 255, 0.85);
+  --icon: #ffffff;
+
+  /* medidas */
+  --size: 120px;
+  --radius: 26px;
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -13,7 +24,6 @@
   font-size: 20px;
   color: #12203f;
   width: 100%;
-  
 }
 
 .input {
@@ -102,11 +112,10 @@
 .capsWarning {
   margin-top: 1px;
   font-size: 12px;
-  color: var(--danger);     /* usa sua cor de erro */
+  color: var(--danger); /* usa sua cor de erro */
   line-height: 1.2;
-  align-self: flex-start;   /* mantém alinhado ao início do grupo */
+  align-self: flex-start; /* mantém alinhado ao início do grupo */
 }
-
 
 .toastContainer {
   position: fixed;
@@ -143,23 +152,27 @@
     opacity: 1;
   }
 }
+
 .backButton {
   position: fixed;
   top: 24px;
   left: 24px;
-  background: var(--card-bg);
+  background: #2fa4dd;
   color: var(--text-primary);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 12px 20px;
-  font-size: 16px;
+  border-radius: 20px;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-size: 30px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
   z-index: 10;
 }
 
@@ -172,4 +185,83 @@
 
 .backButton:active {
   transform: translateX(-1px);
+}
+
+/* ==========================
+   OTP (código de verificação)
+   ========================== */
+.otpContainer {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  gap: 10px;
+  margin: 16px 0 24px;
+  width: 100%;
+}
+
+.otpInput {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* mantém quadrado e se ajusta ao container */
+  border-radius: 12px;
+  border: none;
+  background: #d9d9d9;
+  text-align: center;
+  font-size: clamp(18px, 5vw, 28px);
+  color: #143861;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.otpInput:focus {
+  background: #e6e6e6;
+  box-shadow: 0 0 0 3px rgba(62, 166, 222, 0.25);
+}
+
+/* Container e Toggle de Senha */
+.passwordContainer {
+  position: relative;
+  width: 100%;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+  user-select: none;
+  color: #555;
+  border-radius: 4px;
+}
+
+.togglePassword svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.togglePassword:hover:not(:disabled) {
+  opacity: 0.8;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.togglePassword:hover:not(:disabled) svg {
+  transform: scale(1.1);
+}
+
+.togglePassword:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.togglePassword:focus {
+  outline: 2px solid rgba(62, 166, 222, 0.4);
+  outline-offset: 2px;
+  opacity: 0.8;
 }

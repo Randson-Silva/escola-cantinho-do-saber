@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import * as express from 'express';
 import * as passport from 'passport';
+import * as cors from 'cors';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { PROFILE_REPOSITORY_TOKEN } from './domain/application/repositories/profile.repository';
@@ -28,6 +29,12 @@ const app = express();
 
 const router = express.Router();
 
+app.use(
+  cors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  }),
+);
 app.use(express.json());
 
 app.use('/api/v1', router);
