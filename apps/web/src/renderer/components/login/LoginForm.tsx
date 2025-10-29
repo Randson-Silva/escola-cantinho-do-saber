@@ -39,11 +39,46 @@ function LoginForm() {
     setLoading(true);
     try {
       const response = await loginApi(values);
+
+      // Log 1: Verificar resposta completa da API
+      console.log('[LoginForm] Resposta completa da API:', response);
+      console.log('[LoginForm] response.user:', response.user);
+      console.log('[LoginForm] response.token:', response.token);
+
+      // Log 2: Verificar se user tem role
+      if (response.user) {
+        console.log('[LoginForm] ✅ Login bem-sucedido!');
+        console.log('[LoginForm] Nome do usuário:', response.user.name);
+        console.log('[LoginForm] Email:', response.user.email);
+        console.log('[LoginForm] Nível de acesso:', response.user.role || 'ROLE NÃO DEFINIDO');
+      } else {
+        console.warn('[LoginForm] ⚠️ response.user está undefined!');
+      }
+
       login(response.user, response.token);
       addToast('✅ Login realizado com sucesso!', 'success');
       // navigate('/dashboard'); // ajuste conforme sua rota
     } catch (err: any) {
-      addToast(err?.message ?? '❌ Erro ao fazer login', 'error');
+      const errorMessage = err?.message?.toLowerCase() || '';
+
+      // Mensagens específicas baseadas no erro
+      if (
+        errorMessage.includes('email') ||
+        errorMessage.includes('user') ||
+        errorMessage.includes('usuário')
+      ) {
+        addToast('⚠️ Email não encontrado. Verifique se está correto.', 'error');
+      } else if (
+        errorMessage.includes('senha') ||
+        errorMessage.includes('password') ||
+        errorMessage.includes('credenciais')
+      ) {
+        addToast('⚠️ Senha incorreta. Tente novamente.', 'error');
+      } else if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
+        addToast('⚠️ Usuário não encontrado no sistema.', 'error');
+      } else {
+        addToast(err?.message ?? '❌ Erro ao fazer login', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -106,7 +141,3 @@ function LoginForm() {
 }
 
 export default LoginForm;
-
-
-
-

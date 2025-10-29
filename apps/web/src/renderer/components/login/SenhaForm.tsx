@@ -13,6 +13,17 @@ function SenhaForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validação de email antes de enviar
+    if (!values.email.trim()) {
+      addToast('⚠️ Preencha o email', 'error');
+      return;
+    }
+    if (!values.email.includes('@')) {
+      addToast('⚠️ Email inválido', 'error');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -20,11 +31,24 @@ function SenhaForm() {
       // guarda o token do passo para a próxima chamada (verify-code)
       localStorage.setItem('auth_token', authToken);
       console.log('🔑 Token salvo:', authToken.substring(0, 20) + '...');
-      addToast('Email de recuperação enviado com sucesso!', 'success');
+      addToast('✅ Email de recuperação enviado com sucesso!', 'success');
       // Redireciona para a tela de código
       navigate('/senha-numero', { state: { email: values.email } });
     } catch (err: any) {
-      addToast(err?.message ?? 'Não foi possível enviar o email de recuperação.', 'error');
+      const errorMessage = err?.message?.toLowerCase() || '';
+
+      // Mensagens específicas baseadas no erro
+      if (
+        errorMessage.includes('email') ||
+        errorMessage.includes('não encontrado') ||
+        errorMessage.includes('not found')
+      ) {
+        addToast('⚠️ Email não encontrado. Verifique se está cadastrado.', 'error');
+      } else if (errorMessage.includes('user') || errorMessage.includes('usuário')) {
+        addToast('⚠️ Usuário não encontrado no sistema.', 'error');
+      } else {
+        addToast(err?.message ?? '❌ Não foi possível enviar o email de recuperação.', 'error');
+      }
     } finally {
       setLoading(false);
     }
