@@ -2,13 +2,31 @@ import { api } from './api';
 
 export type LoginPayload = { email: string; password: string };
 export type LoginResponse = {
-  token: string;
-  user: { id: string; name: string; email: string };
+  accessToken: string;
+  refreshToken: string;
 };
 
 export async function login(payload: LoginPayload) {
   const { data } = await api.post<LoginResponse>('/auth/user/login', payload);
-  return data;
+
+  // Decodifica o accessToken para extrair dados do usuário
+  const tokenPayload = JSON.parse(atob(data.accessToken.split('.')[1]));
+  console.log('[auth.ts] Payload decodificado do token:', tokenPayload);
+
+  // Monta objeto user a partir do payload do token
+  const user = {
+    id: tokenPayload.sub,
+    name: tokenPayload.name || 'Usuário', // Se não tiver name no token
+    email: tokenPayload.email || '', // Se não tiver email no token
+    role: tokenPayload.accessLevel as 'ADMIN' | 'COMUM',
+  };
+
+  console.log('[auth.ts] User montado:', user);
+
+  return {
+    token: data.accessToken,
+    user,
+  };
 }
 
 export async function requestPasswordReset(email: string) {
