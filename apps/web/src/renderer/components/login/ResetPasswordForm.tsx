@@ -65,7 +65,7 @@ function ResetPasswordForm() {
           Nova senha
           <div className={formStyles.passwordContainer}>
             <input
-              className={`${formStyles.input} ${formStyles.inputPassword}`}
+              className={formStyles.input}
               type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="Digite a nova senha"
@@ -123,7 +123,7 @@ function ResetPasswordForm() {
           Confirmar nova senha
           <div className={formStyles.passwordContainer}>
             <input
-              className={`${formStyles.input} ${formStyles.inputPassword}`}
+              className={formStyles.input}
               type={showConfirm ? 'text' : 'password'}
               name="confirm"
               placeholder="Confirme a nova senha"
@@ -176,7 +176,7 @@ function ResetPasswordForm() {
         </label>
 
         <button type="submit" className={formStyles.submit} disabled={!canSubmit}>
-          {loading ? 'Salvando...' : 'Salvar e entrar'}
+          {loading ? 'Salvando...' : 'Salvar'}
         </button>
       </form>
     </>
