@@ -36,11 +36,11 @@ function SenhaForm() {
       navigate('/senha-numero', { state: { email: values.email } });
     } catch (err: any) {
       const errorMessage = err?.message?.toLowerCase() || '';
-      
+
       console.error('❌ Erro ao solicitar recuperação de senha:', {
         email: values.email,
         error: err?.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Mensagens específicas baseadas no erro
@@ -52,10 +52,16 @@ function SenhaForm() {
         addToast('⚠️ Email não encontrado. Verifique se está cadastrado.', 'error');
       } else if (errorMessage.includes('user') || errorMessage.includes('usuário')) {
         addToast('⚠️ Usuário não encontrado no sistema.', 'error');
-      } else if (errorMessage.includes('muitas tentativas') || errorMessage.includes('rate limit')) {
+      } else if (
+        errorMessage.includes('muitas tentativas') ||
+        errorMessage.includes('rate limit')
+      ) {
         addToast('⚠️ Muitas tentativas. Por favor, aguarde alguns minutos.', 'error');
       } else {
-        addToast('❌ Não foi possível enviar o email de recuperação. Tente novamente mais tarde.', 'error');
+        addToast(
+          '❌ Não foi possível enviar o email de recuperação. Tente novamente mais tarde.',
+          'error',
+        );
       }
     } finally {
       setLoading(false);
