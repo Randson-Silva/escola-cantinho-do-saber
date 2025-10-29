@@ -1,13 +1,94 @@
-
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
+:root {
+  /* Cores principais */
+  --primary-color: #175b80;
+  --secondary-color: #2a9d8f;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --text-color-light: #666666;
+  --error-color: #e63946;
+  --success-color: #2ecc71;
+  --warning-color: #f1c40f;
+  --link-color: #175b80;
 
-*{
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    --link-color: #175b80;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    
+  /* Cores específicas do formulário */
+  --input-bg: #3ea6de;
+  --input-text: #175b80;
+  --input-placeholder: #175b80;
+  --btn-primary: #267fa8;
+  --btn-hover: #39b0ea;
+
+  /* Fontes */
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Tamanhos de fonte */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+
+  /* Pesos da fonte */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* Reset e estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilos globais de formulário */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Container root */
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
