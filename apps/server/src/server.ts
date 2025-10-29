@@ -15,12 +15,18 @@ import { ForgotPasswordController } from './infra/http/controllers/user/forgot-p
 import { ResetPasswordController } from './infra/http/controllers/user/reset-password.controller';
 import { VerifyCodeController } from './infra/http/controllers/user/verify-code.controller';
 import { RefreshUserSessionController } from './infra/http/controllers/user/refresh-user-session.controller';
+import { STUDENT_REPOSITORY_TOKEN } from './domain/application/repositories/student.repository';
+import { StudentRepository } from './infra/database/repositories/student.repository';
+import { CreateStudentController } from './infra/http/controllers/student/create-student.controller';
+import { FindStudentByIdController } from './infra/http/controllers/student/find-student-by-id.controller';
+import { UpdateStudentController } from './infra/http/controllers/student/update-student.controller';
+import { DeleteStudentController } from './infra/http/controllers/student/delete-student.controller';
 
 //#region MODULE CONFIGURATION
 
 container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
-
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
+container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 
 //#endregion
 
@@ -54,14 +60,24 @@ const resetPasswordController = container.resolve(ResetPasswordController);
 const verifyCodeController = container.resolve(VerifyCodeController);
 const refreshUserSessionController = container.resolve(RefreshUserSessionController);
 
+const createStudentController = container.resolve(CreateStudentController);
+const findStudentByIdController = container.resolve(FindStudentByIdController);
+const updateStudentController = container.resolve(UpdateStudentController);
+const deleteStudentController = container.resolve(DeleteStudentController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
 router.use('/', resetPasswordController.router);
 router.use('/', verifyCodeController.router);
 router.use('/', refreshUserSessionController.router);
+
+router.use('/', createStudentController.router);
+router.use('/', findStudentByIdController.router);
+router.use('/', updateStudentController.router);
+router.use('/', deleteStudentController.router);
 //#endregion
 
-const PORT = process.env.EXPRESS_BACK_PORT ?? 3000;
+const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
 
 app.listen(PORT, () => console.log(`🚀 Server listening on http://localhost:${PORT}`));
