@@ -1,5 +1,3 @@
-//* ? using extension: aaron-bond.better-comments
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -10,7 +8,7 @@ generator client {
 }
 
 /**
- * * USERS / PROFILES
+ * * USUÁRIOS / PERFIS
  */
 model User {
   id       String @id @unique @default(ulid())
@@ -18,11 +16,6 @@ model User {
   email    String @unique
   password String
 
-  /**
-   * * Relação usuário-perfil 1:1, um usuário só pode ter 1 perfil.
-   * * Justificativa: um usuário COMUM não tem as mesmas permissões
-   * * do ADMIN, mas um ADMIN tem acesso como um COMUM e permissões a mais.
-   */
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId String  @unique
 }
@@ -36,116 +29,147 @@ model Profile {
   id          String      @id @unique @default(ulid())
   accessLevel AccessLevel @default(COMUM)
 
-  //* Relação 1:1 com usuário
-  user   User?
-  userId String @unique
+  user User?
 }
 
 /**
- * * ACADEMIC MODELS
+ * * MODELOS ACADÊMICOS
  */
-
-model Serie {
-  id       String    @id @unique @default(ulid())
+model Series {
+  id       String             @id @unique @default(ulid())
   name     String
-  //* uma série pode ter várias turmas
-  classes  Class[]
-  //* uma série pode ter vários alunos (caso queira armazenar diretamente)
-  students Student[]
+  classes  ClassHasSeries[] //* N:N Turma <-> Série
+  students Student[] //* 1:N Série -> Alunos
+  teachers TeacherQualified[] //* N:N Professor <-> Série
 }
 
+/**
+ * * PROFESSOR
+ */
 model Teacher {
-  id    String @id @unique @default(ulid())
-  name  String
-  cpf   String @unique
-  phone String @unique
+  id        String @id @unique @default(ulid())
+  name      String
+  taxId     String @unique
+  phone     String @unique
+  pixKey    String
+  expertise String
 
-  //* Relação 1:1 com a turma (lado inverse optional para evitar ciclo)
-  classId String @unique
-  class   Class?
+  //* 1:N Professor -> Turma
+  classes   Class[]
+  //* N:N Professor <-> Série
+  qualified TeacherQualified[]
 }
 
+/**
+ * * RELAÇÃO N:N PROFESSOR <-> SÉRIE
+ */
+model TeacherQualified {
+  teacherId String
+  seriesId  String
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  series  Series  @relation(fields: [seriesId], references: [id])
+
+  @@id([teacherId, seriesId])
+}
+
+/**
+ * * TURMA
+ */
 model Class {
-  id   String @id @unique @default(ulid())
-  name String
-
-  //* relação 1:N com aluno (1 turma tem muitos alunos)
-  students Student[]
-
-  //* relação 1:1 com professor (1 turma tem apenas 1 professor)
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-  teacherId String  @unique
-
-  //* Uma turma pode pertencer a uma série
-  serie   Serie?  @relation(fields: [serieId], references: [id])
-  serieId String?
-
-  //* Aulas da turma
-  lessons Lesson[]
-
-  //* horários/ex.: hora_inicio, hora_final, duração (strings ou DateTime dependendo do seu uso)
+  id        String  @id @unique @default(ulid())
+  name      String
   startTime String?
   endTime   String?
   duration  String?
+
+  //* Relação 1:N com Professor
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  //* Relação N:N com Série
+  series ClassHasSeries[]
+
+  //* Relação 1:N com Aula
+  lessons Lesson[]
+
+  //* Relação 1:N com Aluno
+  students Student[]
 }
 
 /**
- * * STUDENT / GUARDIAN (Responsável)
- * * Relação: um RESPONSÁVEL pode ter N ALUNOS (1:N)
- * * No Student guardamos guardianId (FK). Não é @unique, pois um responsável pode ter vários alunos.
+ * * TABELA ASSOCIATIVA TURMA_POSSUI_SÉRIE
  */
+model ClassHasSeries {
+  seriesId String
+  classId  String
 
+  series Series @relation(fields: [seriesId], references: [id])
+  class  Class  @relation(fields: [classId], references: [id])
+
+  @@id([seriesId, classId])
+}
+
+/**
+ * * ALUNO / RESPONSÁVEL
+ */
+model Student {
+  id        String   @id @unique @default(ulid())
+  name      String
+  birthDate DateTime
+
+  //* Relação com Turma
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  //* Relação opcional com Série
+  seriesId String?
+  series   Series? @relation(fields: [seriesId], references: [id])
+
+  //* Relação N:N com Endereço
+  addresses Address[] @relation("StudentAddresses")
+
+  //* Relação N:N com Responsável
+  guardians StudentHasGuardian[]
+
+  //* Matrículas e Pagamentos
+  enrollments Enrollment[]
+  attendances Attendance[]
+}
+
+/**
+ * * RESPONSÁVEL
+ */
 model Guardian {
   id     String   @id @unique @default(ulid())
   name   String
   email  String?  @unique
   phones String[]
 
-  //* Relação N:N de endereço
+  //* Relação N:N com Endereço
   addresses Address[] @relation("GuardianAddresses")
 
-  //* Relação 1:N -> vários alunos
-  students Student[]
-}
-
-model Student {
-  id        String   @id @unique @default(ulid())
-  name      String
-  birthdate DateTime
-
-  //* Relação N:1 com turma (1 turma tem muitos alunos)
-  class   Class  @relation(fields: [classId], references: [id])
-  classId String
-
-  //* Relação N:1 com guardian (um responsável pode ter vários alunos)
-  guardian   Guardian @relation(fields: [guardianId], references: [id])
-  guardianId String
-
-  //* parentesco do aluno com o responsável (ex: mãe, pai, tutor)
-  kinship String
-
-  /**
-   * * Relação N:N de aluno e endereço.
-   * * Um aluno pode ter mais de um endereço,
-   * * e um endereço pode pertencer a mais de um aluno.
-   */
-  addresses Address[] @relation("StudentAddresses") //* Gera tabela intermediária (studentID, addressID)
-
-  //* Matrículas do aluno
-  enrollments Enrollment[]
-
-  //* Frequências / presenças
-  attendances Attendance[]
-
-  //* série cursada (opcional se você já tem por turma)
-  serieId String?
-  serie   Serie?  @relation(fields: [serieId], references: [id])
+  //* Relação N:N com Aluno via intermediária
+  students StudentHasGuardian[]
 }
 
 /**
- * * ADDRESS (N:N com Student e Guardian)
+ * * ENTIDADE ASSOCIATIVA ALUNO_POSSUI_RESPONSÁVEL
  */
+model StudentHasGuardian {
+  studentId  String
+  guardianId String
+  kinship    String?
 
+  student  Student  @relation(fields: [studentId], references: [id])
+  guardian Guardian @relation(fields: [guardianId], references: [id])
+
+  @@id([studentId, guardianId])
+}
+
+/**
+ * * ENDEREÇO
+ */
 model Address {
   id         String  @id @unique @default(ulid())
   street     String
@@ -153,65 +177,85 @@ model Address {
   district   String
   complement String?
 
-  //* Relações N:N ->
-  students  Student[]  @relation("StudentAddresses") //* Gera tabela (studentID, addressID)
-  guardians Guardian[] @relation("GuardianAddresses") //* Gera tabela (guardianID, addressID)
+  students  Student[]  @relation("StudentAddresses")
+  guardians Guardian[] @relation("GuardianAddresses")
 }
 
 /**
- * * ENROLLMENT / CONTRACT / PAYMENT (Matrícula / Contrato / Mensalidade)
+ * * CONTRATO / MATRÍCULA / PAGAMENTO
  */
-
 model Contract {
-  id          String       @id @unique @default(ulid())
-  startDate   DateTime
-  endDate     DateTime?
-  document    String?
-  signatureAt DateTime?
+  id            String    @id @unique @default(ulid())
+  signatureDate DateTime
+  dueDate       DateTime?
+  document      String?
+
+  //* 1:N Contrato -> Matrícula
   enrollments Enrollment[]
 }
 
+/**
+ * * MATRÍCULA
+ */
 model Enrollment {
-  id         String    @id @unique @default(ulid())
-  student    Student   @relation(fields: [studentId], references: [id])
-  studentId  String
-  contract   Contract  @relation(fields: [contractId], references: [id])
-  contractId String
-  status     String //* ex: ativa, cancelada, pendente
-  enrolledAt DateTime  @default(now())
-  payments   Payment[]
-}
+  id             String   @id @unique @default(ulid())
+  status         String
+  enrollmentDate DateTime
+  studentId      String
+  contractId     String
 
-model Payment {
-  id           String     @id @unique @default(ulid())
-  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
-  enrollmentId String
-  amount       Float
-  dueDate      DateTime
-  paidAt       DateTime?
-  status       String //* ex: PENDENTE, PAGO, ATRASADO
+  student  Student   @relation(fields: [studentId], references: [id])
+  contract Contract  @relation(fields: [contractId], references: [id])
+  payments Payment[]
 }
 
 /**
- * * LESSON / ATTENDANCE (Aula / Frequência)
+ * * MENSALIDADE (PAYMENT)
  */
+model Payment {
+  id            String    @id @unique @default(ulid())
+  amount        Float
+  dueDate       DateTime
+  paymentDate   DateTime?
+  paymentStatus String
+  enrollmentId  String
 
-model Lesson {
-  id          String       @id @unique @default(ulid())
-  date        DateTime
-  topic       String?
-  class       Class        @relation(fields: [classId], references: [id])
-  classId     String
-  attendances Attendance[]
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
 }
 
-model Attendance {
-  id        String  @id @unique @default(ulid())
-  status    String //* presente / ausente / justificativa
-  student   Student @relation(fields: [studentId], references: [id])
-  studentId String
-  lesson    Lesson  @relation(fields: [lessonId], references: [id])
-  lessonId  String
+/**
+ * * AULA (LESSON)
+ */
+model Lesson {
+  id         String   @id @unique @default(ulid())
+  lessonDate DateTime
+  classId    String
 
-  @@unique([studentId, lessonId])
+  class       Class                      @relation(fields: [classId], references: [id])
+  attendances AttendanceLinkedToLesson[]
+}
+
+/**
+ * * FREQUÊNCIA (ATTENDANCE)
+ */
+model Attendance {
+  id             String @id @unique @default(ulid())
+  presenceStatus String
+  studentId      String
+
+  student       Student                    @relation(fields: [studentId], references: [id])
+  linkedLessons AttendanceLinkedToLesson[]
+}
+
+/**
+ * * TABELA ASSOCIATIVA FREQUÊNCIA_VINCULADA_A_AULA
+ */
+model AttendanceLinkedToLesson {
+  attendanceId String
+  lessonId     String
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
+  lesson     Lesson     @relation(fields: [lessonId], references: [id])
+
+  @@id([attendanceId, lessonId])
 }
