@@ -38,14 +38,51 @@ function ResetPasswordForm() {
     }
 
     setLoading(true);
+
+    // Log do início do processo
+    console.log('🔄 Iniciando processo de redefinição de senha', {
+      email,
+      timestamp: new Date().toISOString(),
+      passwordLength: password.length,
+      hasToken: !!localStorage.getItem('auth_token'),
+    });
+
     try {
       await resetPassword({ password });
-      addToast('Senha redefinida com sucesso! Faça login com a nova senha.', 'success');
-      // limpa o token de reset após sucesso
+
+      // Log de sucesso com informações relevantes
+      console.log('✅ Senha redefinida com sucesso', {
+        email,
+        timestamp: new Date().toISOString(),
+        success: true,
+      });
+
+      // Mensagem de sucesso para o usuário
+      addToast('✅ Senha redefinida com sucesso! Faça login com a nova senha.', 'success');
+
+      // Limpa o token de reset após sucesso
       localStorage.removeItem('auth_token');
       navigate('/login');
     } catch (err: any) {
-      addToast(err?.message ?? 'Não foi possível redefinir a senha.', 'error');
+      // Log detalhado do erro
+      console.error('❌ Erro ao redefinir senha:', {
+        email,
+        error: err?.message,
+        timestamp: new Date().toISOString(),
+        type: err?.name,
+        hasToken: !!localStorage.getItem('auth_token'),
+      });
+
+      // Tratamento específico de erros
+      const errorMessage = err?.message?.toLowerCase() || '';
+      if (errorMessage.includes('token') || errorMessage.includes('expirado')) {
+        addToast('⚠️ Sessão expirada. Por favor, solicite um novo código.', 'error');
+        navigate('/recuperar-senha');
+      } else if (errorMessage.includes('fraca') || errorMessage.includes('weak')) {
+        addToast('⚠️ A senha não atende aos requisitos mínimos de segurança.', 'error');
+      } else {
+        addToast('❌ Não foi possível redefinir a senha. Tente novamente.', 'error');
+      }
     } finally {
       setLoading(false);
     }
