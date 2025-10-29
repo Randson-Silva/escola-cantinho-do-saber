@@ -83,20 +83,37 @@ function SenhaNumeroForm() {
     }
 
     const token = localStorage.getItem('auth_token');
-    console.log('🔑 Token no localStorage:', token ? token.substring(0, 20) + '...' : 'NENHUM');
+    if (!token) {
+      console.error('❌ Token não encontrado no localStorage');
+      addToast('Erro de autenticação. Por favor, solicite um novo código.', 'error');
+      navigate('/recuperar-senha');
+      return;
+    }
 
     setLoading(true);
     try {
       const { authToken } = await verifyRecoveryCode(code);
-      // troca o token pelo token do tipo 'pass_reset'
+      // Se o código está correto, salvamos o novo token
       localStorage.setItem('auth_token', authToken);
-      console.log('✅ Novo token salvo:', authToken.substring(0, 20) + '...');
+      console.log('✅ Código verificado com sucesso');
       addToast('Código verificado com sucesso!', 'success');
       // Próxima etapa: redefinir senha
       navigate('/nova-senha', { state: { email } });
     } catch (err: any) {
-      console.error('❌ Erro ao verificar código:', err);
-      addToast(err?.message ?? 'Código inválido. Tente novamente.', 'error');
+      console.error('❌ Erro ao verificar código:', {
+        message: err?.message,
+        code,
+        email,
+      });
+
+      if (err?.message?.toLowerCase().includes('expirado')) {
+        addToast('O código expirou. Por favor, solicite um novo código.', 'error');
+        navigate('/recuperar-senha');
+      } else if (err?.message?.toLowerCase().includes('inválido')) {
+        addToast('Código incorreto. Verifique e tente novamente.', 'error');
+      } else {
+        addToast('Erro ao verificar o código. Tente novamente.', 'error');
+      }
     } finally {
       setLoading(false);
     }
