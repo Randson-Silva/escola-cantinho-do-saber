@@ -1,10 +1,11 @@
 .label {
   display: flex;
   flex-direction: column;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   color: var(--text-color);
   width: 100%;
   font-family: var(--font-primary);
+  margin-bottom: var(--space-sm);
 }
 
 .passwordContainer {
@@ -13,10 +14,10 @@
 }
 
 .input {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  padding: var(--input-padding);
+  border-radius: var(--input-border-radius);
   border: 1px solid transparent;
   background: var(--input-bg);
   outline: none;
@@ -24,6 +25,7 @@
   width: 100%;
   align-self: center;
   font-size: var(--font-size-base);
+  transition: all 0.2s ease;
 }
 
 .togglePassword {
@@ -86,29 +88,28 @@
 }
 
 .submit {
-  margin-top: 6px;
-  padding: 12px 16px;
-  border-radius: 10px;
+  margin-top: var(--space-md);
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  border-radius: var(--btn-border-radius);
   background: var(--btn-primary);
   color: var(--background-color);
   font-weight: var(--font-weight-medium);
   border: none;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   width: 50%;
+  max-width: 200px;
+  min-width: 120px;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  font-size: var(--font-size-base);
 }
 
 .submit:hover {
   background: var(--btn-hover);
   cursor: pointer;
-  font-size: 18px;
-  width: 50%;
-  align-self: center;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .forgotRow {
