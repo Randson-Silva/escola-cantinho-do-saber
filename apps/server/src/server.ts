@@ -27,6 +27,12 @@ import { CreateClassController } from './infra/http/controllers/class/create-cla
 import { DeleteClassController } from './infra/http/controllers/class/delete-class.controller';
 import { FindClassByIdController } from './infra/http/controllers/class/find-class-by-id.controller';
 import { UpdateClassController } from './infra/http/controllers/class/update-class.controller';
+import { SERIE_REPOSITORY_TOKEN } from './domain/application/repositories/serie.repository';
+import { SerieRepository } from './infra/database/repositories/serie.repository';
+import { CreateSerieController } from './infra/http/controllers/serie/create-serie.controller';
+import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
+import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
+import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -34,6 +40,7 @@ container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
 container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
+container.register(SERIE_REPOSITORY_TOKEN, { useClass: SerieRepository });
 
 //#endregion
 
@@ -77,6 +84,11 @@ const findClassByIdController = container.resolve(FindClassByIdController);
 const updateClassController = container.resolve(UpdateClassController);
 const deleteClassController = container.resolve(DeleteClassController);
 
+const createSerieController = container.resolve(CreateSerieController);
+const findSerieByIdController = container.resolve(FindSerieByIdController);
+const updateSerieController = container.resolve(UpdateSerieController);
+const deleteSerieController = container.resolve(DeleteSerieController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -93,6 +105,11 @@ router.use('/', createClassController.router);
 router.use('/', findClassByIdController.router);
 router.use('/', updateClassController.router);
 router.use('/', deleteClassController.router);
+
+router.use('/', createSerieController.router);
+router.use('/', findSerieByIdController.router);
+router.use('/', updateSerieController.router);
+router.use('/', deleteSerieController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
