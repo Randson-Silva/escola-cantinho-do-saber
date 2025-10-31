@@ -65,6 +65,13 @@ import { CreateGuardianController } from './infra/http/controllers/guardian/crea
 import { LinkGuardianToStudentController } from './infra/http/controllers/student-guardian/link-guardian-to-student.controller';
 import { CreateLessonController } from './infra/http/controllers/lesson/create-lesson.controller';
 import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
+import { ADDRESS_REPOSITORY_TOKEN } from './domain/application/repositories/address.repository';
+import { PrismaAddressRepository } from './infra/database/repositories/prisma.adress.repository';
+import { CreateAddressController } from './infra/http/controllers/address/create-address.controller';
+import { FindAddressController } from './infra/http/controllers/address/find-address.controller';
+import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
+import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
+
 
 //#region MODULE CONFIGURATION
 
@@ -87,6 +94,7 @@ container.registerSingleton<IAttendanceLinkedToLessonRepository>(
   AttendanceLinkedToLessonRepository,
 );
 container.register(SERIE_REPOSITORY_TOKEN, { useClass: SerieRepository });
+container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
 
 //#endregion
 
@@ -147,6 +155,11 @@ const registerStudentAttendanceController = container.resolve(
   RegisterStudentAttendanceController,
 );
 
+const createAddressController = container.resolve(CreateAddressController);
+const findAddressController = container.resolve(FindAddressController);
+const updateAddressController = container.resolve(UpdateAddressController);
+const deleteAddressController = container.resolve(DeleteAddressController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -176,6 +189,11 @@ router.use('/', createGuardianController.router);
 router.use('/', linkGuardianToStudentController.router);
 router.use('/', createLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
+
+router.use('/', createAddressController.router);
+router.use('/', findAddressController.router);
+router.use('/', updateAddressController.router);
+router.use('/', deleteAddressController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
