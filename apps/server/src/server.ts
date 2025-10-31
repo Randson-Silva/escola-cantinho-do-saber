@@ -6,6 +6,16 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { PROFILE_REPOSITORY_TOKEN } from './domain/application/repositories/profile.repository';
 import { USERS_REPOSITORY_TOKEN } from './domain/application/repositories/user.repository';
+import {
+  GUARDIAN_REPOSITORY_TOKEN,
+  IGuardianRepository,
+} from 'apps/server/src/domain/application/repositories/guardian.repository';
+import { GuardianRepository } from 'apps/server/src/infra/database/repositories/guardian.repository';
+import {
+  STUDENT_GUARDIAN_REPOSITORY_TOKEN,
+  IStudentGuardianRepository,
+} from 'apps/server/src/domain/application/repositories/student-guardian.repository';
+import { StudentGuardianRepository } from 'apps/server/src/infra/database/repositories/student-guardian.repository';
 import { configurePassport } from './infra/auth/passport';
 import { ProfileRepository } from './infra/database/repositories/profile.repository';
 import { UserRepository } from './infra/database/repositories/user.repository';
@@ -30,6 +40,8 @@ import { DeleteStudentController } from './infra/http/controllers/student/delete
 container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
 container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
+container.registerSingleton<IGuardianRepository>( GUARDIAN_REPOSITORY_TOKEN, GuardianRepository,);
+container.registerSingleton<IStudentGuardianRepository>( STUDENT_GUARDIAN_REPOSITORY_TOKEN, StudentGuardianRepository,);
 
 //#endregion
 
