@@ -27,6 +27,13 @@ import { CreateClassController } from './infra/http/controllers/class/create-cla
 import { DeleteClassController } from './infra/http/controllers/class/delete-class.controller';
 import { FindClassByIdController } from './infra/http/controllers/class/find-class-by-id.controller';
 import { UpdateClassController } from './infra/http/controllers/class/update-class.controller';
+import { ADDRESS_REPOSITORY_TOKEN } from './domain/application/repositories/address.repository';
+import { PrismaAddressRepository } from './infra/database/repositories/prisma.adress.repository';
+import { CreateAddressController } from './infra/http/controllers/address/create-address.controller';
+import { FindAddressController } from './infra/http/controllers/address/find-address.controller';
+import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
+import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
+
 
 //#region MODULE CONFIGURATION
 
@@ -34,6 +41,7 @@ container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
 container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
+container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
 
 //#endregion
 
@@ -77,6 +85,11 @@ const findClassByIdController = container.resolve(FindClassByIdController);
 const updateClassController = container.resolve(UpdateClassController);
 const deleteClassController = container.resolve(DeleteClassController);
 
+const createAddressController = container.resolve(CreateAddressController);
+const findAddressController = container.resolve(FindAddressController);
+const updateAddressController = container.resolve(UpdateAddressController);
+const deleteAddressController = container.resolve(DeleteAddressController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -93,6 +106,11 @@ router.use('/', createClassController.router);
 router.use('/', findClassByIdController.router);
 router.use('/', updateClassController.router);
 router.use('/', deleteClassController.router);
+
+router.use('/', createAddressController.router);
+router.use('/', findAddressController.router);
+router.use('/', updateAddressController.router);
+router.use('/', deleteAddressController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
