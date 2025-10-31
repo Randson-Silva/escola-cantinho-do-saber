@@ -21,12 +21,19 @@ import { CreateStudentController } from './infra/http/controllers/student/create
 import { FindStudentByIdController } from './infra/http/controllers/student/find-student-by-id.controller';
 import { UpdateStudentController } from './infra/http/controllers/student/update-student.controller';
 import { DeleteStudentController } from './infra/http/controllers/student/delete-student.controller';
+import { CLASS_REPOSITORY_TOKEN } from './domain/application/repositories/class.repository';
+import { ClassRepository } from './infra/database/repositories/class.repository';
+import { CreateClassController } from './infra/http/controllers/class/create-class.controller';
+import { DeleteClassController } from './infra/http/controllers/class/delete-class.controller';
+import { FindClassByIdController } from './infra/http/controllers/class/find-class-by-id.controller';
+import { UpdateClassController } from './infra/http/controllers/class/update-class.controller';
 
 //#region MODULE CONFIGURATION
 
 container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
 container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
+container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
 
 //#endregion
 
@@ -65,6 +72,11 @@ const findStudentByIdController = container.resolve(FindStudentByIdController);
 const updateStudentController = container.resolve(UpdateStudentController);
 const deleteStudentController = container.resolve(DeleteStudentController);
 
+const createClassController = container.resolve(CreateClassController);
+const findClassByIdController = container.resolve(FindClassByIdController);
+const updateClassController = container.resolve(UpdateClassController);
+const deleteClassController = container.resolve(DeleteClassController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -76,6 +88,11 @@ router.use('/', createStudentController.router);
 router.use('/', findStudentByIdController.router);
 router.use('/', updateStudentController.router);
 router.use('/', deleteStudentController.router);
+
+router.use('/', createClassController.router);
+router.use('/', findClassByIdController.router);
+router.use('/', updateClassController.router);
+router.use('/', deleteClassController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
