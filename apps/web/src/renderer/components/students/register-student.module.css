@@ -1,0 +1,113 @@
+.container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  padding: 2.5rem 2rem;
+  max-width: 1100px;
+  margin: 2rem auto;
+}
+
+.title {
+  color: #1976d2;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.columns {
+  display: flex;
+  gap: 2.5rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+/* make both panels expand and use available width */
+.columns > * {
+  flex: 1 1 520px;
+  min-width: 320px;
+}
+
+/* vertical divider between panels on wide screens */
+@media (min-width: 1000px) {
+  .columns::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #e0e0e0;
+    transform: translateX(-50%);
+  }
+}
+
+/* responsive tweaks */
+@media (max-width: 900px) {
+  .form {
+    gap: 1.5rem;
+  }
+  .columns {
+    gap: 1.2rem;
+  }
+  .columns > * {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
+
+/* keep panels strictly side-by-side on medium/large screens */
+@media (min-width: 900px) {
+  .columns {
+    flex-wrap: nowrap;
+  }
+  .columns > * {
+    flex: 0 0 calc(50% - 1.25rem);
+    min-width: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+
+.cancelBtn {
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cancelBtn:hover {
+  background: #ccc;
+}
+
+.saveBtn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.saveBtn:hover {
+  background: #115293;
+}
+
