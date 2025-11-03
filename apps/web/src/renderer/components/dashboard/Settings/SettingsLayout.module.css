@@ -1,0 +1,63 @@
+.settingsContainer {
+  display: flex;
+  gap: 2rem;
+  min-height: 60vh;
+}
+
+.settingsSidebar {
+  min-width: 220px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 2rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.settingsSidebar h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.settingsSidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.settingsSidebar li {
+  margin-bottom: 1rem;
+  cursor: pointer;
+  color: #555;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.settingsSidebar li:hover {
+  color: #1976d2;
+}
+
+.backButton {
+  margin-top: 2rem;
+  width: 100%;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.backButton:hover {
+  background: #115293;
+}
+
+.settingsMain {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+

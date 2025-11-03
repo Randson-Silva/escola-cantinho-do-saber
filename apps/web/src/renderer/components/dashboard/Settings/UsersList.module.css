@@ -1,0 +1,83 @@
+.listContainer {
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 2rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background: #f5f5f5;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.editBtn,
+.deleteBtn,
+.saveBtn,
+.cancelBtn {
+  margin-right: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.editBtn {
+  background: var(--btn-primary, #1976d2);
+  color: #fff;
+}
+.editBtn:hover {
+  background: #115293;
+}
+
+.deleteBtn {
+  background: #d32f2f;
+  color: #fff;
+}
+.deleteBtn:hover {
+  background: #b71c1c;
+}
+
+.saveBtn {
+  background: #388e3c;
+  color: #fff;
+}
+.saveBtn:hover {
+  background: #256029;
+}
+
+.cancelBtn {
+  background: #eee;
+  color: #333;
+}
+.cancelBtn:hover {
+  background: #ccc;
+}
+
+.input {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-right: 0.5rem;
+}
+
