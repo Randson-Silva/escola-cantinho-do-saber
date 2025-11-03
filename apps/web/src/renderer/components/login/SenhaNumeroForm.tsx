@@ -82,8 +82,9 @@ function SenhaNumeroForm() {
       return;
     }
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
+    const recoveryToken = localStorage.getItem('auth_token');
+    console.log(recoveryToken);
+    if (!recoveryToken) {
       console.error('❌ Token não encontrado no localStorage');
       addToast('Erro de autenticação. Por favor, solicite um novo código.', 'error');
       navigate('/recuperar-senha');
@@ -92,7 +93,8 @@ function SenhaNumeroForm() {
 
     setLoading(true);
     try {
-      const { authToken } = await verifyRecoveryCode(code);
+      const { authToken } = await verifyRecoveryCode(code, recoveryToken);
+
       // Se o código está correto, salvamos o novo token
       localStorage.setItem('auth_token', authToken);
       console.log('✅ Código verificado com sucesso');
@@ -157,4 +159,3 @@ function SenhaNumeroForm() {
 }
 
 export default SenhaNumeroForm;
-

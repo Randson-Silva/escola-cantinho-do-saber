@@ -7,9 +7,17 @@ export const api = axios.create({
 
 // Anexa token se existir
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+   const token = localStorage.getItem('auth_token');
+  config.headers = config.headers ?? {};
+  const h: any = config.headers;
+
+  const alreadyHasAuth =
+    (typeof h.get === 'function' && !!h.get('Authorization')) ||
+    !!h.Authorization;
+
+  if (token && !alreadyHasAuth) {
+    if (typeof h.set === 'function') h.set('Authorization', `Bearer ${token}`);
+    else h.Authorization = `Bearer ${token}`;
   }
   return config;
 });

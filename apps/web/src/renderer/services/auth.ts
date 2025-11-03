@@ -35,19 +35,56 @@ export async function requestPasswordReset(email: string) {
   return data;
 }
 
-export async function verifyRecoveryCode(code: string) {
-  // backend exige Authorization: Bearer <token do passo anterior> e corpo { code }
-  const { data } = await api.post<{ authToken: string }>('/auth/user/verify-code', {
-    code,
-  });
-  return data;
+export async function verifyRecoveryCode(code: string, token: string) {
+
+  if (!token) {
+    throw new Error('Token de recuperação não encontrado');
+  }
+
+  console.log('[auth.ts] Verificando código com token:', token);
+  console.log('[auth.ts] Código enviado:', code);
+
+  try {
+    const { data } = await api.post<{ authToken: string }>( '/auth/user/verify-code', { code },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log('[auth.ts] ✅ Código verificado com sucesso');
+    return data;
+  } catch (error: any) {
+    console.error('[auth.ts] ❌ Erro ao verificar código:', {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+      data: error.response?.data,
+    });
+    throw error;
+  }
 }
 
-export async function resetPassword(params: { password: string }) {
-  const { password } = params;
-  // backend exige Authorization com token do tipo 'pass_reset'
-  const { data } = await api.post<{ userId: string }>('/auth/user/reset-password', {
-    newPassword: password,
-  });
-  return data;
+export async function resetPassword({ password }: { password: string }) {
+  // Agora confiamos no interceptor que lê 'auth_token'
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    throw new Error('Token não encontrado. Solicite novo código.');
+  }
+
+  try {
+    const { data } = await api.post('/auth/user/reset-password', {
+      newPassword: password,
+    });
+
+    console.log('[auth.ts] ✅ Senha alterada com sucesso');
+
+    // Opcional: limpar o token de recuperação após o uso
+    // localStorage.removeItem('auth_token');
+
+    return data;
+  } catch (error: any) {
+    console.error('[auth.ts] ❌ Erro ao resetar senha:', error);
+    throw error;
+  }
 }

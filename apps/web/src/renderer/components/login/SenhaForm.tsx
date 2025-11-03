@@ -28,11 +28,10 @@ function SenhaForm() {
 
     try {
       const { authToken } = await requestPasswordReset(values.email);
-      // guarda o token do passo para a próxima chamada (verify-code)
       localStorage.setItem('auth_token', authToken);
       console.log('✅ Email de recuperação enviado com sucesso');
+      console.log(authToken);
       addToast('✅ Email de recuperação enviado com sucesso!', 'success');
-      // Redireciona para a tela de código
       navigate('/senha-numero', { state: { email: values.email } });
     } catch (err: any) {
       const errorMessage = err?.message?.toLowerCase() || '';
