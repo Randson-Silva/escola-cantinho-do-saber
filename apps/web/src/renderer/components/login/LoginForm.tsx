@@ -58,7 +58,10 @@ function LoginForm() {
 
       login(response.user, response.token);
       addToast('✅ Login realizado com sucesso!', 'success');
-      // navigate('/dashboard'); // ajuste conforme sua rota
+      setTimeout(() => {
+        console.log('[LoginForm] ✅ Executando navigate("/dashboard")');
+        navigate('/dashboard');
+      }, 500);
     } catch (err: any) {
       const errorMessage = err?.message?.toLowerCase() || '';
 

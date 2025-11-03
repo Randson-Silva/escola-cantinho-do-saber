@@ -21,7 +21,8 @@
   border: 1px solid transparent;
   background: var(--input-bg);
   outline: none;
-  color: var(--input-text);
+  color: #ffffff; /* texto branco para melhor contraste */
+  caret-color: #ffffff; /* cursor visível em fundos escuros */
   width: 100%;
   align-self: center;
   font-size: var(--font-size-base);
@@ -66,14 +67,14 @@
 
 /* placeholder color and cross-browser support */
 .input::placeholder {
-  color: var(--input-placeholder);
+  color: rgba(255, 255, 255, 0.7);
   opacity: 1;
 }
 .input:-ms-input-placeholder {
-  color: var(--input-placeholder);
+  color: rgba(255, 255, 255, 0.7);
 }
 .input::-ms-input-placeholder {
-  color: var(--text-color-light);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .input:focus {
@@ -139,11 +140,13 @@
 }
 
 .inputEmail {
-  background: #fafcfd00;
+  /* Mantém legibilidade com texto branco */
+  background: var(--input-bg);
 }
 
 .inputPassword {
-  background: #fafcfd00;
+  /* Mantém legibilidade com texto branco */
+  background: var(--input-bg);
 }
 
 .capsWarning {
@@ -240,15 +243,16 @@
   aspect-ratio: 1 / 1; /* mantém quadrado e se ajusta ao container */
   border-radius: 12px;
   border: none;
-  background: #d9d9d9;
+  background: #267fa8; /* mais escuro para melhor contraste */
   text-align: center;
   font-size: clamp(18px, 5vw, 28px);
-  color: #143861;
+  color: #ffffff; /* dígitos em branco */
+  caret-color: #ffffff;
   outline: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .otpInput:focus {
-  background: #e6e6e6;
+  background: #39b0ea; /* destaque ao focar */
   box-shadow: 0 0 0 3px rgba(62, 166, 222, 0.25);
 }
