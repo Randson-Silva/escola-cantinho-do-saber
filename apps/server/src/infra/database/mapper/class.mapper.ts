@@ -7,9 +7,6 @@ export class ClassMapper {
     return ClassEntity.create(
       {
         name: raw.name,
-        startTime: raw.startTime,
-        endTime: raw.endTime,
-        duration: raw.duration,
         teacherId: raw.teacherId,
         // series: raw.series,
         // lessons: raw.lessons,
@@ -23,9 +20,6 @@ export class ClassMapper {
     return {
       id: entity.id.toString(),
       name: entity.name,
-      startTime: entity.startTime,
-      endTime: entity.endTime,
-      duration: entity.duration,
       teacherId: entity.teacherId,
     };
   }

@@ -1,0 +1,49 @@
+import { CreateLessonUseCase } from 'apps/server/src/domain/application/use-cases/lesson/create-lesson.use-case';
+import { inject, singleton } from 'tsyringe';
+import { Request, Response } from 'express';
+import {
+  createLessonBodySchema,
+  lessonParamsSchema,
+} from '../../../http-body-validator/lesson.validator';
+import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
+
+@singleton()
+export class CreateLessonController {
+  constructor(
+    @inject(CreateLessonUseCase)
+    private readonly createLessonUseCase: CreateLessonUseCase,
+  ) {}
+
+  async handle(req: Request, res: Response) {
+    const paramsValidation = lessonParamsSchema.safeParse(req.params);
+    if (!paramsValidation.success) {
+      return res.status(400).send({ message: 'Invalid URL params (classId)' });
+    }
+    const { classId } = paramsValidation.data;
+
+    const bodyValidation = createLessonBodySchema.safeParse(req.body);
+    if (!bodyValidation.success) {
+      return res.status(400).send({
+        message: 'Invalid request body',
+        errors: bodyValidation.error.format(),
+      });
+    }
+
+    // 3. Executar Caso de Uso
+    const result = await this.createLessonUseCase.execute({
+      classId,
+      ...bodyValidation.data,
+    });
+
+    // 4. Retornar Resposta
+    if (result.isFail()) {
+      const error = result.value;
+      if (error instanceof ResourceNotFoundError) {
+        return res.status(404).send({ message: error.message });
+      }
+      return res.status(500).send({ message: 'Internal server error' });
+    }
+
+    return res.status(201).send(result.value);
+  }
+}
