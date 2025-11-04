@@ -3,9 +3,6 @@ import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
 
 export interface ClassProps {
   name: string;
-  startTime: string | null;
-  endTime: string | null;
-  duration: string | null;
 
   teacherId: string;
 
@@ -24,17 +21,6 @@ export class ClassEntity extends Entity<ClassProps> {
     return this.props.name;
   }
 
-  get startTime() {
-    return this.props.startTime;
-  }
-
-  get endTime() {
-    return this.props.endTime;
-  }
-
-  get duration() {
-    return this.props.duration;
-  }
 
   get teacherId() {
     return this.props.teacherId;

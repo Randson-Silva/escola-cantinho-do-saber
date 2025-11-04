@@ -15,6 +15,21 @@ import {
   STUDENT_GUARDIAN_REPOSITORY_TOKEN,
   IStudentGuardianRepository,
 } from 'apps/server/src/domain/application/repositories/student-guardian.repository';
+import {
+  ILessonRepository,
+  LESSON_REPOSITORY_TOKEN,
+} from './domain/application/repositories/lesson.repository';
+import { LessonRepository } from './infra/database/repositories/lesson.repository';
+import {
+  ATTENDANCE_REPOSITORY_TOKEN,
+  IAttendanceRepository,
+} from './domain/application/repositories/attendance.repository';
+import { AttendanceRepository } from './infra/database/repositories/attendance.repository';
+import {
+  ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN,
+  IAttendanceLinkedToLessonRepository,
+} from './domain/application/repositories/attendance-linked-to-lesson.repository';
+import { AttendanceLinkedToLessonRepository } from './infra/database/repositories/attendance-linked-to-lesson.repository';
 import { StudentGuardianRepository } from 'apps/server/src/infra/database/repositories/student-guardian.repository';
 import { configurePassport } from './infra/auth/passport';
 import { ProfileRepository } from './infra/database/repositories/profile.repository';
@@ -46,6 +61,18 @@ container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 container.registerSingleton<IGuardianRepository>( GUARDIAN_REPOSITORY_TOKEN, GuardianRepository,);
 container.registerSingleton<IStudentGuardianRepository>( STUDENT_GUARDIAN_REPOSITORY_TOKEN, StudentGuardianRepository,);
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
+container.registerSingleton<ILessonRepository>(
+  LESSON_REPOSITORY_TOKEN,
+  LessonRepository,
+);
+container.registerSingleton<IAttendanceRepository>(
+  ATTENDANCE_REPOSITORY_TOKEN,
+  AttendanceRepository,
+);
+container.registerSingleton<IAttendanceLinkedToLessonRepository>(
+  ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN,
+  AttendanceLinkedToLessonRepository,
+);
 
 //#endregion
 

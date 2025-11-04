@@ -79,9 +79,6 @@ model TeacherQualified {
 model Class {
   id        String  @id @unique @default(ulid())
   name      String
-  startTime String?
-  endTime   String?
-  duration  String?
 
   //* Relação 1:N com Professor
   teacherId String
@@ -230,6 +227,9 @@ model Lesson {
   id         String   @id @unique @default(ulid())
   lessonDate DateTime
   classId    String
+  startTime String?
+  endTime   String?
+  duration  String?
 
   class       Class                      @relation(fields: [classId], references: [id])
   attendances AttendanceLinkedToLesson[]

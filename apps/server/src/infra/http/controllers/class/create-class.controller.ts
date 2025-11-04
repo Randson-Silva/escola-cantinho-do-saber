@@ -8,10 +8,6 @@ import { CreateClassUseCase } from 'apps/server/src/domain/application/use-cases
 
 const createClassBodySchema = z.object({
   name: z.string(),
-  startTime: z.string().nullable(),
-  endTime: z.string().nullable(),
-  duration: z.string().nullable(),
-
   teacherId: z.string(),
 });
 
@@ -41,13 +37,10 @@ export class CreateClassController {
   async handle(req: Request, res: Response) {
     const body = req.body as CreateClassBodySchema;
 
-    const { duration, endTime, name, startTime, teacherId } = body;
+    const { name, teacherId } = body;
 
     const result = await this.createClassUseCase.execute({
-      duration,
-      endTime,
       name,
-      startTime,
       teacherId,
     });
 
