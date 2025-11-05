@@ -7,10 +7,7 @@ export abstract class IStudentGuardianRepository {
 
   abstract delete(studentId: string, guardianId: string): Promise<boolean>;
 
-  abstract findUnique(
-    studentId: string,
-    guardianId: string,
-  ): Promise<StudentGuardianEntity | null>;
+  abstract findUnique(studentId: string, guardianId: string): Promise<StudentGuardianEntity | null>;
 
   abstract findByStudentId(studentId: string): Promise<StudentGuardianEntity[] | null>;
 

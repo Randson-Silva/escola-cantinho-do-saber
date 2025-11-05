@@ -1,4 +1,4 @@
-import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
+import { Entity } from 'apps/server/src/core/entities/entity';
 
 export interface StudentGuardianProps {
   studentId: string;
@@ -6,9 +6,7 @@ export interface StudentGuardianProps {
   kinship: string | null;
 }
 
-export class StudentGuardianEntity {
-  protected props: StudentGuardianProps;
-
+export class StudentGuardianEntity extends Entity<StudentGuardianProps> {
   get studentId() {
     return this.props.studentId;
   }
@@ -19,10 +17,6 @@ export class StudentGuardianEntity {
 
   get kinship() {
     return this.props.kinship;
-  }
-
-  protected constructor(props: StudentGuardianProps) {
-    this.props = props;
   }
 
   static create(props: StudentGuardianProps): StudentGuardianEntity {

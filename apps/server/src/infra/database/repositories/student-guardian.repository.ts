@@ -22,7 +22,8 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
       const data = StudentGuardianMapper.toDatabase(entity);
       await prisma.studentHasGuardian.update({
         where: {
-          studentId_guardianId: { // Sintaxe do Prisma para chave composta
+          studentId_guardianId: {
+            // Sintaxe do Prisma para chave composta
             studentId: entity.studentId,
             guardianId: entity.guardianId,
           },
@@ -52,10 +53,7 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
     }
   }
 
-  async findUnique(
-    studentId: string,
-    guardianId: string,
-  ): Promise<StudentGuardianEntity | null> {
+  async findUnique(studentId: string, guardianId: string): Promise<StudentGuardianEntity | null> {
     const link = await prisma.studentHasGuardian.findUnique({
       where: {
         studentId_guardianId: { studentId, guardianId },
@@ -65,9 +63,7 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
     return StudentGuardianMapper.toDomain(link);
   }
 
-  async findByStudentId(
-    studentId: string,
-  ): Promise<StudentGuardianEntity[] | null> {
+  async findByStudentId(studentId: string): Promise<StudentGuardianEntity[] | null> {
     const links = await prisma.studentHasGuardian.findMany({
       where: { studentId },
     });
@@ -75,9 +71,7 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
     return links.map(StudentGuardianMapper.toDomain);
   }
 
-  async findByGuardianId(
-    guardianId: string,
-  ): Promise<StudentGuardianEntity[] | null> {
+  async findByGuardianId(guardianId: string): Promise<StudentGuardianEntity[] | null> {
     const links = await prisma.studentHasGuardian.findMany({
       where: { guardianId },
     });

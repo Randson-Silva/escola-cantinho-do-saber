@@ -15,7 +15,7 @@ type CreateGuardianUseCaseRequest = {
 };
 
 type CreateGuardianUseCaseResponse = Either<
-  Error,
+  AlreadyExistsError | CannotCreateError,
   { guardianId: string }
 >;
 

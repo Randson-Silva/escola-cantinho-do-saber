@@ -24,8 +24,8 @@ type LinkGuardianToStudentUseCaseRequest = {
 };
 
 type LinkGuardianToStudentUseCaseResponse = Either<
-  Error,
-  void
+  ResourceNotFoundError | AlreadyExistsError | CannotCreateError,
+  { linkId: string }
 >;
 
 @singleton()
@@ -51,10 +51,7 @@ export class LinkGuardianToStudentUseCase {
       const guardian = await this.guardianRepository.findById(guardianId);
       if (!guardian) return fail(new ResourceNotFoundError('Guardian'));
 
-      const linkExists = await this.studentGuardianRepository.findUnique(
-        studentId,
-        guardianId,
-      );
+      const linkExists = await this.studentGuardianRepository.findUnique(studentId, guardianId);
       if (linkExists) return fail(new AlreadyExistsError('Student-Guardian link'));
 
       const linkEntity = StudentGuardianEntity.create({
@@ -63,13 +60,13 @@ export class LinkGuardianToStudentUseCase {
         kinship,
       });
 
-      const canCreateLink =
-        await this.studentGuardianRepository.create(linkEntity);
+      const canCreateLink = await this.studentGuardianRepository.create(linkEntity);
 
-      if (!canCreateLink)
-        return fail(new CannotCreateError('Student-Guardian link'));
+      if (!canCreateLink) return fail(new CannotCreateError('Student-Guardian link'));
 
-      return succeed(undefined);
+      const linkId = `${studentId}_${guardianId}`;
+
+      return succeed({ linkId });
     } catch (error) {
       return fail(new Error('Cannot create link due to error' + error));
     }

@@ -10,9 +10,7 @@ export class StudentGuardianMapper {
     });
   }
 
-  static toDatabase(
-    entity: StudentGuardianEntity,
-  ): Pick<StudentGuardianSchema, 'studentId' | 'guardianId' | 'kinship'> {
+  static toDatabase(entity: StudentGuardianEntity): StudentGuardianSchema {
     return {
       studentId: entity.studentId,
       guardianId: entity.guardianId,
