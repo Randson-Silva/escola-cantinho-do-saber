@@ -6,9 +6,6 @@ import { CLASS_REPOSITORY_TOKEN, IClassRepository } from '../../repositories/cla
 
 type CreateClassUseCaseRequest = {
   name: string;
-  startTime: string | null;
-  endTime: string | null;
-  duration: string | null;
 
   teacherId: string;
 };
@@ -23,10 +20,7 @@ export class CreateClassUseCase {
   ) {}
 
   async execute({
-    duration,
-    endTime,
     name,
-    startTime,
     teacherId,
   }: CreateClassUseCaseRequest): Promise<CreateClassUseCaseResponse> {
     try {
@@ -36,10 +30,7 @@ export class CreateClassUseCase {
       // if (!foundTeacher) return fail(new ResourceNotFoundError("Teacher not found"));
 
       const classEntity = ClassEntity.create({
-        duration,
-        endTime,
         name,
-        startTime,
         teacherId,
       });
 
