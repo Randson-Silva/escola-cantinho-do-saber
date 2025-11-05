@@ -6,6 +6,16 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { PROFILE_REPOSITORY_TOKEN } from './domain/application/repositories/profile.repository';
 import { USERS_REPOSITORY_TOKEN } from './domain/application/repositories/user.repository';
+import {
+  GUARDIAN_REPOSITORY_TOKEN,
+  IGuardianRepository,
+} from 'apps/server/src/domain/application/repositories/guardian.repository';
+import { GuardianRepository } from 'apps/server/src/infra/database/repositories/guardian.repository';
+import {
+  STUDENT_GUARDIAN_REPOSITORY_TOKEN,
+  IStudentGuardianRepository,
+} from 'apps/server/src/domain/application/repositories/student-guardian.repository';
+import { StudentGuardianRepository } from 'apps/server/src/infra/database/repositories/student-guardian.repository';
 import { configurePassport } from './infra/auth/passport';
 import { ProfileRepository } from './infra/database/repositories/profile.repository';
 import { UserRepository } from './infra/database/repositories/user.repository';
@@ -34,14 +44,23 @@ import { FindAddressController } from './infra/http/controllers/address/find-add
 import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
 import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
 
+import { SERIE_REPOSITORY_TOKEN } from './domain/application/repositories/serie.repository';
+import { SerieRepository } from './infra/database/repositories/serie.repository';
+import { CreateSerieController } from './infra/http/controllers/serie/create-serie.controller';
+import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
+import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
+import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
 
 //#region MODULE CONFIGURATION
 
 container.register(USERS_REPOSITORY_TOKEN, { useClass: UserRepository });
 container.register(PROFILE_REPOSITORY_TOKEN, { useClass: ProfileRepository });
 container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
+container.registerSingleton<IGuardianRepository>( GUARDIAN_REPOSITORY_TOKEN, GuardianRepository,);
+container.registerSingleton<IStudentGuardianRepository>( STUDENT_GUARDIAN_REPOSITORY_TOKEN, StudentGuardianRepository,);
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
 container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
+container.register(SERIE_REPOSITORY_TOKEN, { useClass: SerieRepository });
 
 //#endregion
 
@@ -89,6 +108,10 @@ const createAddressController = container.resolve(CreateAddressController);
 const findAddressController = container.resolve(FindAddressController);
 const updateAddressController = container.resolve(UpdateAddressController);
 const deleteAddressController = container.resolve(DeleteAddressController);
+const createSerieController = container.resolve(CreateSerieController);
+const findSerieByIdController = container.resolve(FindSerieByIdController);
+const updateSerieController = container.resolve(UpdateSerieController);
+const deleteSerieController = container.resolve(DeleteSerieController);
 
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
@@ -111,6 +134,10 @@ router.use('/', createAddressController.router);
 router.use('/', findAddressController.router);
 router.use('/', updateAddressController.router);
 router.use('/', deleteAddressController.router);
+router.use('/', createSerieController.router);
+router.use('/', findSerieByIdController.router);
+router.use('/', updateSerieController.router);
+router.use('/', deleteSerieController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
