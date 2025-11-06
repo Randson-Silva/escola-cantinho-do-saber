@@ -61,6 +61,10 @@ import { CreateSerieController } from './infra/http/controllers/serie/create-ser
 import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
 import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
 import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
+import { CreateGuardianController } from './infra/http/controllers/guardian/create-guardian.controller';
+import { LinkGuardianToStudentController } from './infra/http/controllers/student-guardian/link-guardian-to-student.controller';
+import { CreateLessonController } from './infra/http/controllers/lesson/create-lesson.controller';
+import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -134,6 +138,15 @@ const findSerieByIdController = container.resolve(FindSerieByIdController);
 const updateSerieController = container.resolve(UpdateSerieController);
 const deleteSerieController = container.resolve(DeleteSerieController);
 
+const createGuardianController = container.resolve(CreateGuardianController);
+const linkGuardianToStudentController = container.resolve(
+  LinkGuardianToStudentController,
+);
+const createLessonController = container.resolve(CreateLessonController);
+const registerStudentAttendanceController = container.resolve(
+  RegisterStudentAttendanceController,
+);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -158,6 +171,11 @@ router.use('/', createSerieController.router);
 router.use('/', findSerieByIdController.router);
 router.use('/', updateSerieController.router);
 router.use('/', deleteSerieController.router);
+
+router.use('/', createGuardianController.router);
+router.use('/', linkGuardianToStudentController.router);
+router.use('/', createLessonController.router);
+router.use('/', registerStudentAttendanceController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;

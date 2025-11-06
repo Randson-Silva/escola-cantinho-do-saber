@@ -1,6 +1,6 @@
 import { RegisterStudentAttendanceUseCase } from 'apps/server/src/domain/application/use-cases/attendance/register-student-attendance.use-case';
 import { inject, singleton } from 'tsyringe';
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import {
   registerAttendanceBodySchema,
   attendanceParamsSchema,
@@ -10,12 +10,19 @@ import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.err
 
 @singleton()
 export class RegisterStudentAttendanceController {
+  public router: Router;
+
   constructor(
     @inject(RegisterStudentAttendanceUseCase)
     private readonly registerAttendance: RegisterStudentAttendanceUseCase,
-  ) {}
+  ) {
+    this.router = Router();
+    this.router.post('/lessons/:lessonId/attendances', (req, res) =>
+      this.handle(req, res),
+    );
+  }
 
-  async handle(req: Request, res: Response) {
+  private async handle(req: Request, res: Response) {
     const paramsValidation = attendanceParamsSchema.safeParse(req.params);
     if (!paramsValidation.success) {
       return res.status(400).send({ message: 'Invalid URL params (lessonId)' });
