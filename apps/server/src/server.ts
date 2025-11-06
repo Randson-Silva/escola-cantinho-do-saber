@@ -58,6 +58,12 @@ import { CreateSerieController } from './infra/http/controllers/serie/create-ser
 import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
 import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
 import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
+import { ADDRESS_REPOSITORY_TOKEN } from './domain/application/repositories/address.repository';
+import { PrismaAddressRepository } from './infra/database/repositories/prisma.adress.repository';
+import { CreateAddressController } from './infra/http/controllers/address/create-address.controller';
+import { FindAddressController } from './infra/http/controllers/address/find-address.controller';
+import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
+import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -67,6 +73,7 @@ container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 container.registerSingleton<IGuardianRepository>( GUARDIAN_REPOSITORY_TOKEN, GuardianRepository,);
 container.registerSingleton<IStudentGuardianRepository>( STUDENT_GUARDIAN_REPOSITORY_TOKEN, StudentGuardianRepository,);
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
+container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
 container.registerSingleton<ILessonRepository>(
   LESSON_REPOSITORY_TOKEN,
   LessonRepository,
@@ -128,6 +135,11 @@ const findSerieByIdController = container.resolve(FindSerieByIdController);
 const updateSerieController = container.resolve(UpdateSerieController);
 const deleteSerieController = container.resolve(DeleteSerieController);
 
+const createAddressController = container.resolve(CreateAddressController);
+const findAddressController = container.resolve(FindAddressController);
+const updateAddressController = container.resolve(UpdateAddressController);
+const deleteAddressController = container.resolve(DeleteAddressController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -149,6 +161,11 @@ router.use('/', createSerieController.router);
 router.use('/', findSerieByIdController.router);
 router.use('/', updateSerieController.router);
 router.use('/', deleteSerieController.router);
+
+router.use('/', createAddressController.router);
+router.use('/', findAddressController.router);
+router.use('/', updateAddressController.router);
+router.use('/', deleteAddressController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
