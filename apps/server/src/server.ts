@@ -55,23 +55,22 @@ import { CreateClassController } from './infra/http/controllers/class/create-cla
 import { DeleteClassController } from './infra/http/controllers/class/delete-class.controller';
 import { FindClassByIdController } from './infra/http/controllers/class/find-class-by-id.controller';
 import { UpdateClassController } from './infra/http/controllers/class/update-class.controller';
+import { CreateGuardianController } from './infra/http/controllers/guardian/create-guardian.controller';
+import { LinkGuardianToStudentController } from './infra/http/controllers/student-guardian/link-guardian-to-student.controller';
+import { CreateLessonController } from './infra/http/controllers/lesson/create-lesson.controller';
+import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
 import { SERIE_REPOSITORY_TOKEN } from './domain/application/repositories/serie.repository';
 import { SerieRepository } from './infra/database/repositories/serie.repository';
 import { CreateSerieController } from './infra/http/controllers/serie/create-serie.controller';
 import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
 import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
 import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
-import { CreateGuardianController } from './infra/http/controllers/guardian/create-guardian.controller';
-import { LinkGuardianToStudentController } from './infra/http/controllers/student-guardian/link-guardian-to-student.controller';
-import { CreateLessonController } from './infra/http/controllers/lesson/create-lesson.controller';
-import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
 import { ADDRESS_REPOSITORY_TOKEN } from './domain/application/repositories/address.repository';
 import { PrismaAddressRepository } from './infra/database/repositories/prisma.adress.repository';
 import { CreateAddressController } from './infra/http/controllers/address/create-address.controller';
 import { FindAddressController } from './infra/http/controllers/address/find-address.controller';
 import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
 import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
-
 
 //#region MODULE CONFIGURATION
 
