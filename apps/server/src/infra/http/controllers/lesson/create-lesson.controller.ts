@@ -1,6 +1,6 @@
 import { CreateLessonUseCase } from 'apps/server/src/domain/application/use-cases/lesson/create-lesson.use-case';
 import { inject, singleton } from 'tsyringe';
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import {
   createLessonBodySchema,
   lessonParamsSchema,
@@ -9,12 +9,19 @@ import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-
 
 @singleton()
 export class CreateLessonController {
+  public router: Router;
+
   constructor(
     @inject(CreateLessonUseCase)
     private readonly createLessonUseCase: CreateLessonUseCase,
-  ) {}
+  ) {
+    this.router = Router();
+    this.router.post('/classes/:classId/lessons', (req, res) =>
+      this.handle(req, res),
+    );
+  }
 
-  async handle(req: Request, res: Response) {
+  private async handle(req: Request, res: Response) {
     const paramsValidation = lessonParamsSchema.safeParse(req.params);
     if (!paramsValidation.success) {
       return res.status(400).send({ message: 'Invalid URL params (classId)' });
@@ -29,13 +36,11 @@ export class CreateLessonController {
       });
     }
 
-    // 3. Executar Caso de Uso
     const result = await this.createLessonUseCase.execute({
       classId,
       ...bodyValidation.data,
     });
 
-    // 4. Retornar Resposta
     if (result.isFail()) {
       const error = result.value;
       if (error instanceof ResourceNotFoundError) {
