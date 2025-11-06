@@ -9,9 +9,6 @@ import { inject, singleton } from 'tsyringe';
 type UpdateClassUseCaseRequest = {
   classId: string;
   name: string;
-  startTime: string | null;
-  endTime: string | null;
-  duration: string | null;
 
   teacherId: string;
 };
@@ -28,9 +25,6 @@ export class UpdateClassUseCase {
   async execute({
     classId,
     name,
-    startTime,
-    endTime,
-    duration,
     teacherId,
   }: UpdateClassUseCaseRequest): Promise<UpdateClassUseCaseResponse> {
     try {
@@ -41,9 +35,6 @@ export class UpdateClassUseCase {
       const classEntity = ClassEntity.create(
         {
           name,
-          startTime,
-          endTime,
-          duration,
           teacherId,
         },
         new UniqueEntityId(classId),
