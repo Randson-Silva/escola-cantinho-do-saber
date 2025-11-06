@@ -48,16 +48,13 @@ export class UpdateClassController {
   async handle(req: Request<UpdateParamSchema>, res: Response) {
     const body = req.body as UpdateClassBodySchema;
 
-    const { duration, endTime, name, startTime, teacherId } = body;
+    const { name, teacherId } = body;
 
     const { classId } = req.params;
 
     const result = await this.updateClassUseCase.execute({
       classId,
-      duration,
-      endTime,
       name,
-      startTime,
       teacherId,
     });
 
