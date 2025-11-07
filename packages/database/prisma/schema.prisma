@@ -158,8 +158,8 @@ model StudentHasGuardian {
   guardianId String
   kinship    String?
 
-  student  Student  @relation(fields: [studentId], references: [id])
-  guardian Guardian @relation(fields: [guardianId], references: [id])
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
 
   @@id([studentId, guardianId])
 }

@@ -3,9 +3,11 @@ import { inject, singleton } from 'tsyringe';
 import { Router, Request, Response } from 'express';
 import {
   createLessonBodySchema,
-  lessonParamsSchema,
+  createLessonParamsSchema,
 } from '../../../http-body-validator/lesson.validator';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
+import { checkJwt } from '../../../auth/auth.middleware';
+import { validateBody } from '../../../http-body-validator/validator.middleware';
 
 @singleton()
 export class CreateLessonController {
@@ -22,7 +24,7 @@ export class CreateLessonController {
   }
 
   private async handle(req: Request, res: Response) {
-    const paramsValidation = lessonParamsSchema.safeParse(req.params);
+    const paramsValidation = createLessonParamsSchema.safeParse(req.params);
     if (!paramsValidation.success) {
       return res.status(400).send({ message: 'Invalid URL params (classId)' });
     }
