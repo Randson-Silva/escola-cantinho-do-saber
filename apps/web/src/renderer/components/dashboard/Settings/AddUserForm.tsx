@@ -1,63 +1,102 @@
 import React, { useState } from 'react';
 import styles from './AddUserForm.module.css';
-import { userService } from '../../../services/api/user.service';
+import { userService } from '../../../services/userService';
+import { useToast } from '../../../hooks/useToast';
 
 export function AddUserForm() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('relatorios');
+  const [role, setRole] = useState('recepcionista');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const { addToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+
     try {
-      await userService.createUser({ email, password, role });
-      setSuccess('Usuário adicionado com sucesso!');
+      await userService.createUser({ name, email, password, role });
+      
+      addToast('✅ Usuário cadastrado com sucesso!', 'success');
+      
+      // Resetar formulário
+      setName('');
       setEmail('');
       setPassword('');
-      setRole('relatorios');
+      setRole('recepcionista');
+      
+      // Disparar evento para atualizar a lista
+      window.dispatchEvent(new CustomEvent('userCreated'));
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erro ao cadastrar usuário');
+      const errorMessage = err?.response?.data?.message || 'Erro ao cadastrar usuário';
+      addToast(`❌ ${errorMessage}`, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <h3>Adicionar Usuário</h3>
-      <label>
-        Email
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </label>
-      <label>
-        Senha
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </label>
-      <label>
-        Função
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="relatorios">Gerar Relatórios</option>
-          <option value="despesas">Ver Despesas</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </label>
-      <button type="submit" disabled={loading}>
-        {loading ? 'Adicionando...' : 'Adicionar Usuário'}
-      </button>
-      {success && <p className={styles.success}>{success}</p>}
-      {error && <p className={styles.error}>{error}</p>}
-    </form>
+    <div className={styles.formContainer}>
+      <h3 className={styles.title}>Adicionar Usuário</h3>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <label>
+          Nome
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            placeholder="Nome completo do usuário"
+            disabled={loading}
+          />
+        </label>
+        
+        <label>
+          Email
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="email@exemplo.com"
+            disabled={loading}
+          />
+        </label>
+        
+        <label>
+          Senha
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Mínimo 6 caracteres"
+            minLength={6}
+            disabled={loading}
+          />
+        </label>
+        
+        <label>
+          Função
+          <select 
+            value={role} 
+            onChange={(e) => setRole(e.target.value)}
+            disabled={loading}
+          >
+            <option value="recepcionista">Recepcionista</option>
+            <option value="administrador">Administrador</option>
+          </select>
+        </label>
+        
+        <button 
+          className={styles.submitButton} 
+          type="submit" 
+          disabled={loading}
+        >
+          {loading ? 'Cadastrando...' : 'Cadastrar Usuário'}
+        </button>
+      </form>
+    </div>
   );
 }
-
