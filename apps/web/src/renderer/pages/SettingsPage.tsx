@@ -1,12 +1,13 @@
 import { DashboardLayout } from '../components/dashboard/Layout/DashboardLayout';
-//import { AddUserForm } from '../components/dashboard/Settings/AddUserForm';
-import { UsersList } from '../components/dashboard/Settings/UsersList';
+import { UserProfile } from '../components/dashboard/Settings/UserProfile';
+import styles from '../styles/settings-page.module.css';
 
 export function SettingsPage() {
   return (
     <DashboardLayout>
-      <h1>Configurações</h1>
+      <div className={styles.settingsContainer}>
+        <UserProfile />
+      </div>
     </DashboardLayout>
   );
 }
-

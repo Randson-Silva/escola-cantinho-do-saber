@@ -1,3 +1,10 @@
+.settingsContainer {
+  padding: 2rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 .settingsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -10,6 +17,10 @@
 
 /* Tablets e telas médias (≤1024px) */
 @media (max-width: 1024px) {
+  .settingsContainer {
+    padding: 1.5rem;
+  }
+
   .settingsGrid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -19,6 +30,10 @@
 
 /* Mobile (≤768px) */
 @media (max-width: 768px) {
+  .settingsContainer {
+    padding: 1rem;
+  }
+
   .settingsGrid {
     padding: 1rem;
     gap: 1rem;
@@ -27,9 +42,12 @@
 
 /* Mobile pequeno (≤480px) */
 @media (max-width: 480px) {
+  .settingsContainer {
+    padding: 0.75rem;
+  }
+
   .settingsGrid {
     padding: 0.75rem;
     gap: 0.75rem;
   }
 }
-
