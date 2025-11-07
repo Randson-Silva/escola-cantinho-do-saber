@@ -61,27 +61,34 @@ function LoginForm() {
       setTimeout(() => {
         console.log('[LoginForm] ✅ Executando navigate("/dashboard")');
         navigate('/dashboard');
-      }, 500);
+      }, 200);
     } catch (err: any) {
       const errorMessage = err?.message?.toLowerCase() || '';
 
-      // Mensagens específicas baseadas no erro
-      if (
-        errorMessage.includes('email') ||
-        errorMessage.includes('user') ||
-        errorMessage.includes('usuário')
-      ) {
-        addToast('⚠️ Email não encontrado. Verifique se está correto.', 'error');
+      console.error('[LoginForm] ❌ Erro ao fazer login:', {
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+      });
+
+      // Mensagens específicas baseadas no erro do backend
+      if (errorMessage.includes('wrong credentials') || errorMessage.includes('credenciais')) {
+        addToast('⚠️ Email ou senha incorretos. Verifique e tente novamente.', 'error');
       } else if (
-        errorMessage.includes('senha') ||
-        errorMessage.includes('password') ||
-        errorMessage.includes('credenciais')
+        errorMessage.includes('user not found') ||
+        errorMessage.includes('usuário não encontrado')
       ) {
+        addToast('⚠️ Usuário não encontrado. Verifique o email digitado.', 'error');
+      } else if (errorMessage.includes('password') || errorMessage.includes('senha')) {
         addToast('⚠️ Senha incorreta. Tente novamente.', 'error');
-      } else if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
-        addToast('⚠️ Usuário não encontrado no sistema.', 'error');
+      } else if (errorMessage.includes('email')) {
+        addToast('⚠️ Email não cadastrado no sistema.', 'error');
+      } else if (errorMessage.includes('blocked') || errorMessage.includes('bloqueado')) {
+        addToast('⚠️ Usuário bloqueado. Entre em contato com o administrador.', 'error');
+      } else if (errorMessage.includes('network') || errorMessage.includes('rede')) {
+        addToast('❌ Erro de conexão. Verifique sua internet e tente novamente.', 'error');
       } else {
-        addToast(err?.message ?? '❌ Erro ao fazer login', 'error');
+        addToast(err?.message || '❌ Erro ao fazer login. Tente novamente.', 'error');
       }
     } finally {
       setLoading(false);
