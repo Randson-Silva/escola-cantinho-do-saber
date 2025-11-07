@@ -41,7 +41,7 @@ export class RefreshUserSessionUseCase {
 
       if (!user) return fail(new ResourceNotFoundError('user does not exist'));
 
-      const profile = await this.profileRepository.findById(user.profileId);
+      const profile = await this.profileRepository.findById(user.profile.id.toString());
 
       if (!profile) return fail(new ResourceNotFoundError('profile does not exist'));
 

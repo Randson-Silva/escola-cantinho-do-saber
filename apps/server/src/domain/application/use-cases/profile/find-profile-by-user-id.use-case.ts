@@ -22,11 +22,11 @@ export class FindProfileByUserIdUseCase {
 
       if (!foundUser) return fail(new ResourceNotFoundError('User not found'));
 
-      const { profileId } = foundUser;
+      const { profile } = foundUser;
 
-      if (!profileId) return fail(new ResourceNotFoundError('User does not have profileId'));
+      if (!profile.id) return fail(new ResourceNotFoundError('User does not have profileId'));
 
-      const foundProfile = await this.profileRepository.findById(profileId);
+      const foundProfile = await this.profileRepository.findById(profile.id.toString());
 
       if (!foundProfile)
         return fail(

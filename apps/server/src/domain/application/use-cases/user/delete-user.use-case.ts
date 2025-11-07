@@ -1,8 +1,12 @@
 import { Either, fail, succeed } from 'apps/server/src/core/either';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
-import { IUserRepository } from '../../repositories/user.repository';
-import { IProfileRepository } from '../../repositories/profile.repository';
+import { IUserRepository, USERS_REPOSITORY_TOKEN } from '../../repositories/user.repository';
+import {
+  IProfileRepository,
+  PROFILE_REPOSITORY_TOKEN,
+} from '../../repositories/profile.repository';
 import { CannotDeleteError } from 'apps/server/src/core/errors/cannot-delete.error';
+import { inject, singleton } from 'tsyringe';
 
 type DeleteUserUseCaseRequest = {
   userId: string;
@@ -10,9 +14,12 @@ type DeleteUserUseCaseRequest = {
 
 type DeleteUserUseCaseResponse = Either<ResourceNotFoundError | CannotDeleteError, null>;
 
+@singleton()
 export class DeleteUserUseCase {
   constructor(
+    @inject(USERS_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepository,
+    @inject(PROFILE_REPOSITORY_TOKEN)
     private readonly profileRepository: IProfileRepository,
   ) {}
 
@@ -21,15 +28,11 @@ export class DeleteUserUseCase {
 
     if (!foundUser) return fail(new ResourceNotFoundError('User not found'));
 
-    const { profileId } = foundUser;
+    const { profile } = foundUser;
 
-    const foundProfile = await this.profileRepository.findById(profileId);
+    const foundProfile = await this.profileRepository.findById(profile.id.toString());
 
     if (!foundProfile) return fail(new ResourceNotFoundError('Profile not found'));
-
-    const profileWasDeleted = await this.profileRepository.delete(userId);
-
-    if (!profileWasDeleted) return fail(new CannotDeleteError('Profile'));
 
     const userWasDeleted = await this.userRepository.delete(userId);
 
