@@ -5,7 +5,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { UsersPage } from './pages/UsersPage';
 import { StudentsPage } from './pages/StudentsPage';
 import { ClassesPage } from './pages/ClassesPage';
-import { ReportsPage } from './pages/ReportsPage';
+import { FinancesPage } from './pages/FinancesPage';
 import RecoveryPage from './pages/Recovery';
 import RecoveryNumberPage from './pages/RecoveryNumber';
 import ResetPasswordPage from './pages/ResetPassword';
@@ -81,10 +81,10 @@ export function App() {
               }
             />
             <Route
-              path="/dashboard/reports"
+              path="/dashboard/finances"
               element={
                 <ProtectedRoute>
-                  <ReportsPage />
+                  <FinancesPage />
                 </ProtectedRoute>
               }
             />

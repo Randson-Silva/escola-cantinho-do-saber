@@ -72,10 +72,10 @@ export function Sidebar() {
           active={location.pathname === '/dashboard/classes'}
         />
         <SidebarItem
-          icon="📈"
-          label="Relatórios"
-          path="/dashboard/reports"
-          active={location.pathname === '/dashboard/reports'}
+          icon="💵"
+          label="Finanças"
+          path="/dashboard/finances"
+          active={location.pathname === '/dashboard/finances'}
         />
         <SidebarItem
           icon="⚙️"
@@ -91,4 +91,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
