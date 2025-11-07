@@ -1,0 +1,14 @@
+.usersGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .usersGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
