@@ -12,16 +12,17 @@ import ResetPasswordPage from './pages/ResetPassword';
 import { DashboardPage } from './pages/DashboardPage';
 import { ToastContainer } from './components/ToastContainer';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import './global.css';
 
 // Componente para proteger rotas que precisam de autenticação
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = !!localStorage.getItem('accessToken');
+  const isAuthenticated = !!localStorage.getItem('auth_token');
 
   console.log('[ProtectedRoute] Verificando autenticação:', {
     isAuthenticated,
-    hasToken: !!localStorage.getItem('accessToken'),
-    token: localStorage.getItem('accessToken')?.substring(0, 20) + '...',
+    hasToken: !!localStorage.getItem('auth_token'),
+    token: localStorage.getItem('auth_token')?.substring(0, 20) + '...',
   });
 
   if (!isAuthenticated) {
@@ -36,66 +37,68 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <ToastContainer />
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/recuperar-senha" element={<RecoveryPage />} />
-          <Route path="/senha-numero" element={<RecoveryNumberPage />} />
-          <Route path="/nova-senha" element={<ResetPasswordPage />} />
+      <ToastProvider>
+        <BrowserRouter>
+          <ToastContainer />
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/recuperar-senha" element={<RecoveryPage />} />
+            <Route path="/senha-numero" element={<RecoveryNumberPage />} />
+            <Route path="/nova-senha" element={<ResetPasswordPage />} />
 
-          {/* Rotas protegidas do dashboard */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/users"
-            element={
-              <ProtectedRoute>
-                <UsersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/students"
-            element={
-              <ProtectedRoute>
-                <StudentsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/classes"
-            element={
-              <ProtectedRoute>
-                <ClassesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/reports"
-            element={
-              <ProtectedRoute>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+            {/* Rotas protegidas do dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/users"
+              element={
+                <ProtectedRoute>
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/students"
+              element={
+                <ProtectedRoute>
+                  <StudentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/classes"
+              element={
+                <ProtectedRoute>
+                  <ClassesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/reports"
+              element={
+                <ProtectedRoute>
+                  <ReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }
