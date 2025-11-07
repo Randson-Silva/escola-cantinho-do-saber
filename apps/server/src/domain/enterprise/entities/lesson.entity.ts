@@ -30,6 +30,19 @@ export class LessonEntity extends Entity<LessonProps> {
     return this.props.duration;
   }
 
+  set lessonDate(value: Date) {
+    this.props.lessonDate = value;
+  }
+  set startTime(value: string | null) {
+    this.props.startTime = value;
+  }
+  set endTime(value: string | null) {
+    this.props.endTime = value;
+  }
+  set duration(value: string | null) {
+    this.props.duration = value;
+  }
+
   static create(props: LessonProps, id?: UniqueEntityId): LessonEntity {
     const lessonEntity = new LessonEntity(props, id);
     return lessonEntity;

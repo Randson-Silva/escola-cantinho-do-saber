@@ -6,9 +6,17 @@ export const createLessonBodySchema = z.object({
   endTime: z.string().nullable().optional().default(null),
   duration: z.string().nullable().optional().default(null),
 });
-
-export type CreateLessonBody = z.infer<typeof createLessonBodySchema>;
+export const createLessonParamsSchema = z.object({
+  classId: z.string().ulid(),
+});
 
 export const lessonParamsSchema = z.object({
-  classId: z.string().ulid(),
+  id: z.string().ulid(),
+});
+
+export const updateLessonBodySchema = z.object({
+  lessonDate: z.coerce.date(),
+  startTime: z.string().nullable().optional().default(null),
+  endTime: z.string().nullable().optional().default(null),
+  duration: z.string().nullable().optional().default(null),
 });
