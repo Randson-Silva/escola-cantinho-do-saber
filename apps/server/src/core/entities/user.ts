@@ -1,3 +1,4 @@
+import { ProfileEntity } from '../../domain/enterprise/entities/profile.entity';
 import { Entity } from './entity';
 import { UniqueEntityId } from './unique-entity-id';
 
@@ -7,7 +8,7 @@ export interface UserProps {
   email: string;
   password: string;
 
-  profileId: string;
+  profile: ProfileEntity;
 }
 
 export class UserEntity<Props = any> extends Entity<Props & UserProps> {
@@ -23,8 +24,8 @@ export class UserEntity<Props = any> extends Entity<Props & UserProps> {
     return this.props.password;
   }
 
-  get profileId() {
-    return this.props.profileId;
+  get profile() {
+    return this.props.profile;
   }
 
   static create(props: UserProps, id?: UniqueEntityId) {

@@ -1,12 +1,16 @@
 import { Either, fail, succeed } from 'apps/server/src/core/either';
 import { UserEntity, UserProps } from 'apps/server/src/core/entities/user';
-import { IUserRepository } from '../../repositories/user.repository';
-import { IProfileRepository } from '../../repositories/profile.repository';
+import { IUserRepository, USERS_REPOSITORY_TOKEN } from '../../repositories/user.repository';
+import {
+  IProfileRepository,
+  PROFILE_REPOSITORY_TOKEN,
+} from '../../repositories/profile.repository';
 import { ProfileEntity, ProfileProps } from '../../../enterprise/entities/profile.entity';
 import { AuthService } from 'apps/server/src/infra/auth/auth.service';
 import { CannotUpdateError } from 'apps/server/src/core/errors/cannot-update.error';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { Optional } from 'apps/server/src/core/types/optional';
+import { inject, singleton } from 'tsyringe';
 
 type UpdateUserUseCaseRequest = Optional<
   Omit<UserProps, 'profileId'> & ProfileProps & { userId: string },
@@ -15,9 +19,12 @@ type UpdateUserUseCaseRequest = Optional<
 
 type UpdateUserUseCaseResponse = Either<CannotUpdateError, { userId: string }>;
 
+@singleton()
 export class UpdateUserUseCase {
   constructor(
+    @inject(USERS_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepository,
+    @inject(PROFILE_REPOSITORY_TOKEN)
     private readonly profileRepository: IProfileRepository,
     private readonly authService: AuthService,
   ) {}
@@ -40,7 +47,7 @@ export class UpdateUserUseCase {
         console.log(`Hashed: ${hashedPassword}`);
       }
 
-      const foundProfile = await this.profileRepository.findById(foundUser.profileId);
+      const foundProfile = await this.profileRepository.findById(foundUser.profile.id.toString());
 
       if (!foundProfile)
         return fail(new ResourceNotFoundError(`Profile not found to user: ${userId}`));
@@ -58,7 +65,7 @@ export class UpdateUserUseCase {
         email: email ?? foundUser.email,
         name: name ?? foundUser.name,
         password: hashedPassword,
-        profileId: profile.id.toString(),
+        profile: profile,
       });
 
       const canUpdateUser = await this.userRepository.update(user);
