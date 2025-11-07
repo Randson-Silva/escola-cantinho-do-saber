@@ -1,11 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './header.module.css';
+
+function computeTitle(pathname: string) {
+  const p = pathname.toLowerCase();
+  if (p === '/dashboard' || p.startsWith('/dashboard$')) return 'Dashboard';
+  if (p.startsWith('/dashboard/users')) return 'Usuários';
+  if (p.startsWith('/dashboard/students')) return 'Alunos';
+  if (p.startsWith('/dashboard/classes')) return 'Turmas';
+  if (p.startsWith('/dashboard/reports')) return 'Relatórios';
+  if (p.startsWith('/dashboard/settings')) return 'Configurações';
+  return 'Dashboard';
+}
+
+function computeSubtitle(pathname: string) {
+  const p = pathname.toLowerCase();
+  if (p === '/dashboard' || p.startsWith('/dashboard$')) return 'Resumo geral e atalhos do sistema';
+  if (p.startsWith('/dashboard/users')) return 'Gerencie usuários, permissões e acessos';
+  if (p.startsWith('/dashboard/students')) return 'Cadastre, edite e acompanhe os alunos';
+  if (p.startsWith('/dashboard/classes')) return 'Organize turmas, horários e matrículas';
+  if (p.startsWith('/dashboard/reports')) return 'Acompanhe relatórios e indicadores';
+  if (p.startsWith('/dashboard/settings')) return 'Ajuste preferências e configurações do sistema';
+  return 'Navegue pelos módulos do sistema';
+}
 
 export function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userName, setUserName] = useState('Usuário');
+  const location = useLocation();
   const navigate = useNavigate();
+  const title = useMemo(() => computeTitle(location.pathname), [location.pathname]);
+  const subtitle = useMemo(() => computeSubtitle(location.pathname), [location.pathname]);
 
   useEffect(() => {
     // Você pode buscar o nome do usuário do localStorage ou de uma API
@@ -47,8 +72,8 @@ export function Header() {
     <header className={styles.header}>
       <div className={styles.content}>
         <div className={styles.titleContainer}>
-          <h1 className={styles.title}>Dashboard</h1>
-          <p className={styles.subtitle}>Bem-vindo ao Cantinho do Saber</p>
+          <h1 className={styles.title}>{title}</h1>
+          <p className={styles.subtitle}>{subtitle}</p>
         </div>
 
         <div className={styles.userSection}>
@@ -86,4 +111,3 @@ export function Header() {
     </header>
   );
 }
-
