@@ -5,16 +5,6 @@ import { RegisterStudentForm } from '../components/students/RegisterStudentForm'
 export function StudentsPage() {
   return (
     <DashboardLayout>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '2rem',
-        }}
-      >
-        <h2 style={{ color: '#1976d2' }}>Cadastro de Alunos</h2>
-      </div>
       <RegisterStudentForm />
     </DashboardLayout>
   );
