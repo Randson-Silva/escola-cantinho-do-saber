@@ -12,7 +12,7 @@
   /* Cores principais */
   --primary-color: #175b80;
   --secondary-color: #2a9d8f;
-  --background-color: #ffffff;
+  --background-color: #e3f2fd;
   --text-color: #333333;
   --text-color-light: #666666;
   --error-color: #e63946;
@@ -94,7 +94,8 @@
 
 html,
 body {
-  height: 100%;
+  /* Use min-height para que o fundo acompanhe o scroll completo */
+  min-height: 100%;
   width: 100%;
 }
 
@@ -135,9 +136,11 @@ a:hover {
 
 /* Container root */
 #root {
-  height: 100%;
+  /* Garante que o app cubra toda a viewport e mantenha o fundo uniforme */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--background-color);
 }
 
 /* ========================================
