@@ -25,7 +25,7 @@ type LinkGuardianToStudentUseCaseRequest = {
 
 type LinkGuardianToStudentUseCaseResponse = Either<
   Error,
-  { succes: true }
+  void
 >;
 
 @singleton()
@@ -69,7 +69,7 @@ export class LinkGuardianToStudentUseCase {
       if (!canCreateLink)
         return fail(new CannotCreateError('Student-Guardian link'));
 
-      return succeed({ succes: true });
+      return succeed(undefined);
     } catch (error) {
       return fail(new Error('Cannot create link due to error' + error));
     }
