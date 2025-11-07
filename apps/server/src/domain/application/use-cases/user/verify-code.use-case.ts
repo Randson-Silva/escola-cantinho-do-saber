@@ -42,7 +42,7 @@ export class VerifyCodeUseCase {
 
       if (!user) return fail(new ResourceNotFoundError('user not found'));
 
-      const profile = await this.profileRepository.findById(user.profileId);
+      const profile = await this.profileRepository.findById(user.profile.id.toString());
 
       if (!profile) return fail(new ResourceNotFoundError('profile not found'));
 

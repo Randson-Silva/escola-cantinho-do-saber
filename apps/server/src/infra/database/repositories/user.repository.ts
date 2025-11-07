@@ -6,6 +6,13 @@ import { singleton } from 'tsyringe';
 
 @singleton()
 export class UserRepository implements IUserRepository {
+  async findAllUsers(): Promise<UserEntity[]> {
+    const users = await prisma.user.findMany({ include: { profile: true } });
+    const mappedUsers = users.map(UserMapper.toDomain);
+
+    return mappedUsers;
+  }
+
   async create(userEntity: UserEntity): Promise<boolean> {
     try {
       const userData = UserMapper.toDatabase(userEntity);
@@ -18,13 +25,13 @@ export class UserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id }, include: { profile: true } });
     if (!user) return null;
     return UserMapper.toDomain(user);
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email }, include: { profile: true } });
     if (!user) return null;
     return UserMapper.toDomain(user);
   }
@@ -45,7 +52,20 @@ export class UserRepository implements IUserRepository {
 
   async delete(id: string): Promise<boolean> {
     try {
-      await prisma.user.delete({ where: { id } });
+      await prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({
+          where: { id },
+          select: { profileId: true },
+        });
+
+        if (!user) throw new Error('User not found');
+
+        await tx.user.delete({ where: { id } });
+
+        await tx.profile.delete({
+          where: { id: user.profileId },
+        });
+      });
       return true;
     } catch (error) {
       console.error('Error deleting user:', error);
