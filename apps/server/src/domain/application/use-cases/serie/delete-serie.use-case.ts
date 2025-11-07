@@ -1,7 +1,7 @@
 import { Either, fail, succeed } from 'apps/server/src/core/either';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { CannotDeleteError } from 'apps/server/src/core/errors/cannot-delete.error';
-import { ISerieRepository, SERIE_REPOSITORY_TOKEN } from '../../repositories/serie.repository';
+import { ISerieRepository, SERIES_REPOSITORY_TOKEN } from '../../repositories/serie.repository';
 import { inject, singleton } from 'tsyringe';
 
 type DeleteSerieUseCaseRequest = {
@@ -13,7 +13,7 @@ type DeleteSerieUseCaseResponse = Either<ResourceNotFoundError | CannotDeleteErr
 @singleton()
 export class DeleteSerieUseCase {
   constructor(
-    @inject(SERIE_REPOSITORY_TOKEN)
+    @inject(SERIES_REPOSITORY_TOKEN)
     private readonly serieRepository: ISerieRepository,
   ) {}
 

@@ -47,8 +47,8 @@ export class FindSerieByIdController {
       }
     }
 
-    const { serieEntity } = result.value;
+    const { SeriesEntity } = result.value;
 
-    return res.status(200).json(SeriePresenter.toHTTP(serieEntity));
+    return res.status(200).json(SeriePresenter.toHTTP(SeriesEntity));
   }
 }

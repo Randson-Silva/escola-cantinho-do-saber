@@ -1,8 +1,10 @@
 import { Request, Response, Router } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { ADDRESS_REPOSITORY_TOKEN, AddressRepository } from '../../../../domain/application/repositories/address.repository';
+import {
+  ADDRESS_REPOSITORY_TOKEN,
+  IAddressRepository,
+} from '../../../../domain/application/repositories/address.repository';
 import { AddressEntity } from '../../../../domain/enterprise/entities/address.entity';
-import { UniqueEntityId } from '../../../../core/entities/unique-entity-id';
 
 @injectable()
 export class CreateAddressController {
@@ -10,7 +12,7 @@ export class CreateAddressController {
 
   constructor(
     @inject(ADDRESS_REPOSITORY_TOKEN)
-    private readonly addressRepository: AddressRepository
+    private readonly addressRepository: IAddressRepository,
   ) {
     this.router = Router();
     this.router.post('/addresses', this.handle.bind(this));

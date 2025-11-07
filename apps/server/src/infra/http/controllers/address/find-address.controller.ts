@@ -1,6 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { ADDRESS_REPOSITORY_TOKEN, AddressRepository } from '../../../../domain/application/repositories/address.repository';
+import {
+  ADDRESS_REPOSITORY_TOKEN,
+  IAddressRepository,
+} from '../../../../domain/application/repositories/address.repository';
 
 @injectable()
 export class FindAddressController {
@@ -8,7 +11,7 @@ export class FindAddressController {
 
   constructor(
     @inject(ADDRESS_REPOSITORY_TOKEN)
-    private readonly addressRepository: AddressRepository
+    private readonly addressRepository: IAddressRepository,
   ) {
     this.router = Router();
     this.router.get('/addresses/:id', this.handle.bind(this));

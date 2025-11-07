@@ -1,3 +1,8 @@
-import { Student } from '@prisma/client';
+import { Address, Student, StudentHasGuardian, Enrollment, Attendance } from '@prisma/client';
 
-export type StudentSchema = Student;
+export type StudentSchema = Student & {
+  addresses?: Address[];
+  guardians?: (StudentHasGuardian & { guardian: { id: string } })[];
+  enrollments?: Enrollment[];
+  attendances?: Attendance[];
+};

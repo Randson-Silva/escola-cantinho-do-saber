@@ -73,26 +73,19 @@ import { CreateLessonController } from './infra/http/controllers/lesson/create-l
 import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
 import {
   ISerieRepository,
-  SERIE_REPOSITORY_TOKEN,
+  SERIES_REPOSITORY_TOKEN,
 } from './domain/application/repositories/serie.repository';
 import { SerieRepository } from './infra/database/repositories/serie.repository';
 import { CreateSerieController } from './infra/http/controllers/serie/create-serie.controller';
 import { FindSerieByIdController } from './infra/http/controllers/serie/find-serie-by-id.controller';
 import { UpdateSerieController } from './infra/http/controllers/serie/update-serie.controller';
 import { DeleteSerieController } from './infra/http/controllers/serie/delete-serie.controller';
-import { ADDRESS_REPOSITORY_TOKEN } from './domain/application/repositories/address.repository';
-import { PrismaAddressRepository } from './infra/database/repositories/prisma.adress.repository';
-import { CreateAddressController } from './infra/http/controllers/address/create-address.controller';
-import { FindAddressController } from './infra/http/controllers/address/find-address.controller';
-import { UpdateAddressController } from './infra/http/controllers/address/update-address.controller';
-import { DeleteAddressController } from './infra/http/controllers/address/delete-address.controller';
 import { FindGuardianByIdController } from './infra/http/controllers/guardian/find-guardian-by-id.controller';
 import { UpdateGuardianController } from './infra/http/controllers/guardian/update-guardian.controller';
 import { DeleteGuardianController } from './infra/http/controllers/guardian/delete-guardian.controller';
 import { FindLessonByIdController } from './infra/http/controllers/lesson/find-lesson-by-id.controller';
 import { UpdateLessonController } from './infra/http/controllers/lesson/update-lesson.controller';
 import { DeleteLessonController } from './infra/http/controllers/lesson/delete-lesson.controller';
-
 
 //#region MODULE CONFIGURATION
 
@@ -105,10 +98,7 @@ container.registerSingleton<IStudentGuardianRepository>(
   StudentGuardianRepository,
 );
 container.registerSingleton<IClassRepository>(CLASS_REPOSITORY_TOKEN, ClassRepository);
-container.registerSingleton<ILessonRepository>(
-  LESSON_REPOSITORY_TOKEN,
-  LessonRepository,
-);
+container.registerSingleton<ILessonRepository>(LESSON_REPOSITORY_TOKEN, LessonRepository);
 container.registerSingleton<IAttendanceRepository>(
   ATTENDANCE_REPOSITORY_TOKEN,
   AttendanceRepository,
@@ -117,8 +107,7 @@ container.registerSingleton<IAttendanceLinkedToLessonRepository>(
   ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN,
   AttendanceLinkedToLessonRepository,
 );
-container.registerSingleton<ISerieRepository>(SERIE_REPOSITORY_TOKEN, SerieRepository);
-container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
+container.registerSingleton<ISerieRepository>(SERIES_REPOSITORY_TOKEN, SerieRepository);
 
 //#endregion
 
@@ -174,22 +163,13 @@ const createGuardianController = container.resolve(CreateGuardianController);
 const findGuardianByIdController = container.resolve(FindGuardianByIdController);
 const updateGuardianController = container.resolve(UpdateGuardianController);
 const deleteGuardianController = container.resolve(DeleteGuardianController);
-const linkGuardianToStudentController = container.resolve(
-  LinkGuardianToStudentController,
-);
+const linkGuardianToStudentController = container.resolve(LinkGuardianToStudentController);
 
 const createLessonController = container.resolve(CreateLessonController);
 const findLessonByIdController = container.resolve(FindLessonByIdController);
 const updateLessonController = container.resolve(UpdateLessonController);
 const deleteLessonController = container.resolve(DeleteLessonController);
-const registerStudentAttendanceController = container.resolve(
-  RegisterStudentAttendanceController,
-);
-
-const createAddressController = container.resolve(CreateAddressController);
-const findAddressController = container.resolve(FindAddressController);
-const updateAddressController = container.resolve(UpdateAddressController);
-const deleteAddressController = container.resolve(DeleteAddressController);
+const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
@@ -227,11 +207,6 @@ router.use('/', findLessonByIdController.router);
 router.use('/', updateLessonController.router);
 router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
-
-router.use('/', createAddressController.router);
-router.use('/', findAddressController.router);
-router.use('/', updateAddressController.router);
-router.use('/', deleteAddressController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;

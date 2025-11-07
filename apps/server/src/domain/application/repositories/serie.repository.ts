@@ -1,10 +1,10 @@
-import { SerieEntity } from '../../enterprise/entities/serie.entity';
+import { SeriesEntity } from '../../enterprise/entities/series.entity';
 
 export abstract class ISerieRepository {
-  abstract create(serieEntity: SerieEntity): Promise<boolean>;
-  abstract findById(id: string): Promise<SerieEntity | null>;
-  abstract update(serieEntity: SerieEntity): Promise<boolean>;
+  abstract create(SeriesEntity: SeriesEntity): Promise<boolean>;
+  abstract findById(id: string): Promise<SeriesEntity | null>;
+  abstract update(SeriesEntity: SeriesEntity): Promise<boolean>;
   abstract delete(id: string): Promise<boolean>;
 }
 
-export const SERIE_REPOSITORY_TOKEN = 'ISerieRepository';
+export const SERIES_REPOSITORY_TOKEN = 'ISeriesRepository';

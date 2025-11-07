@@ -3,17 +3,10 @@ import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
 
 export interface ClassProps {
   name: string;
-
   teacherId: string;
-
-  // ! series ClassHasSeries[]
-  // ? series: [];
-
-  // ! lessons Lesson[]
-  // ? lessons: [];
-
-  // ! students Student[]
-  // ? students: [];
+  seriesIds: string[] | null;
+  studentIds: string[] | null;
+  lessonIds: string[] | null;
 }
 
 export class ClassEntity extends Entity<ClassProps> {
@@ -21,26 +14,23 @@ export class ClassEntity extends Entity<ClassProps> {
     return this.props.name;
   }
 
-
   get teacherId() {
     return this.props.teacherId;
   }
 
-  // get series() {
-  //   return this.props.series;
-  // }
+  get seriesIds() {
+    return this.props.seriesIds;
+  }
 
-  // get lessons() {
-  //   return this.props.lessons;
-  // }
+  get studentIds() {
+    return this.props.studentIds;
+  }
 
-  // get students() {
-  //   return this.props.students;
-  // }
+  get lessonIds() {
+    return this.props.lessonIds;
+  }
 
   static create(props: ClassProps, id?: UniqueEntityId) {
-    const classEntity = new ClassEntity(props, id);
-
-    return classEntity;
+    return new ClassEntity(props, id);
   }
 }

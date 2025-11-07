@@ -9,11 +9,16 @@ import { inject, singleton } from 'tsyringe';
 type UpdateClassUseCaseRequest = {
   classId: string;
   name: string;
-
   teacherId: string;
+  seriesIds?: string[] | null;
+  studentIds?: string[] | null;
+  lessonIds?: string[] | null;
 };
 
-type UpdateClassUseCaseResponse = Either<CannotUpdateError, { classId: string }>;
+type UpdateClassUseCaseResponse = Either<
+  CannotUpdateError | ResourceNotFoundError,
+  { classId: string }
+>;
 
 @singleton()
 export class UpdateClassUseCase {
@@ -26,27 +31,36 @@ export class UpdateClassUseCase {
     classId,
     name,
     teacherId,
+    seriesIds = null,
+    studentIds = null,
+    lessonIds = null,
   }: UpdateClassUseCaseRequest): Promise<UpdateClassUseCaseResponse> {
     try {
       const foundClass = await this.classRepository.findById(classId);
 
-      if (!foundClass) return fail(new ResourceNotFoundError('Class not found'));
+      if (!foundClass) {
+        return fail(new ResourceNotFoundError('Class not found'));
+      }
 
-      const classEntity = ClassEntity.create(
+      const updatedClassEntity = ClassEntity.create(
         {
           name,
           teacherId,
+          seriesIds,
+          studentIds,
+          lessonIds,
         },
         new UniqueEntityId(classId),
       );
 
-      const canUpdateClass = await this.classRepository.update(classEntity);
+      const canUpdateClass = await this.classRepository.update(updatedClassEntity);
+      if (!canUpdateClass) {
+        return fail(new CannotUpdateError('Class'));
+      }
 
-      if (!canUpdateClass) return fail(new CannotUpdateError('Class'));
-
-      return succeed({ classId: classEntity.id.toString() });
+      return succeed({ classId: updatedClassEntity.id.toString() });
     } catch (error) {
-      return fail(new Error('Cannot update class due to error' + error));
+      return fail(new Error('Cannot update Class due to error: ' + error));
     }
   }
 }

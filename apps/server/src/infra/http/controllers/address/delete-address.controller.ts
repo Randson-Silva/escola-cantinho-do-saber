@@ -1,6 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { ADDRESS_REPOSITORY_TOKEN, AddressRepository } from '../../../../domain/application/repositories/address.repository';
+import {
+  ADDRESS_REPOSITORY_TOKEN,
+  IAddressRepository,
+} from '../../../../domain/application/repositories/address.repository';
 
 @injectable()
 export class DeleteAddressController {
@@ -8,7 +11,7 @@ export class DeleteAddressController {
 
   constructor(
     @inject(ADDRESS_REPOSITORY_TOKEN)
-    private readonly addressRepository: AddressRepository
+    private readonly addressRepository: IAddressRepository,
   ) {
     this.router = Router();
     this.router.delete('/addresses/:id', this.handle.bind(this));
@@ -22,7 +25,7 @@ export class DeleteAddressController {
       return res.status(404).json({ message: 'Address not found' });
     }
 
-    await this.addressRepository.softDelete(id);
+    await this.addressRepository.delete(id);
     return res.status(204).send(); // No Content
   }
 }

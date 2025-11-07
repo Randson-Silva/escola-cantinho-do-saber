@@ -6,8 +6,10 @@ import { CLASS_REPOSITORY_TOKEN, IClassRepository } from '../../repositories/cla
 
 type CreateClassUseCaseRequest = {
   name: string;
-
   teacherId: string;
+  seriesIds?: string[] | null;
+  studentIds?: string[] | null;
+  lessonIds?: string[] | null;
 };
 
 type CreateClassUseCaseResponse = Either<CannotCreateError, { classId: string }>;
@@ -22,25 +24,27 @@ export class CreateClassUseCase {
   async execute({
     name,
     teacherId,
+    seriesIds = null,
+    studentIds = null,
+    lessonIds = null,
   }: CreateClassUseCaseRequest): Promise<CreateClassUseCaseResponse> {
     try {
-      // !!
-      // const foundTeacher = await this.teacherRepository.findById(teacherId);
-
-      // if (!foundTeacher) return fail(new ResourceNotFoundError("Teacher not found"));
-
       const classEntity = ClassEntity.create({
         name,
         teacherId,
+        seriesIds,
+        studentIds,
+        lessonIds,
       });
 
       const canCreateClass = await this.classRepository.create(classEntity);
-
-      if (!canCreateClass) return fail(new CannotCreateError('Class'));
+      if (!canCreateClass) {
+        return fail(new CannotCreateError('Class'));
+      }
 
       return succeed({ classId: classEntity.id.toString() });
     } catch (error) {
-      return fail(new Error('Cannot create Class due to error' + error));
+      return fail(new Error('Cannot create Class due to error: ' + error));
     }
   }
 }

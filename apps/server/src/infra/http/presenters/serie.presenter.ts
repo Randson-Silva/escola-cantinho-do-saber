@@ -1,9 +1,9 @@
-import { SerieEntity } from 'apps/server/src/domain/enterprise/entities/serie.entity';
+import { SeriesEntity } from 'apps/server/src/domain/enterprise/entities/series.entity';
 
 export class SeriePresenter {
-  static toHTTP(serieEntity: SerieEntity) {
+  static toHTTP(SeriesEntity: SeriesEntity) {
     return {
-      name: serieEntity.name,
+      name: SeriesEntity.name,
     };
   }
 }

@@ -1,14 +1,14 @@
 import { ISerieRepository } from 'apps/server/src/domain/application/repositories/serie.repository';
-import { SerieEntity } from 'apps/server/src/domain/enterprise/entities/serie.entity';
+import { SeriesEntity } from 'apps/server/src/domain/enterprise/entities/series.entity';
 import { prisma } from 'packages/database/src/client';
 import { singleton } from 'tsyringe';
-import { SerieMapper } from '../mapper/serie.mapper';
+import { SeriesMapper } from '../mapper/series.mapper';
 
 @singleton()
 export class SerieRepository implements ISerieRepository {
-  async create(serieEntity: SerieEntity): Promise<boolean> {
+  async create(SeriesEntity: SeriesEntity): Promise<boolean> {
     try {
-      const serieData = SerieMapper.toDatabase(serieEntity);
+      const serieData = SeriesMapper.toDatabase(SeriesEntity);
       await prisma.series.create({ data: serieData });
       return true;
     } catch (error) {
@@ -17,17 +17,17 @@ export class SerieRepository implements ISerieRepository {
     }
   }
 
-  async findById(id: string): Promise<SerieEntity | null> {
+  async findById(id: string): Promise<SeriesEntity | null> {
     const serieData = await prisma.series.findUnique({ where: { id } });
     if (!serieData) return null;
-    return SerieMapper.toDomain(serieData);
+    return SeriesMapper.toDomain(serieData);
   }
 
-  async update(serieEntity: SerieEntity): Promise<boolean> {
+  async update(SeriesEntity: SeriesEntity): Promise<boolean> {
     try {
-      const serieData = SerieMapper.toDatabase(serieEntity);
+      const serieData = SeriesMapper.toDatabase(SeriesEntity);
       await prisma.series.update({
-        where: { id: serieEntity.id.toString() },
+        where: { id: SeriesEntity.id.toString() },
         data: serieData,
       });
       return true;

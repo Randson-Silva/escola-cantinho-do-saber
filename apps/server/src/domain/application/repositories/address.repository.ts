@@ -2,18 +2,28 @@ import { AddressEntity } from '../../enterprise/entities/address.entity';
 
 export const ADDRESS_REPOSITORY_TOKEN = 'ADDRESS_REPOSITORY_TOKEN';
 
-export interface AddressRepository {
-  create(address: AddressEntity): Promise<void>;
-  update(address: AddressEntity): Promise<void>;
-  softDelete(id: string): Promise<void>;
-  findById(id: string): Promise<AddressEntity | null>;
-  listAll(): Promise<AddressEntity[]>;
+export abstract class IAddressRepository {
+  abstract create(SeriesEntity: AddressEntity): Promise<boolean>;
+  abstract findById(id: string): Promise<AddressEntity | null>;
+  abstract update(SeriesEntity: AddressEntity): Promise<boolean>;
+  abstract delete(id: string): Promise<boolean>;
+  abstract listAll(): Promise<AddressEntity[]>;
 
-  linkToStudent(addressId: string, studentId: string, isPrimary?: boolean): Promise<void>;
-  unlinkFromStudent(addressId: string, studentId: string): Promise<void>;
-  listByStudent(studentId: string): Promise<{ address: AddressEntity; isPrimary: boolean }[]>;
+  abstract findDuplicate(address: AddressEntity): Promise<AddressEntity | null>;
 
-  linkToGuardian(addressId: string, guardianId: string, isPrimary?: boolean): Promise<void>;
-  unlinkFromGuardian(addressId: string, guardianId: string): Promise<void>;
-  listByGuardian(guardianId: string): Promise<{ address: AddressEntity; isPrimary: boolean }[]>;
+  abstract linkToStudent(addressId: string, studentId: string, isPrimary?: boolean): Promise<void>;
+  abstract unlinkFromStudent(addressId: string, studentId: string): Promise<void>;
+  abstract listByStudent(
+    studentId: string,
+  ): Promise<{ address: AddressEntity; isPrimary: boolean }[]>;
+
+  abstract linkToGuardian(
+    addressId: string,
+    guardianId: string,
+    isPrimary?: boolean,
+  ): Promise<void>;
+  abstract unlinkFromGuardian(addressId: string, guardianId: string): Promise<void>;
+  abstract listByGuardian(
+    guardianId: string,
+  ): Promise<{ address: AddressEntity; isPrimary: boolean }[]>;
 }

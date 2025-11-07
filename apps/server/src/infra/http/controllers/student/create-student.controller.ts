@@ -6,9 +6,28 @@ import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { CreateStudentUseCase } from 'apps/server/src/domain/application/use-cases/student/create-student.use-case';
 
+const addressSchema = z.object({
+  street: z.string().trim().nonempty(),
+  number: z.string().trim().nonempty(),
+  district: z.string().trim().nonempty(),
+  complement: z.string().nullable().optional(),
+});
+
+const guardianSchema = z.object({
+  name: z.string(),
+  kinship: z.string(),
+  phones: z.string().array(),
+  email: z.string().nullable(),
+});
+
 const createStudentBodySchema = z.object({
-  name: z.string().nonempty(),
-  birthDate: z.iso.date(),
+  name: z.string().trim().nonempty(),
+  birthDate: z.coerce.date(),
+  classId: z.string().trim().nonempty(),
+  seriesId: z.string().trim().nullable().optional(),
+  studentAddress: addressSchema,
+  guardianAddress: addressSchema,
+  guardian: guardianSchema,
 });
 
 type CreateStudentBodySchema = z.infer<typeof createStudentBodySchema>;
@@ -25,23 +44,30 @@ export class CreateStudentController {
   }
 
   private registerRoutes(): void {
-    this.router.post(
-      '/student',
-      checkJwt,
-      bodyValidationPipe,
-
-      this.handle.bind(this),
-    );
+    this.router.post('/student', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request, res: Response) {
     const body = req.body as CreateStudentBodySchema;
 
-    const { birthDate, name } = body;
+    const {
+      birthDate,
+      name,
+      classId,
+      seriesId = null,
+      studentAddress,
+      guardianAddress,
+      guardian,
+    } = body;
 
     const result = await this.createStudentUseCase.execute({
-      birthDate: new Date(birthDate),
+      birthDate,
       name,
+      classId,
+      seriesId,
+      studentAddress,
+      guardianAddress,
+      guardian,
     });
 
     if (result.isFail()) {
@@ -57,7 +83,6 @@ export class CreateStudentController {
     }
 
     const { studentId } = result.value;
-
-    return res.status(200).json({ studentId });
+    return res.status(201).json({ studentId });
   }
 }
