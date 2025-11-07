@@ -15,6 +15,9 @@ import { ForgotPasswordController } from './infra/http/controllers/user/forgot-p
 import { ResetPasswordController } from './infra/http/controllers/user/reset-password.controller';
 import { VerifyCodeController } from './infra/http/controllers/user/verify-code.controller';
 import { RefreshUserSessionController } from './infra/http/controllers/user/refresh-user-session.controller';
+import { FindUserByEmailController } from './infra/http/controllers/user/find-user-by-email.controller';
+import { SelfFindUserController } from './infra/http/controllers/user/self-find-user.controller';
+import { DeleteUserController } from './infra/http/controllers/user/delete-user.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -53,6 +56,9 @@ const forgotPasswordController = container.resolve(ForgotPasswordController);
 const resetPasswordController = container.resolve(ResetPasswordController);
 const verifyCodeController = container.resolve(VerifyCodeController);
 const refreshUserSessionController = container.resolve(RefreshUserSessionController);
+const deleteUserController = container.resolve(DeleteUserController);
+const findUserByEmailController = container.resolve(FindUserByEmailController);
+const selfGetUserController = container.resolve(SelfFindUserController);
 
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
@@ -60,6 +66,9 @@ router.use('/', createUserController.router);
 router.use('/', resetPasswordController.router);
 router.use('/', verifyCodeController.router);
 router.use('/', refreshUserSessionController.router);
+router.use('/', deleteUserController.router);
+router.use('/', findUserByEmailController.router);
+router.use('/', selfGetUserController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 3000;

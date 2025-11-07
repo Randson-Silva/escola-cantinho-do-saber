@@ -42,7 +42,7 @@ export class ResetPasswordUseCase {
         {
           email: foundUser.email,
           name: foundUser.name,
-          profileId: foundUser.profileId,
+          profile: foundUser.profile,
           password: hashedPassword,
         },
         new UniqueEntityId(userId),
