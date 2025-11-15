@@ -80,3 +80,5 @@ coverage/
 *.spec.ts
 *.test.ts
 *.test.js
+
+migrations
