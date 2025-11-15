@@ -7,11 +7,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+/**
+ * * USUÁRIOS / PERFIS
+ */
 model User {
-  id        String  @id @unique @default(ulid())
-  name      String
-  email     String  @unique
-  password  String
+  id       String @id @unique @default(ulid())
+  name     String
+  email    String @unique
+  password String
+
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId String  @unique
 }
@@ -24,5 +28,234 @@ enum AccessLevel {
 model Profile {
   id          String      @id @unique @default(ulid())
   accessLevel AccessLevel @default(COMUM)
-  user        User?
+
+  user User?
+}
+
+/**
+ * * MODELOS ACADÊMICOS
+ */
+model Series {
+  id       String             @id @unique @default(ulid())
+  name     String
+  classes  ClassHasSeries[] //* N:N Turma <-> Série
+  students Student[] //* 1:N Série -> Alunos
+  teachers TeacherQualified[] //* N:N Professor <-> Série
+}
+
+/**
+ * * PROFESSOR
+ */
+model Teacher {
+  id        String @id @unique @default(ulid())
+  name      String
+  taxId     String @unique
+  phone     String @unique
+  pixKey    String
+  expertise String
+
+  //* 1:N Professor -> Turma
+  classes   Class[]
+  //* N:N Professor <-> Série
+  qualified TeacherQualified[]
+}
+
+/**
+ * * RELAÇÃO N:N PROFESSOR <-> SÉRIE
+ */
+model TeacherQualified {
+  teacherId String
+  seriesId  String
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  series  Series  @relation(fields: [seriesId], references: [id])
+
+  @@id([teacherId, seriesId])
+}
+
+/**
+ * * TURMA
+ */
+model Class {
+  id        String  @id @unique @default(ulid())
+  name      String
+
+  //* Relação 1:N com Professor
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  //* Relação N:N com Série
+  series ClassHasSeries[]
+
+  //* Relação 1:N com Aula
+  lessons Lesson[]
+
+  //* Relação 1:N com Aluno
+  students Student[]
+}
+
+/**
+ * * TABELA ASSOCIATIVA TURMA_POSSUI_SÉRIE
+ */
+model ClassHasSeries {
+  seriesId String
+  classId  String
+
+  series Series @relation(fields: [seriesId], references: [id])
+  class  Class  @relation(fields: [classId], references: [id])
+
+  @@id([seriesId, classId])
+}
+
+/**
+ * * ALUNO / RESPONSÁVEL
+ */
+model Student {
+  id        String   @id @unique @default(ulid())
+  name      String
+  birthDate DateTime
+
+  //* Relação com Turma
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  //* Relação opcional com Série
+  seriesId String?
+  series   Series? @relation(fields: [seriesId], references: [id])
+
+  //* Relação N:N com Endereço
+  addresses Address[] @relation("StudentAddresses")
+
+  //* Relação N:N com Responsável
+  guardians StudentHasGuardian[]
+
+  //* Matrículas e Pagamentos
+  enrollments Enrollment[]
+  attendances Attendance[]
+}
+
+/**
+ * * RESPONSÁVEL
+ */
+model Guardian {
+  id     String   @id @unique @default(ulid())
+  name   String
+  email  String?  @unique
+  phones String[]
+
+  //* Relação N:N com Endereço
+  addresses Address[] @relation("GuardianAddresses")
+
+  //* Relação N:N com Aluno via intermediária
+  students StudentHasGuardian[]
+}
+
+/**
+ * * ENTIDADE ASSOCIATIVA ALUNO_POSSUI_RESPONSÁVEL
+ */
+model StudentHasGuardian {
+  studentId  String
+  guardianId String
+  kinship    String?
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, guardianId])
+}
+
+/**
+ * * ENDEREÇO
+ */
+model Address {
+  id         String  @id @unique @default(ulid())
+  street     String
+  number     String
+  district   String
+  complement String?
+
+  students  Student[]  @relation("StudentAddresses")
+  guardians Guardian[] @relation("GuardianAddresses")
+}
+
+/**
+ * * CONTRATO / MATRÍCULA / PAGAMENTO
+ */
+model Contract {
+  id            String    @id @unique @default(ulid())
+  signatureDate DateTime
+  dueDate       DateTime?
+  document      String?
+
+  //* 1:N Contrato -> Matrícula
+  enrollments Enrollment[]
+}
+
+/**
+ * * MATRÍCULA
+ */
+model Enrollment {
+  id             String   @id @unique @default(ulid())
+  status         String
+  enrollmentDate DateTime
+  studentId      String
+  contractId     String
+
+  student  Student   @relation(fields: [studentId], references: [id])
+  contract Contract  @relation(fields: [contractId], references: [id])
+  payments Payment[]
+}
+
+/**
+ * * MENSALIDADE (PAYMENT)
+ */
+model Payment {
+  id            String    @id @unique @default(ulid())
+  amount        Float
+  dueDate       DateTime
+  paymentDate   DateTime?
+  paymentStatus String
+  enrollmentId  String
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+}
+
+/**
+ * * AULA (LESSON)
+ */
+model Lesson {
+  id         String   @id @unique @default(ulid())
+  lessonDate DateTime
+  classId    String
+  startTime String?
+  endTime   String?
+  duration  String?
+
+  class       Class                      @relation(fields: [classId], references: [id])
+  attendances AttendanceLinkedToLesson[]
+}
+
+/**
+ * * FREQUÊNCIA (ATTENDANCE)
+ */
+model Attendance {
+  id             String @id @unique @default(ulid())
+  presenceStatus String
+  studentId      String
+
+  student       Student                    @relation(fields: [studentId], references: [id])
+  linkedLessons AttendanceLinkedToLesson[]
+}
+
+/**
+ * * TABELA ASSOCIATIVA FREQUÊNCIA_VINCULADA_A_AULA
+ */
+model AttendanceLinkedToLesson {
+  attendanceId String
+  lessonId     String
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
+  lesson     Lesson     @relation(fields: [lessonId], references: [id])
+
+  @@id([attendanceId, lessonId])
 }
