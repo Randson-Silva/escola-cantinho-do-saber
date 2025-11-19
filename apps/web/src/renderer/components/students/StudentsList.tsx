@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { studentService, type Student } from '../../services/studentService';
 import styles from './students-list.module.css';
+import detailsStyles from './student-details.module.css';
 
 export function StudentsList() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ export function StudentsList() {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadStudents();
@@ -31,22 +34,33 @@ export function StudentsList() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este aluno?')) {
-      return;
-    }
+  const handleDelete = (id: string, name: string) => {
+    setStudentToDelete({ id, name });
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!studentToDelete) return;
 
     try {
-      await studentService.deleteStudent(id);
+      await studentService.deleteStudent(studentToDelete.id);
       showToast('Aluno excluído com sucesso!', 'success');
       loadStudents();
     } catch (error) {
       // Remove do localStorage
-      const updatedStudents = students.filter((s) => s.id !== id);
+      const updatedStudents = students.filter((s) => s.id !== studentToDelete.id);
       localStorage.setItem('students', JSON.stringify(updatedStudents));
       setStudents(updatedStudents);
       showToast('Aluno excluído com sucesso!', 'success');
+    } finally {
+      setShowDeleteConfirm(false);
+      setStudentToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setStudentToDelete(null);
   };
 
   const filteredStudents = students.filter((student) =>
@@ -142,7 +156,7 @@ export function StudentsList() {
                       </button>
                       <button
                         className={styles.deleteButton}
-                        onClick={() => handleDelete(student.id)}
+                        onClick={() => handleDelete(student.id, student.name)}
                         title="Excluir"
                       >
                         🗑️
@@ -153,6 +167,29 @@ export function StudentsList() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteConfirm && studentToDelete && (
+        <div className={detailsStyles.modal}>
+          <div className={detailsStyles.modalOverlay} onClick={cancelDelete} />
+          <div className={detailsStyles.modalContent}>
+            <h3 className={detailsStyles.modalTitle}>Confirmar Exclusão</h3>
+            <p className={detailsStyles.modalMessage}>
+              Tem certeza que deseja excluir o aluno <strong>{studentToDelete.name}</strong>?
+              <br />
+              Esta ação não pode ser desfeita.
+            </p>
+            <div className={detailsStyles.modalActions}>
+              <button onClick={cancelDelete} className={detailsStyles.modalCancelButton}>
+                Cancelar
+              </button>
+              <button onClick={confirmDelete} className={detailsStyles.modalDeleteButton}>
+                Excluir
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
