@@ -61,12 +61,16 @@ export class UpdateUserUseCase {
 
       if (!canUpdateProfile) return fail(new CannotUpdateError('Profile'));
 
-      const user = UserEntity.create({
-        email: email ?? foundUser.email,
-        name: name ?? foundUser.name,
-        password: hashedPassword,
-        profile: profile,
-      });
+      // Mantém o mesmo ID do usuário encontrado para que o repository.update encontre o registro correto
+      const user = UserEntity.create(
+        {
+          email: email ?? foundUser.email,
+          name: name ?? foundUser.name,
+          password: hashedPassword,
+          profile: profile,
+        },
+        foundUser.id,
+      );
 
       const canUpdateUser = await this.userRepository.update(user);
 

@@ -7,6 +7,7 @@ export class UserPresenter {
     };
 
     return {
+      id: user.id.toString(),
       name: user.name,
       email: user.email,
       profile,

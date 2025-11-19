@@ -23,9 +23,9 @@ export interface UserFromBackend {
   id: string;
   name: string;
   email: string;
-  role: BackendRole;
-  createdAt: string;
-  updatedAt: string;
+  profile: {
+    accessLevel: BackendRole;
+  };
 }
 
 // Interface para os dados que serão usados na UI
@@ -37,33 +37,42 @@ export interface UserForUI {
 }
 
 export const userService = {
-  // CORRIGIDO: A rota correta é POST /users
-  async createUser({ name, email, password, role }: { name: string; email: string; password: string; role: UiRole; }) {
+  // Criar novo usuário
+  async createUser({
+    name,
+    email,
+    password,
+    role,
+  }: {
+    name: string;
+    email: string;
+    password: string;
+    role: UiRole;
+  }) {
     const backendRole = ROLE_TO_BACKEND[role];
     const { data } = await api.post('/auth/user/register', {
       name,
       email,
       password,
-      role: backendRole, // O backend espera 'role' com 'ADMIN' ou 'COMUM'
+      accessLevel: backendRole, // Backend espera "accessLevel"
     });
     return data;
   },
 
-  // NOVO: Busca todos os usuários do backend
+  // Listar todos os usuários (apenas ADMIN)
   async listUsers(): Promise<UserForUI[]> {
-    const { data } = await api.get<UserFromBackend[]>('/auth/user/');
+    const { data } = await api.get<UserFromBackend[]>('/users');
     // Converte os dados do backend para o formato da UI
-    return data.map(user => ({
+    return data.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
-      role: BACKEND_TO_ROLE[user.role],
+      role: BACKEND_TO_ROLE[user.profile.accessLevel],
     }));
   },
 
-  // NOVO: Deleta um usuário pelo ID
+  // Deletar um usuário pelo ID (apenas ADMIN)
   async deleteUser(userId: string): Promise<void> {
-    await api.delete(`/auth/user/${userId}`);
+    await api.delete(`/users/${userId}`);
   },
-
 };
