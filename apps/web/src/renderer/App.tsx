@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import React from 'react';
+import React, { useEffect } from 'react';
 import LoginPage from './pages/Login';
 import { SettingsPage } from './pages/SettingsPage';
 import { UsersPage } from './pages/UsersPage';
 import { StudentsPage } from './pages/StudentsPage';
+import { StudentsListPage } from './pages/StudentsListPage';
+import { StudentsRegisterPage } from './pages/StudentsRegisterPage';
+import StudentDetailsPage from './pages/StudentDetailsPage';
+import EditStudentPage from './pages/EditStudentPage';
 import { ClassesPage } from './pages/ClassesPage';
 import { FinancesPage } from './pages/FinancesPage';
 import RecoveryPage from './pages/Recovery';
@@ -13,6 +17,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ToastContainer } from './components/ToastContainer';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+
 import './global.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -69,6 +74,38 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <StudentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/students/list"
+              element={
+                <ProtectedRoute>
+                  <StudentsListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/students/register"
+              element={
+                <ProtectedRoute>
+                  <StudentsRegisterPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/students/:id"
+              element={
+                <ProtectedRoute>
+                  <StudentDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/students/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditStudentPage />
                 </ProtectedRoute>
               }
             />

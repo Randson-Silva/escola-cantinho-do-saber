@@ -82,11 +82,18 @@
   font-weight: var(--font-weight-medium);
 }
 
-.statButton {
+.statActions {
   width: 100%;
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: auto;
+}
+
+.statButton {
+  flex: 1;
   padding: var(--space-md) var(--space-lg);
-  background: var(--btn-primary);
-  color: #ffffff;
+  background: #f3f4f6;
+  color: #374151;
   border: none;
   border-radius: var(--input-border-radius);
   font-size: var(--font-size-base);
@@ -94,13 +101,21 @@
   font-family: var(--font-primary);
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: auto;
 }
 
 .statButton:hover {
-  background: var(--btn-hover);
+  background: #e5e7eb;
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+.statButtonPrimary {
+  background: var(--btn-primary);
+  color: #ffffff;
+}
+
+.statButtonPrimary:hover {
+  background: var(--btn-hover);
 }
 
 .statButton:active {
@@ -256,4 +271,3 @@
     padding: var(--space-lg);
   }
 }
-

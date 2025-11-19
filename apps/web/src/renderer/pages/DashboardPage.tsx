@@ -1,7 +1,10 @@
 import { DashboardLayout } from '../components/dashboard/Layout/DashboardLayout';
+import { useNavigate } from 'react-router-dom';
 import styles from '../styles/dashboard-page.module.css';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
+
   return (
     <DashboardLayout>
       <div className={styles.container}>
@@ -18,7 +21,17 @@ export function DashboardPage() {
               <p className={styles.statValue}>245</p>
               <span className={styles.statChange}>+12 este mês</span>
             </div>
-            <button className={styles.statButton}>Cadastrar Aluno</button>
+            <div className={styles.statActions}>
+              <button className={styles.statButton} onClick={() => navigate('/dashboard/students')}>
+                Ver Alunos
+              </button>
+              <button
+                className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                onClick={() => navigate('/dashboard/students/register')}
+              >
+                Cadastrar Aluno
+              </button>
+            </div>
           </div>
 
           <div className={styles.statCard}>
@@ -41,18 +54,9 @@ export function DashboardPage() {
             <button className={styles.statButton}>Adicionar Professor</button>
           </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📅</div>
-            <div className={styles.statContent}>
-              <h3 className={styles.statLabel}>Eventos Este Mês</h3>
-              <p className={styles.statValue}>8</p>
-              <span className={styles.statChange}>2 próximos</span>
-            </div>
-            <button className={styles.statButton}>Agendar Evento</button>
-          </div>
+         
         </div>
       </div>
     </DashboardLayout>
   );
 }
-
