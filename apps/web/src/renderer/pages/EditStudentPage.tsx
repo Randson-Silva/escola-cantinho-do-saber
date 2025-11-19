@@ -1,10 +1,11 @@
 import { DashboardLayout } from '../components/dashboard/Layout/DashboardLayout';
-import { StudentsList } from '../components/students/StudentsList';
+import { EditStudentForm } from '../components/students/EditStudentForm';
 
-export function StudentsPage() {
+export default function EditStudentPage() {
   return (
     <DashboardLayout>
-      <StudentsList />
+      <EditStudentForm />
     </DashboardLayout>
   );
 }
+

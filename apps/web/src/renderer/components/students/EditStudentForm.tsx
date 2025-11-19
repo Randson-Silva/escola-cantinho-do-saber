@@ -1,14 +1,14 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
-import { studentService, type CreateStudentDTO } from '../../services/studentService';
+import { studentService, type Student, type CreateStudentDTO } from '../../services/studentService';
 import styles from './register-student.module.css';
 
-export function RegisterStudentForm() {
+export function EditStudentForm() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<CreateStudentDTO>({
     name: '',
     birthDate: '',
@@ -16,7 +16,6 @@ export function RegisterStudentForm() {
     schoolType: 'publica',
     class: '',
     teacher: '',
-    monthlyFee: 0,
     address: {
       street: '',
       number: '',
@@ -35,87 +34,162 @@ export function RegisterStudentForm() {
         neighborhood: '',
       },
     },
+    status: 'active',
+    enrollmentDate: new Date().toISOString().split('T')[0],
   });
+
+  useEffect(() => {
+    loadStudent();
+  }, [id]);
+
+  const loadStudent = async () => {
+    setIsLoading(true);
+    try {
+      if (!id) {
+        navigate('/dashboard/students');
+        return;
+      }
+
+      const data = await studentService.getStudentById(id);
+
+      // Converte a data para o formato do input (YYYY-MM-DD)
+      const birthDateFormatted = data.birthDate.split('T')[0];
+      const enrollmentDateFormatted = data.enrollmentDate.split('T')[0];
+
+      setFormData({
+        name: data.name,
+        birthDate: birthDateFormatted,
+        grade: data.grade,
+        schoolType: data.schoolType,
+        class: data.class,
+        teacher: data.teacher,
+        address: data.address,
+        guardian: data.guardian,
+        status: data.status,
+        enrollmentDate: enrollmentDateFormatted,
+      });
+    } catch (error) {
+      console.log('API não disponível. Carregando dados locais...');
+      const localStudents = JSON.parse(localStorage.getItem('students') || '[]');
+      const foundStudent = localStudents.find((s: Student) => s.id === id);
+
+      if (foundStudent) {
+        const birthDateFormatted = foundStudent.birthDate.split('T')[0];
+        const enrollmentDateFormatted = foundStudent.enrollmentDate.split('T')[0];
+
+        setFormData({
+          name: foundStudent.name,
+          birthDate: birthDateFormatted,
+          grade: foundStudent.grade,
+          schoolType: foundStudent.schoolType,
+          class: foundStudent.class,
+          teacher: foundStudent.teacher,
+          address: foundStudent.address,
+          guardian: foundStudent.guardian,
+          status: foundStudent.status,
+          enrollmentDate: enrollmentDateFormatted,
+        });
+      } else {
+        showToast('Aluno não encontrado', 'error');
+        navigate('/dashboard/students');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     if (name.startsWith('address.')) {
-      const field = name.split('.')[1];
+      const addressField = name.split('.')[1];
       setFormData((prev) => ({
         ...prev,
-        address: { ...prev.address, [field]: value },
+        address: {
+          ...prev.address,
+          [addressField]: value,
+        },
       }));
     } else if (name.startsWith('guardian.address.')) {
-      const field = name.split('.')[2];
+      const addressField = name.split('.')[2];
       setFormData((prev) => ({
         ...prev,
         guardian: {
           ...prev.guardian,
-          address: { ...prev.guardian.address, [field]: value },
+          address: {
+            ...prev.guardian.address,
+            [addressField]: value,
+          },
         },
       }));
     } else if (name.startsWith('guardian.')) {
-      const field = name.split('.')[1];
+      const guardianField = name.split('.')[1];
       setFormData((prev) => ({
         ...prev,
-        guardian: { ...prev.guardian, [field]: value },
+        guardian: {
+          ...prev.guardian,
+          [guardianField]: value,
+        },
       }));
     } else {
-      // Converte monthlyFee para número
-      const finalValue = name === 'monthlyFee' ? Number(value) : value;
-      setFormData((prev) => ({ ...prev, [name]: finalValue }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    if (!id) return;
 
     try {
-      // Tenta fazer a requisição para a API (que ainda não existe)
-      await studentService.createStudent(formData);
-
-  addToast('Aluno cadastrado com sucesso!', 'success');
-      navigate('/dashboard/students');
+      await studentService.updateStudent(id, formData);
+      showToast('Aluno atualizado com sucesso!', 'success');
+      setTimeout(() => {
+        navigate(`/dashboard/students/${id}`);
+      }, 1000);
     } catch (error) {
-      // Como a API não existe, simula o salvamento localmente
-      console.log('API não disponível. Salvando dados localmente:', formData);
-
-      // Salva no localStorage como mock
-      const existingStudents = JSON.parse(localStorage.getItem('students') || '[]');
-      const newStudent = {
-        id: Date.now().toString(),
-        ...formData,
-        enrollmentDate: new Date().toISOString(),
-        status: 'active' as const,
-      };
-      localStorage.setItem('students', JSON.stringify([...existingStudents, newStudent]));
-
-  addToast('Aluno cadastrado com sucesso!', 'success');
-      navigate('/dashboard/students');
-    } finally {
-      setIsSubmitting(false);
+      console.log('API não disponível. Salvando dados localmente...');
+      const localStudents = JSON.parse(localStorage.getItem('students') || '[]');
+      const updatedStudents = localStudents.map((s: Student) =>
+        s.id === id ? { ...s, ...formData } : s,
+      );
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      showToast('Aluno atualizado com sucesso!', 'success');
+      setTimeout(() => {
+        navigate(`/dashboard/students/${id}`);
+      }, 1000);
     }
   };
 
   const handleCancel = () => {
-    navigate('/dashboard');
+    navigate(`/dashboard/students/${id}`);
   };
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div style={{ textAlign: 'center', padding: '3rem' }}>Carregando dados do aluno...</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Cadastrar Novo Aluno</h1>
-          <p className={styles.subtitle}>Preencha os dados do aluno e do responsável</p>
-        </div>
+      <div className={styles.header}>
+        <button onClick={() => navigate(`/dashboard/students/${id}`)} className={styles.backButton}>
+          ← Voltar
+        </button>
+        <h1 className={styles.title}>Editar Aluno</h1>
+        <p className={styles.subtitle}>Atualize as informações do aluno</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         {/* Dados do Aluno */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Dados do Aluno</h2>
-
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="name" className={styles.label}>
@@ -198,7 +272,7 @@ export function RegisterStudentForm() {
                 className={styles.select}
                 required
               >
-                <option value="">Selecione a turma</option>
+                <option value="">Selecione uma turma</option>
                 <option value="Turma A - Manhã">Turma A - Manhã</option>
                 <option value="Turma B - Manhã">Turma B - Manhã</option>
                 <option value="Turma C - Tarde">Turma C - Tarde</option>
@@ -218,27 +292,25 @@ export function RegisterStudentForm() {
                 value={formData.teacher}
                 onChange={handleInputChange}
                 className={styles.input}
-                placeholder="Nome do professor(a)"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="monthlyFee" className={styles.label}>
-                Valor da Mensalidade (R$) <span className={styles.required}>*</span>
+              <label htmlFor="status" className={styles.label}>
+                Status <span className={styles.required}>*</span>
               </label>
-              <input
-                type="number"
-                id="monthlyFee"
-                name="monthlyFee"
-                value={formData.monthlyFee}
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
                 onChange={handleInputChange}
-                className={styles.input}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
+                className={styles.select}
                 required
-              />
+              >
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
             </div>
           </div>
         </section>
@@ -246,7 +318,6 @@ export function RegisterStudentForm() {
         {/* Endereço do Aluno */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Endereço do Aluno</h2>
-
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="address.street" className={styles.label}>
@@ -312,7 +383,6 @@ export function RegisterStudentForm() {
         {/* Dados do Responsável */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Dados do Responsável</h2>
-
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="guardian.name" className={styles.label}>
@@ -340,7 +410,7 @@ export function RegisterStudentForm() {
                 value={formData.guardian.relationship}
                 onChange={handleInputChange}
                 className={styles.input}
-                placeholder="Ex: Pai, Mãe, Avó"
+                placeholder="Ex: Mãe, Pai, Avó"
                 required
               />
             </div>
@@ -381,7 +451,6 @@ export function RegisterStudentForm() {
         {/* Endereço do Responsável */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Endereço do Responsável</h2>
-
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="guardian.address.street" className={styles.label}>
@@ -444,22 +513,16 @@ export function RegisterStudentForm() {
           </div>
         </section>
 
-        {/* Botões */}
         <div className={styles.actions}>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className={styles.cancelBtn}
-            disabled={isSubmitting}
-          >
+          <button type="button" onClick={handleCancel} className={styles.cancelBtn}>
             Cancelar
           </button>
-          <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-            {isSubmitting ? 'Cadastrando...' : 'Cadastrar Aluno'}
+          <button type="submit" className={styles.saveBtn}>
+            Salvar Alterações
           </button>
         </div>
-        </form>
-      </div>
+      </form>
     </div>
   );
 }
+

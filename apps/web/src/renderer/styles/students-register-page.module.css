@@ -1,37 +1,11 @@
 .container {
-  width: 100%;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.backButton {
-  background: none;
-  border: none;
-  color: var(--btn-primary);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0.5rem 0;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color 0.2s;
-}
-
-.backButton:hover {
-  color: var(--btn-hover);
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 1.5rem 1.5rem 2rem;
-}
-
 .header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .title {
@@ -47,19 +21,20 @@
 }
 
 .form {
-  padding: 1rem 0 0;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .section {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .section:last-of-type {
   border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .sectionTitle {
@@ -76,7 +51,7 @@
   content: '';
   width: 4px;
   height: 24px;
-  background: var(--btn-primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 2px;
 }
 
@@ -110,14 +85,13 @@
   font-size: 1rem;
   transition: all 0.2s;
   background: white;
-  font-family: inherit;
 }
 
 .input:focus,
 .select:focus {
   outline: none;
-  border-color: var(--btn-primary);
-  box-shadow: 0 0 0 3px rgba(38, 127, 168, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .input::placeholder {
@@ -133,8 +107,8 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.cancelBtn,
-.saveBtn {
+.cancelButton,
+.submitButton {
   padding: 0.75rem 2rem;
   border-radius: 8px;
   font-size: 1rem;
@@ -144,38 +118,33 @@
   border: none;
 }
 
-.cancelBtn {
+.cancelButton {
   background: #f3f4f6;
   color: #374151;
 }
 
-.cancelBtn:hover:not(:disabled) {
+.cancelButton:hover:not(:disabled) {
   background: #e5e7eb;
 }
 
-.saveBtn {
-  background: var(--btn-primary);
+.submitButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.saveBtn:hover:not(:disabled) {
-  background: var(--btn-hover);
+.submitButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(38, 127, 168, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.saveBtn:disabled,
-.cancelBtn:disabled {
+.submitButton:disabled,
+.cancelButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
-  }
-
-  .card {
     padding: 1rem;
   }
 
@@ -187,8 +156,9 @@
     flex-direction: column-reverse;
   }
 
-  .cancelBtn,
-  .saveBtn {
+  .cancelButton,
+  .submitButton {
     width: 100%;
   }
 }
+
