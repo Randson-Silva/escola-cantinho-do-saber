@@ -64,5 +64,15 @@ export class AttendanceLinkedToLessonRepository
     });
     if (!links || links.length === 0) return null;
     return links.map(AttendanceLinkedToLessonMapper.toDomain);
+  } 
+  
+  async findManyByStudentId(
+    studentId: string,
+  ): Promise<AttendanceLinkedToLessonEntity[] | null> {
+    const links = await prisma.attendanceLinkedToLesson.findMany({
+      where: { studentId },
+    });
+    if (!links || links.length === 0) return null;
+    return links.map(AttendanceLinkedToLessonMapper.toDomain);
   }
 }

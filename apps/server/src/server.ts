@@ -87,6 +87,8 @@ import { FindLessonByIdController } from './infra/http/controllers/lesson/find-l
 import { UpdateLessonController } from './infra/http/controllers/lesson/update-lesson.controller';
 import { DeleteLessonController } from './infra/http/controllers/lesson/delete-lesson.controller';
 
+import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
+
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -171,6 +173,10 @@ const updateLessonController = container.resolve(UpdateLessonController);
 const deleteLessonController = container.resolve(DeleteLessonController);
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 
+const getStudentAttendanceHistoryController = container.resolve(
+  GetStudentAttendanceHistoryController,
+);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -207,6 +213,9 @@ router.use('/', findLessonByIdController.router);
 router.use('/', updateLessonController.router);
 router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
+
+router.use('/', registerStudentAttendanceController.router);
+
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
