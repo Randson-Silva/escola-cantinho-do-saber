@@ -93,6 +93,8 @@ import {
 import { AddressRepository } from './infra/database/repositories/address.repository';
 import { FindStudentByNameController } from './infra/http/controllers/student/find-student-by-name.controller';
 import { GetStudentsCountController } from './infra/http/controllers/student/get-students-count.controller';
+
+import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
 import { TEACHER_REPOSITORY_TOKEN, ITeacherRepository } from './domain/application/repositories/teacher.repository';
 import { TeacherRepository } from './infra/database/repositories/teacher.repository';
 import { CreateTeacherController } from './infra/http/controllers/teacher/create-teacher.controller';
@@ -192,6 +194,10 @@ const fetchTeachersController = container.resolve(FetchTeachersController);
 const getTeacherProfileController = container.resolve(GetTeacherProfileController);
 const editTeacherController = container.resolve(EditTeacherController);
 
+const getStudentAttendanceHistoryController = container.resolve(
+  GetStudentAttendanceHistoryController,
+);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -235,6 +241,8 @@ router.use('/', createTeacherController.router);
 router.use('/', fetchTeachersController.router);
 router.use('/', getTeacherProfileController.router);
 router.use('/', editTeacherController.router);
+// TEACHER AND/OR ADMIN ROUTE:
+router.use('/', registerStudentAttendanceController.router);
 
 //#endregion
 
