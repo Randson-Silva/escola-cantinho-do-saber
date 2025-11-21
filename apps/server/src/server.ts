@@ -88,7 +88,9 @@ import { UpdateLessonController } from './infra/http/controllers/lesson/update-l
 import { DeleteLessonController } from './infra/http/controllers/lesson/delete-lesson.controller';
 import { ADDRESS_REPOSITORY_TOKEN, IAddressRepository } from './domain/application/repositories/address.repository';
 import { AddressRepository } from './infra/database/repositories/address.repository';
-
+import { TEACHER_REPOSITORY_TOKEN, ITeacherRepository } from './domain/application/repositories/teacher.repository';
+import { TeacherRepository } from './infra/database/repositories/teacher.repository';
+import { CreateTeacherController } from './infra/http/controllers/teacher/create-teacher.controller';
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -111,6 +113,7 @@ container.registerSingleton<IAttendanceLinkedToLessonRepository>(
 );
 container.registerSingleton<ISerieRepository>(SERIES_REPOSITORY_TOKEN, SerieRepository);
 container.registerSingleton<IAddressRepository>(ADDRESS_REPOSITORY_TOKEN, AddressRepository);
+container.registerSingleton<ITeacherRepository>(TEACHER_REPOSITORY_TOKEN, TeacherRepository);
 
 //#endregion
 
@@ -174,6 +177,8 @@ const updateLessonController = container.resolve(UpdateLessonController);
 const deleteLessonController = container.resolve(DeleteLessonController);
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 
+const createTeacherController = container.resolve(CreateTeacherController);
+
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
 router.use('/', createUserController.router);
@@ -210,6 +215,8 @@ router.use('/', findLessonByIdController.router);
 router.use('/', updateLessonController.router);
 router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
+
+router.use('/', createTeacherController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
