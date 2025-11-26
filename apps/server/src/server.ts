@@ -85,6 +85,7 @@ container.register(STUDENT_REPOSITORY_TOKEN, { useClass: StudentRepository });
 container.registerSingleton<IGuardianRepository>( GUARDIAN_REPOSITORY_TOKEN, GuardianRepository,);
 container.registerSingleton<IStudentGuardianRepository>( STUDENT_GUARDIAN_REPOSITORY_TOKEN, StudentGuardianRepository,);
 container.register(CLASS_REPOSITORY_TOKEN, { useClass: ClassRepository });
+container.register(ADDRESS_REPOSITORY_TOKEN, { useClass: PrismaAddressRepository });
 container.registerSingleton<ILessonRepository>(
   LESSON_REPOSITORY_TOKEN,
   LessonRepository,
@@ -200,6 +201,7 @@ router.use('/', findLessonByIdController.router);
 router.use('/', updateLessonController.router);
 router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
+
 router.use('/', createAddressController.router);
 router.use('/', findAddressController.router);
 router.use('/', updateAddressController.router);
