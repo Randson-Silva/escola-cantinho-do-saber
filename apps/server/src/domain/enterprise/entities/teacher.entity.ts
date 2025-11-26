@@ -21,6 +21,22 @@ export class TeacherEntity extends Entity<TeacherProps> {
   get startDate() { return this.props.startDate; }
   get status() { return this.props.status; }
   get expertise() { return this.props.expertise; }
+  public getNextPaymentDate(): Date {
+    const today = new Date();
+    const startDay = this.props.startDate.getDate();
+
+    const nextPayment = new Date(today.getFullYear(), today.getMonth(), startDay);
+
+    if (nextPayment < today) {
+      nextPayment.setMonth(nextPayment.getMonth() + 1);
+    }
+
+    return nextPayment;
+  }
+
+  public update(props: Partial<TeacherProps>): void {
+    Object.assign(this.props, props);
+  }
 
   // Setters
   set name(value: string) { this.props.name = value; }

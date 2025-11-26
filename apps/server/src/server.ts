@@ -91,6 +91,9 @@ import { AddressRepository } from './infra/database/repositories/address.reposit
 import { TEACHER_REPOSITORY_TOKEN, ITeacherRepository } from './domain/application/repositories/teacher.repository';
 import { TeacherRepository } from './infra/database/repositories/teacher.repository';
 import { CreateTeacherController } from './infra/http/controllers/teacher/create-teacher.controller';
+import { FetchTeachersController } from './infra/http/controllers/teacher/fetch-teachers.controller';
+import { GetTeacherProfileController } from './infra/http/controllers/teacher/get-teacher-profile.controller';
+import { EditTeacherController } from './infra/http/controllers/teacher/edit-teacher.controller';
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -178,6 +181,9 @@ const deleteLessonController = container.resolve(DeleteLessonController);
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 
 const createTeacherController = container.resolve(CreateTeacherController);
+const fetchTeachersController = container.resolve(FetchTeachersController);
+const getTeacherProfileController = container.resolve(GetTeacherProfileController);
+const editTeacherController = container.resolve(EditTeacherController);
 
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
@@ -217,6 +223,10 @@ router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
 
 router.use('/', createTeacherController.router);
+router.use('/', fetchTeachersController.router);
+router.use('/', getTeacherProfileController.router);
+router.use('/', editTeacherController.router);
+
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
