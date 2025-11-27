@@ -92,6 +92,7 @@ import {
 } from './domain/application/repositories/address.repository';
 import { AddressRepository } from './infra/database/repositories/address.repository';
 import { FindStudentByNameController } from './infra/http/controllers/student/find-student-by-name.controller';
+import { GetStudentsCountController } from './infra/http/controllers/student/get-students-count.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -156,6 +157,7 @@ const findStudentByIdController = container.resolve(FindStudentByIdController);
 const updateStudentController = container.resolve(UpdateStudentController);
 const deleteStudentController = container.resolve(DeleteStudentController);
 const findStudentByNameController = container.resolve(FindStudentByNameController);
+const getStudentsCountController = container.resolve(GetStudentsCountController);
 
 const createClassController = container.resolve(CreateClassController);
 const findClassByIdController = container.resolve(FindClassByIdController);
@@ -194,6 +196,7 @@ router.use('/', findStudentByIdController.router);
 router.use('/', updateStudentController.router);
 router.use('/', deleteStudentController.router);
 router.use('/', findStudentByNameController.router);
+router.use('/', getStudentsCountController.router);
 
 router.use('/', createClassController.router);
 router.use('/', findClassByIdController.router);
