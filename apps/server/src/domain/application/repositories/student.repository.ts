@@ -5,10 +5,8 @@ export abstract class IStudentRepository {
   abstract findById(id: string): Promise<StudentEntity | null>;
   abstract update(studentEntity: StudentEntity): Promise<boolean>;
   abstract delete(id: string): Promise<boolean>;
-
-  // ! functions to implement based on future (possible) scope:
-  // findAll (based on class, serie, guardian)
-  // findOne (based in the same parameters)
+  abstract findByName(name: string): Promise<StudentEntity[]>;
+  abstract getStudentsCount(): Promise<number>;
 }
 
 export const STUDENT_REPOSITORY_TOKEN = 'IStudentRepository';

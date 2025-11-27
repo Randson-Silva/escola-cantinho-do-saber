@@ -86,8 +86,12 @@ import { DeleteGuardianController } from './infra/http/controllers/guardian/dele
 import { FindLessonByIdController } from './infra/http/controllers/lesson/find-lesson-by-id.controller';
 import { UpdateLessonController } from './infra/http/controllers/lesson/update-lesson.controller';
 import { DeleteLessonController } from './infra/http/controllers/lesson/delete-lesson.controller';
-import { ADDRESS_REPOSITORY_TOKEN, IAddressRepository } from './domain/application/repositories/address.repository';
+import {
+  ADDRESS_REPOSITORY_TOKEN,
+  IAddressRepository,
+} from './domain/application/repositories/address.repository';
 import { AddressRepository } from './infra/database/repositories/address.repository';
+import { FindStudentByNameController } from './infra/http/controllers/student/find-student-by-name.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -151,6 +155,7 @@ const createStudentController = container.resolve(CreateStudentController);
 const findStudentByIdController = container.resolve(FindStudentByIdController);
 const updateStudentController = container.resolve(UpdateStudentController);
 const deleteStudentController = container.resolve(DeleteStudentController);
+const findStudentByNameController = container.resolve(FindStudentByNameController);
 
 const createClassController = container.resolve(CreateClassController);
 const findClassByIdController = container.resolve(FindClassByIdController);
@@ -188,6 +193,7 @@ router.use('/', createStudentController.router);
 router.use('/', findStudentByIdController.router);
 router.use('/', updateStudentController.router);
 router.use('/', deleteStudentController.router);
+router.use('/', findStudentByNameController.router);
 
 router.use('/', createClassController.router);
 router.use('/', findClassByIdController.router);
