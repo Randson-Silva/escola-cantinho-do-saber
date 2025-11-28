@@ -52,7 +52,11 @@ model Teacher {
   taxId     String @unique
   phone     String @unique
   pixKey    String
-  expertise String
+  expertise String?
+
+  email     String   @unique
+  startDate DateTime
+  status    String   @default("ACTIVE")
 
   //* 1:N Professor -> Turma
   classes   Class[]
