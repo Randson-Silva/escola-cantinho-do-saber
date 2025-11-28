@@ -6,6 +6,25 @@ import { StudentMapper } from '../mapper/student.mapper';
 
 @singleton()
 export class StudentRepository implements IStudentRepository {
+  async getStudentsCount(): Promise<number> {
+    const count = await prisma.student.count();
+
+    return count ?? 0;
+  }
+
+  async findByName(name: string): Promise<StudentEntity[]> {
+    const students = await prisma.student.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: 'insensitive', // case-insensitive search (Marcus or marcus, same)
+        },
+      },
+    });
+
+    return students.map(StudentMapper.toDomain);
+  }
+
   async create(studentEntity: StudentEntity): Promise<boolean> {
     try {
       const studentData = StudentMapper.toDatabase(studentEntity);
