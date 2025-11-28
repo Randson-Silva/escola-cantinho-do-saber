@@ -21,6 +21,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "tsyringe": "^4.10.0",
     "ulid": "^3.0.1"
   }
 }

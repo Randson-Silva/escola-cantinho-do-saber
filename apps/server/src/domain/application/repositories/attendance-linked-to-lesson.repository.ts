@@ -12,6 +12,9 @@ export abstract class IAttendanceLinkedToLessonRepository {
   abstract findByAttendanceId(
     attendanceId: string,
   ): Promise<AttendanceLinkedToLessonEntity[] | null>;
+  abstract findManyByStudentId(
+    studentId: string,
+  ): Promise<AttendanceLinkedToLessonEntity[] | null>;
 }
 
 export const ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN =
