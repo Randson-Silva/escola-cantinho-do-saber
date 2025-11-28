@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { injectable, inject } from 'tsyringe';
 import { CreateTeacherUseCase } from 'apps/server/src/domain/application/use-cases/teacher/create-teacher.use-case';
-import { checkJwt } from '../../../auth/auth.middleware';
+import { checkJwt, requireRole } from '../../../auth/auth.middleware';
 import { validateBody } from '../../../http-body-validator/validator.middleware';
 import { AlreadyExistsError } from 'apps/server/src/core/errors/already-exists.error';
 import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.error';
@@ -38,6 +38,7 @@ export class CreateTeacherController {
     this.router.post(
       '/teachers',
       checkJwt,
+      requireRole('ADMIN'),
       bodyValidationPipe,
       this.handle.bind(this),
     );
@@ -71,7 +72,7 @@ export class CreateTeacherController {
       }
     }
 
-    const { teacherId } = result.value;
-    return res.status(201).json({ teacherId });
+    const { teacherId, userEmail, password } = result.value;
+    return res.status(201).json({ teacherId, userEmail, password });
   }
 }
