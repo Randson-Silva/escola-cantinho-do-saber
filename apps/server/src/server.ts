@@ -86,6 +86,15 @@ import { DeleteGuardianController } from './infra/http/controllers/guardian/dele
 import { FindLessonByIdController } from './infra/http/controllers/lesson/find-lesson-by-id.controller';
 import { UpdateLessonController } from './infra/http/controllers/lesson/update-lesson.controller';
 import { DeleteLessonController } from './infra/http/controllers/lesson/delete-lesson.controller';
+import {
+  ADDRESS_REPOSITORY_TOKEN,
+  IAddressRepository,
+} from './domain/application/repositories/address.repository';
+import { AddressRepository } from './infra/database/repositories/address.repository';
+import { FindStudentByNameController } from './infra/http/controllers/student/find-student-by-name.controller';
+import { GetStudentsCountController } from './infra/http/controllers/student/get-students-count.controller';
+
+import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
 import { UpdateUserController } from './infra/http/controllers/user/update-user.controller';
 
 //#region MODULE CONFIGURATION
@@ -109,6 +118,7 @@ container.registerSingleton<IAttendanceLinkedToLessonRepository>(
   AttendanceLinkedToLessonRepository,
 );
 container.registerSingleton<ISerieRepository>(SERIES_REPOSITORY_TOKEN, SerieRepository);
+container.registerSingleton<IAddressRepository>(ADDRESS_REPOSITORY_TOKEN, AddressRepository);
 
 //#endregion
 
@@ -149,6 +159,8 @@ const createStudentController = container.resolve(CreateStudentController);
 const findStudentByIdController = container.resolve(FindStudentByIdController);
 const updateStudentController = container.resolve(UpdateStudentController);
 const deleteStudentController = container.resolve(DeleteStudentController);
+const findStudentByNameController = container.resolve(FindStudentByNameController);
+const getStudentsCountController = container.resolve(GetStudentsCountController);
 
 const createClassController = container.resolve(CreateClassController);
 const findClassByIdController = container.resolve(FindClassByIdController);
@@ -171,6 +183,10 @@ const findLessonByIdController = container.resolve(FindLessonByIdController);
 const updateLessonController = container.resolve(UpdateLessonController);
 const deleteLessonController = container.resolve(DeleteLessonController);
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
+
+const getStudentAttendanceHistoryController = container.resolve(
+  GetStudentAttendanceHistoryController,
+);
 const updateUserController = container.resolve(UpdateUserController);
 
 router.use('/', authUserController.router);
@@ -191,6 +207,8 @@ router.use('/', createStudentController.router);
 router.use('/', findStudentByIdController.router);
 router.use('/', updateStudentController.router);
 router.use('/', deleteStudentController.router);
+router.use('/', findStudentByNameController.router);
+router.use('/', getStudentsCountController.router);
 
 router.use('/', createClassController.router);
 router.use('/', findClassByIdController.router);
@@ -213,6 +231,9 @@ router.use('/', findLessonByIdController.router);
 router.use('/', updateLessonController.router);
 router.use('/', deleteLessonController.router);
 router.use('/', registerStudentAttendanceController.router);
+
+router.use('/', registerStudentAttendanceController.router);
+
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
