@@ -24,7 +24,7 @@ const createUserBodySchema = z.object({
     ),
   email: z.email().nonempty(),
   password: z.string().trim().nonempty().min(8),
-  accessLevel: z.enum(['ADMIN', 'COMUM']),
+  accessLevel: z.enum(['ADMIN', 'COMUM', 'PROFESSOR']),
 });
 
 type CreateUserBodySchema = z.infer<typeof createUserBodySchema>;
