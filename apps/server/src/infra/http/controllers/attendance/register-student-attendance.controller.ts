@@ -5,6 +5,7 @@ import {
   registerAttendanceBodySchema,
   attendanceParamsSchema,
 } from '../../../http-body-validator/attendance.validator';
+import { checkJwt, requireAnyRole } from '../../../auth/auth.middleware';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.error';
 
@@ -17,8 +18,11 @@ export class RegisterStudentAttendanceController {
     private readonly registerAttendance: RegisterStudentAttendanceUseCase,
   ) {
     this.router = Router();
-    this.router.post('/lessons/:lessonId/attendances', (req, res) =>
-      this.handle(req, res),
+    this.router.post(
+      '/lessons/:lessonId/attendances',
+      checkJwt,
+      requireAnyRole(['PROFESSOR', 'ADMIN']),
+      (req, res) => this.handle(req, res),
     );
   }
 

@@ -53,10 +53,30 @@ export class AttendanceRepository implements IAttendanceRepository {
     return records.map(AttendanceMapper.toDomain);
   }
 
-  async findByStudentIdAndDate(
-    studentId: string,
-    date: Date,
-  ): Promise<AttendanceEntity | null> {
-    return null;
+  async findByStudentIdAndDate(studentId: string, date: Date): Promise<AttendanceEntity | null> {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
+    const record = await prisma.attendance.findFirst({
+      where: {
+        studentId,
+        linkedLessons: {
+          some: {
+            lesson: {
+              lessonDate: {
+                gte: start,
+                lte: end,
+              },
+            },
+          },
+        },
+      },
+      include: { linkedLessons: { include: { lesson: true } } },
+    });
+
+    if (!record) return null;
+    return AttendanceMapper.toDomain(record);
   }
 }
