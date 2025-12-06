@@ -58,6 +58,16 @@ export class RegisterStudentAttendanceUseCase {
       const lesson = await this.lessonRepository.findById(lessonId);
       if (!lesson) return fail(new ResourceNotFoundError('Lesson'));
 
+      const existingLinks = await this.linkRepository.findByLessonId(lessonId);
+      if (existingLinks && existingLinks.length > 0) {
+        for (const link of existingLinks) {
+          const existingAttendance = await this.attendanceRepository.findById(link.attendanceId);
+          if (existingAttendance && existingAttendance.studentId === studentId) {
+            return fail(new AlreadyExistsError('Attendance for this student in this lesson'));
+          }
+        }
+      }
+
       const attendance = AttendanceEntity.create({
         studentId,
         presenceStatus,

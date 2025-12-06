@@ -1,1 +1,1 @@
-export type AccessLevel = 'ADMIN' | 'COMUM';
+export type AccessLevel = 'ADMIN' | 'COMUM' | 'PROFESSOR';

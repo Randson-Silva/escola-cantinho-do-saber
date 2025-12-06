@@ -10,3 +10,12 @@ export type RegisterAttendanceBody = z.infer<typeof registerAttendanceBodySchema
 export const attendanceParamsSchema = z.object({
   lessonId: z.string().ulid(),
 });
+
+export const attendanceIdParamsSchema = z.object({
+  attendanceId: z.string().ulid(),
+});
+
+export const updateAttendanceBodySchema = z.object({
+  presenceStatus: z.enum(['PRESENTE', 'AUSENTE', 'JUSTIFICADO']),
+});
+export type UpdateAttendanceBody = z.infer<typeof updateAttendanceBodySchema>;
