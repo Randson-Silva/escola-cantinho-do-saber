@@ -7,20 +7,21 @@ import {
   IAttendanceRepository,
 } from '../../repositories/attendance.repository';
 
-type FindAttendanceRequest = { attendanceId: string };
+type FindAttendanceByIdRequest = { attendanceId: string };
 
-type FindAttendanceResponse = Either<ResourceNotFoundError, { attendance: AttendanceEntity }>;
+type FindAttendanceByIdResponse = Either<ResourceNotFoundError, { attendance: AttendanceEntity }>;
 
 @singleton()
-export class FindAttendanceUseCase {
+export class FindAttendanceByIdUseCase {
   constructor(
     @inject(ATTENDANCE_REPOSITORY_TOKEN)
     private readonly attendanceRepository: IAttendanceRepository,
   ) {}
 
-  async execute({ attendanceId }: FindAttendanceRequest): Promise<FindAttendanceResponse> {
+  async execute({ attendanceId }: FindAttendanceByIdRequest): Promise<FindAttendanceByIdResponse> {
     const attendance = await this.attendanceRepository.findById(attendanceId);
     if (!attendance) return fail(new ResourceNotFoundError('Attendance'));
+
     return succeed({ attendance });
   }
 }

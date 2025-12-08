@@ -2,22 +2,34 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { validateBody } from '../../../http-body-validator/validator.middleware';
 import { CannotUpdateError } from 'apps/server/src/core/errors/cannot-update.error';
+import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { UpdateLessonUseCase } from 'apps/server/src/domain/application/use-cases/lesson/update-lesson.use-case';
-import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 
 const updateLessonParamSchema = z.object({
-  id: z.string(),
+  lessonId: z.string().min(1),
 });
+
 type UpdateParamSchema = z.infer<typeof updateLessonParamSchema>;
 
 const updateLessonBodySchema = z.object({
-  lessonDate: z.coerce.date(),
-  startTime: z.string().nullable().default(null),
-  endTime: z.string().nullable().default(null),
-  duration: z.string().nullable().default(null),
+  date: z.string().transform((val) => {
+    const [day, month, year] = val.split('/');
+
+    const date = new Date(`${year}-${month}-${day}T00:00:00`);
+
+    if (isNaN(date.getTime())) {
+      throw new Error('Formato inválido, esperado: DD/MM/YYYY');
+    }
+
+    return date;
+  }),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  duration: z.string().optional(),
 });
+
 type UpdateLessonBodySchema = z.infer<typeof updateLessonBodySchema>;
 
 const bodyValidationPipe = validateBody(updateLessonBodySchema);
@@ -32,24 +44,24 @@ export class UpdateLessonController {
   }
 
   private registerRoutes(): void {
-    this.router.put(
-      '/lessons/:id',
-      checkJwt,
-      bodyValidationPipe,
-      this.handle.bind(this),
-    );
+    this.router.put('/lessons/:lessonId', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request<UpdateParamSchema>, res: Response) {
-    const body = req.body as UpdateLessonBodySchema;
-    const { id } = req.params;
+    const paramsValidation = updateLessonParamSchema.safeParse(req.params);
+    if (!paramsValidation.success) {
+      return res.status(400).json({ message: 'Invalid lessonId' });
+    }
+    const { lessonId } = paramsValidation.data;
+
+    const { date, duration, endTime, startTime } = req.body as UpdateLessonBodySchema;
 
     const result = await this.updateLessonUseCase.execute({
-      lessonId: id,
-      lessonDate: body.lessonDate,
-      startTime: body.startTime,
-      endTime: body.endTime,
-      duration: body.duration,
+      lessonId,
+      date,
+      startTime,
+      endTime,
+      duration,
     });
 
     if (result.isFail()) {
@@ -66,7 +78,7 @@ export class UpdateLessonController {
       }
     }
 
-    const { lessonId } = result.value;
-    return res.status(200).json({ lessonId });
+    const { lessonId: resultLessonId } = result.value;
+    return res.status(200).json({ lessonId: resultLessonId });
   }
 }

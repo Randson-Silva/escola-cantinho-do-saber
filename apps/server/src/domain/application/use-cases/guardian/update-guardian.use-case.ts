@@ -6,15 +6,20 @@ import {
   GUARDIAN_REPOSITORY_TOKEN,
   IGuardianRepository,
 } from '../../repositories/guardian.repository';
+import { GuardianEntity } from '../../../enterprise/entities/guardian.entity';
 
 type UpdateGuardianUseCaseRequest = {
   guardianId: string;
   name: string;
   email: string | null;
-  phones: string[];
+  phone: string;
 };
 
-type UpdateGuardianUseCaseResponse = Either<Error, { guardianId: string }>;
+type UpdateGuardianUseCaseResponse = Either<
+  ResourceNotFoundError | CannotUpdateError,
+  { guardianId: string }
+>;
+
 @singleton()
 export class UpdateGuardianUseCase {
   constructor(
@@ -26,18 +31,27 @@ export class UpdateGuardianUseCase {
     guardianId,
     name,
     email,
-    phones,
+    phone,
   }: UpdateGuardianUseCaseRequest): Promise<UpdateGuardianUseCaseResponse> {
     const guardian = await this.guardianRepository.findById(guardianId);
     if (!guardian) {
       return fail(new ResourceNotFoundError('Guardian'));
     }
 
-    guardian.name = name;
-    guardian.email = email;
-    guardian.phones = phones;
+    const guardianEntity = GuardianEntity.create(
+      {
+        email,
+        name,
+        phone,
+        addressIds: guardian.addressIds,
+        studentIds: guardian.studentIds,
+        createdAt: guardian.createdAt,
+        deletedAt: guardian.deletedAt,
+      },
+      guardian.id,
+    );
 
-    const canUpdate = await this.guardianRepository.update(guardian);
+    const canUpdate = await this.guardianRepository.update(guardianEntity);
     if (!canUpdate) {
       return fail(new CannotUpdateError('Guardian'));
     }

@@ -4,34 +4,24 @@ import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.err
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { inject, singleton } from 'tsyringe';
 import { AttendanceEntity } from '../../../enterprise/entities/attendance.entity';
-import { AttendanceLinkedToLessonEntity } from '../../../enterprise/entities/attendance-linked-to-lesson.entity';
-import {
-  ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN,
-  IAttendanceLinkedToLessonRepository,
-} from '../../repositories/attendance-linked-to-lesson.repository';
 import {
   ATTENDANCE_REPOSITORY_TOKEN,
   IAttendanceRepository,
 } from '../../repositories/attendance.repository';
-import {
-  ILessonRepository,
-  LESSON_REPOSITORY_TOKEN,
-} from '../../repositories/lesson.repository';
+import { ILessonRepository, LESSON_REPOSITORY_TOKEN } from '../../repositories/lesson.repository';
 import {
   IStudentRepository,
   STUDENT_REPOSITORY_TOKEN,
 } from '../../repositories/student.repository';
+import { AttendanceStatus } from 'apps/server/src/core/types/school-enums';
 
 type RegisterStudentAttendanceUseCaseRequest = {
   studentId: string;
   lessonId: string;
-  presenceStatus: string;
+  presenceStatus: AttendanceStatus;
 };
 
-type RegisterStudentAttendanceUseCaseResponse = Either<
-  Error,
-  { attendanceId: string }
->;
+type RegisterStudentAttendanceUseCaseResponse = Either<Error, { attendanceId: string }>;
 
 @singleton()
 export class RegisterStudentAttendanceUseCase {
@@ -42,8 +32,6 @@ export class RegisterStudentAttendanceUseCase {
     private readonly lessonRepository: ILessonRepository,
     @inject(ATTENDANCE_REPOSITORY_TOKEN)
     private readonly attendanceRepository: IAttendanceRepository,
-    @inject(ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN)
-    private readonly linkRepository: IAttendanceLinkedToLessonRepository,
   ) {}
 
   async execute({
@@ -58,39 +46,31 @@ export class RegisterStudentAttendanceUseCase {
       const lesson = await this.lessonRepository.findById(lessonId);
       if (!lesson) return fail(new ResourceNotFoundError('Lesson'));
 
-      const existingLinks = await this.linkRepository.findByLessonId(lessonId);
-      if (existingLinks && existingLinks.length > 0) {
-        for (const link of existingLinks) {
-          const existingAttendance = await this.attendanceRepository.findById(link.attendanceId);
-          if (existingAttendance && existingAttendance.studentId === studentId) {
-            return fail(new AlreadyExistsError('Attendance for this student in this lesson'));
-          }
-        }
+      const existingAttendance = await this.attendanceRepository.findByStudentAndLesson(
+        studentId,
+        lessonId,
+      );
+
+      if (existingAttendance) {
+        return fail(new AlreadyExistsError('Attendance for this student in this lesson'));
       }
 
       const attendance = AttendanceEntity.create({
         studentId,
+        lessonId,
         presenceStatus,
       });
-
       const canCreateAttendance = await this.attendanceRepository.create(attendance);
+
       if (!canCreateAttendance) {
         return fail(new CannotCreateError('Attendance record'));
       }
 
-      const linkEntity = AttendanceLinkedToLessonEntity.create({
-        attendanceId: attendance.id.toString(),
-        lessonId: lessonId,
-      });
-
-      const canCreateLink = await this.linkRepository.create(linkEntity);
-      if (!canCreateLink) {
-        return fail(new CannotCreateError('Attendance link'));
-      }
+      // Não precisamos mais criar o link separadamente
 
       return succeed({ attendanceId: attendance.id.toString() });
     } catch (error) {
-      return fail(new Error('Cannot register attendance due to error' + error));
+      return fail(new Error('Cannot register attendance due to error: ' + error));
     }
   }
 }

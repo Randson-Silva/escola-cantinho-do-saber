@@ -1,4 +1,5 @@
 import { ProfileEntity } from '../../domain/enterprise/entities/profile.entity';
+import { Optional } from '../types/optional';
 import { Entity } from './entity';
 import { UniqueEntityId } from './unique-entity-id';
 
@@ -9,6 +10,9 @@ export interface UserProps {
   password: string;
 
   profile: ProfileEntity;
+
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export class UserEntity<Props = any> extends Entity<Props & UserProps> {
@@ -28,8 +32,23 @@ export class UserEntity<Props = any> extends Entity<Props & UserProps> {
     return this.props.profile;
   }
 
-  static create(props: UserProps, id?: UniqueEntityId) {
-    const userEntity = new UserEntity(props, id);
+  get createdAt() {
+    return this.props.createdAt;
+  }
+
+  get deletedAt() {
+    return this.props.deletedAt;
+  }
+
+  static create(props: Optional<UserProps, 'createdAt' | 'deletedAt'>, id?: UniqueEntityId) {
+    const userEntity = new UserEntity(
+      {
+        ...props,
+        createdAt: props.createdAt ?? new Date(),
+        deletedAt: props.deletedAt ?? null,
+      },
+      id,
+    );
 
     return userEntity;
   }

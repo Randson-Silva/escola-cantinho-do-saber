@@ -3,16 +3,27 @@ import { AttendanceEntity } from 'apps/server/src/domain/enterprise/entities/att
 import { prisma } from 'packages/database/src/client';
 import { singleton } from 'tsyringe';
 import { AttendanceMapper } from '../mapper/attendance.mapper';
+import { AttendanceSchema } from '../schemas/attendance.schema';
 
 @singleton()
 export class AttendanceRepository implements IAttendanceRepository {
   async create(attendanceEntity: AttendanceEntity): Promise<boolean> {
     try {
-      const data = AttendanceMapper.toDatabase(attendanceEntity);
-      await prisma.attendance.create({ data });
+      const raw = AttendanceMapper.toDatabase(attendanceEntity);
+
+      await prisma.attendance.create({
+        data: {
+          id: raw.id,
+          studentId: raw.studentId,
+          lessonId: raw.lessonId,
+          status: raw.status,
+          createdAt: raw.createdAt,
+          deletedAt: raw.deletedAt,
+        },
+      });
       return true;
     } catch (error) {
-      console.error('Error creating attendance:', error);
+      console.error(error);
       return false;
     }
   }
@@ -20,63 +31,73 @@ export class AttendanceRepository implements IAttendanceRepository {
   async findById(id: string): Promise<AttendanceEntity | null> {
     const attendance = await prisma.attendance.findUnique({ where: { id } });
     if (!attendance) return null;
-    return AttendanceMapper.toDomain(attendance);
+    return AttendanceMapper.toDomain(attendance as AttendanceSchema);
   }
 
   async update(attendanceEntity: AttendanceEntity): Promise<boolean> {
     try {
-      const data = AttendanceMapper.toDatabase(attendanceEntity);
+      const raw = AttendanceMapper.toDatabase(attendanceEntity);
       await prisma.attendance.update({
-        where: { id: attendanceEntity.id.toString() },
-        data,
+        where: { id: raw.id },
+        data: {
+          status: raw.status,
+          deletedAt: raw.deletedAt,
+        },
       });
       return true;
     } catch (error) {
-      console.error('Error updating attendance:', error);
+      console.error(error);
       return false;
     }
   }
 
   async delete(id: string): Promise<boolean> {
     try {
-      await prisma.attendance.delete({ where: { id } });
+      await prisma.attendance.update({ where: { id }, data: { deletedAt: new Date() } });
       return true;
     } catch (error) {
-      console.error('Error deleting attendance:', error);
+      console.error(error);
       return false;
     }
   }
 
   async findByStudentId(studentId: string): Promise<AttendanceEntity[] | null> {
-    const records = await prisma.attendance.findMany({ where: { studentId } });
-    if (!records || records.length === 0) return null;
-    return records.map(AttendanceMapper.toDomain);
+    const records = await prisma.attendance.findMany({
+      where: { studentId, deletedAt: null },
+    });
+    if (!records.length) return null;
+    return records.map((r) => AttendanceMapper.toDomain(r as AttendanceSchema));
   }
 
-  async findByStudentIdAndDate(studentId: string, date: Date): Promise<AttendanceEntity | null> {
+  async findByStudentAndLesson(
+    studentId: string,
+    lessonId: string,
+  ): Promise<AttendanceEntity | null> {
+    const record = await prisma.attendance.findUnique({
+      where: {
+        studentId_lessonId: { studentId, lessonId },
+      },
+    });
+    if (!record || record.deletedAt) return null;
+    return AttendanceMapper.toDomain(record as AttendanceSchema);
+  }
+
+  async findByStudentIdAndDate(studentId: string, date: Date): Promise<AttendanceEntity[] | null> {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
-    const record = await prisma.attendance.findFirst({
+    const records = await prisma.attendance.findMany({
       where: {
         studentId,
-        linkedLessons: {
-          some: {
-            lesson: {
-              lessonDate: {
-                gte: start,
-                lte: end,
-              },
-            },
-          },
+        deletedAt: null,
+        lesson: {
+          date: { gte: start, lte: end },
         },
       },
-      include: { linkedLessons: { include: { lesson: true } } },
     });
-
-    if (!record) return null;
-    return AttendanceMapper.toDomain(record);
+    if (!records.length) return null;
+    return records.map((r) => AttendanceMapper.toDomain(r as AttendanceSchema));
   }
 }

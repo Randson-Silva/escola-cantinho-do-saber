@@ -4,6 +4,7 @@ import { CannotDeleteError } from 'apps/server/src/core/errors/cannot-delete.err
 import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { DeleteClassUseCase } from 'apps/server/src/domain/application/use-cases/class/delete-class.use-case';
+import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 
 const deleteClassParamSchema = z.object({
   classId: z.string(),
@@ -21,12 +22,7 @@ export class DeleteClassController {
   }
 
   private registerRoutes(): void {
-    this.router.delete(
-      '/class/:classId',
-      checkJwt,
-
-      this.handle.bind(this),
-    );
+    this.router.delete('/class/:classId', checkJwt, this.handle.bind(this));
   }
 
   async handle(req: Request<DeleteParamSchema>, res: Response) {
@@ -39,6 +35,8 @@ export class DeleteClassController {
       const message = exception.message;
 
       switch (exception.constructor) {
+        case ResourceNotFoundError:
+          return res.status(404).json({ message });
         case CannotDeleteError:
           return res.status(400).json({ message });
         default:

@@ -11,8 +11,10 @@ export class TeacherPresenter {
       pixKey: teacher.pixKey,
       status: teacher.status,
       expertise: teacher.expertise,
+      qualifiedGrades: teacher.qualifiedGrades,
       startDate: teacher.startDate,
-      nextPaymentDate: teacher.getNextPaymentDate(), // Campo calculado (AC 2)
+      nextPaymentDate: teacher.getNextPaymentDate(),
+      createdAt: teacher.createdAt,
     };
   }
 }

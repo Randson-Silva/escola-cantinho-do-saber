@@ -22,12 +22,7 @@ export class FindClassByIdController {
   }
 
   private registerRoutes(): void {
-    this.router.get(
-      '/class/:classId',
-      checkJwt,
-
-      this.handle.bind(this),
-    );
+    this.router.get('/class/:classId', checkJwt, this.handle.bind(this));
   }
 
   async handle(req: Request<FindParamSchema>, res: Response) {

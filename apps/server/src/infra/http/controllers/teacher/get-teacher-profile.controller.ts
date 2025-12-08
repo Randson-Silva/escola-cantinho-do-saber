@@ -19,10 +19,13 @@ export class GetTeacherProfileController {
     const result = await this.getUseCase.execute({ teacherId: id });
 
     if (result.isFail()) {
-      if (result.value instanceof ResourceNotFoundError) return res.status(404).json({ message: 'Teacher not found' });
+      if (result.value instanceof ResourceNotFoundError)
+        return res.status(404).json({ message: 'Teacher not found' });
       return res.status(500).json({ message: 'Internal error' });
     }
 
-    return res.status(200).json({ teacher: TeacherPresenter.toHTTP(result.value.teacher) });
+    const { teacher } = result.value;
+
+    return res.status(200).json(TeacherPresenter.toHTTP(teacher));
   }
 }

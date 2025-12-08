@@ -1,6 +1,6 @@
-import { Address } from '@prisma/client';
+import { Address, Student, Guardian } from '@prisma/client';
 
 export type AddressSchema = Address & {
-  students?: { id: string }[];
-  guardians?: { id: string }[];
+  students?: Student[];
+  guardians?: Guardian[];
 };

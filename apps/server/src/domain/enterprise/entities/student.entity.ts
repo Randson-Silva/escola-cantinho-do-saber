@@ -1,16 +1,20 @@
 import { Entity } from 'apps/server/src/core/entities/entity';
 import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
-import { AddressEntity } from './address.entity';
+import { Optional } from 'apps/server/src/core/types/optional';
+import { SchoolGrade } from 'apps/server/src/core/types/school-enums';
 
 export interface StudentProps {
   name: string;
   birthDate: Date;
   classId: string;
-  seriesId: string | null;
-  addresses: AddressEntity[] | null;
-  guardians: string[] | null;
-  enrollmentIds: string[] | null;
-  attendanceIds: string[] | null;
+  currentGrade: SchoolGrade; // Substitui seriesId
+  addressIds: string[];
+  guardianIds: string[];
+  enrollmentIds: string[];
+  attendanceIds: string[];
+
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export class StudentEntity extends Entity<StudentProps> {
@@ -26,16 +30,16 @@ export class StudentEntity extends Entity<StudentProps> {
     return this.props.classId;
   }
 
-  get seriesId() {
-    return this.props.seriesId;
+  get currentGrade() {
+    return this.props.currentGrade;
   }
 
-  get addresses() {
-    return this.props.addresses;
+  get addressIds() {
+    return this.props.addressIds;
   }
 
-  get guardians() {
-    return this.props.guardians;
+  get guardianIds() {
+    return this.props.guardianIds;
   }
 
   get enrollmentIds() {
@@ -46,7 +50,32 @@ export class StudentEntity extends Entity<StudentProps> {
     return this.props.attendanceIds;
   }
 
-  static create(props: StudentProps, id?: UniqueEntityId): StudentEntity {
-    return new StudentEntity(props, id);
+  get createdAt() {
+    return this.props.createdAt;
+  }
+
+  get deletedAt() {
+    return this.props.deletedAt;
+  }
+
+  static create(
+    props: Optional<
+      StudentProps,
+      'createdAt' | 'deletedAt' | 'addressIds' | 'guardianIds' | 'enrollmentIds' | 'attendanceIds'
+    >,
+    id?: UniqueEntityId,
+  ): StudentEntity {
+    return new StudentEntity(
+      {
+        ...props,
+        addressIds: props.addressIds ?? [],
+        guardianIds: props.guardianIds ?? [],
+        enrollmentIds: props.enrollmentIds ?? [],
+        attendanceIds: props.attendanceIds ?? [],
+        createdAt: props.createdAt ?? new Date(),
+        deletedAt: props.deletedAt ?? null,
+      },
+      id,
+    );
   }
 }

@@ -15,6 +15,7 @@ import {
   ITeacherRepository,
   TEACHER_REPOSITORY_TOKEN,
 } from '../../repositories/teacher.repository';
+import { SchoolGrade } from 'apps/server/src/core/types/school-enums';
 
 type CreateTeacherRequest = {
   name: string;
@@ -24,7 +25,7 @@ type CreateTeacherRequest = {
   pixKey: string;
   startDate: Date;
   expertise?: string | null;
-  seriesIds: string[]; // AC 1: Competências
+  qualifiedGrades: SchoolGrade[]; // Alterado de seriesIds
 };
 
 type CreateTeacherResponse = Either<
@@ -52,10 +53,11 @@ export class CreateTeacherUseCase {
     pixKey,
     startDate,
     expertise,
-    seriesIds,
+    qualifiedGrades,
   }: CreateTeacherRequest): Promise<CreateTeacherResponse> {
-    if (!seriesIds || seriesIds.length === 0) {
-      return fail(new Error('At least one series competency is required.'));
+
+    if (!qualifiedGrades || qualifiedGrades.length === 0) {
+      return fail(new Error('At least one qualified grade is required.'));
     }
 
     const emailExists = await this.teacherRepository.findByEmail(email);
@@ -73,6 +75,7 @@ export class CreateTeacherUseCase {
       return fail(new AlreadyExistsError('Teacher with this CPF (taxId)'));
     }
 
+    // Criar entidade Teacher
     const teacher = TeacherEntity.create({
       name,
       taxId,
@@ -81,16 +84,16 @@ export class CreateTeacherUseCase {
       pixKey,
       startDate,
       expertise,
+      qualifiedGrades, // Passado direto para entidade
     });
 
+    // Geração de Usuário e Perfil (Mantida a lógica original)
     const plainPassword = Math.random().toString(36).slice(2, 10);
     const hashedPassword = await this.authService.hashPassword(plainPassword);
 
-    const profile = ProfileEntity.create({ accessLevel: 'PROFESSOR' as any });
+    const profile = ProfileEntity.create({ accessLevel: 'PROFESSOR' });
     const profileCreated = await this.profileRepository.create(profile);
-    if (!profileCreated) {
-      return fail(new CannotCreateError('Profile'));
-    }
+    if (!profileCreated) return fail(new CannotCreateError('Profile'));
 
     const user = UserEntity.create({
       name,
@@ -101,22 +104,21 @@ export class CreateTeacherUseCase {
 
     const userCreated = await this.userRepository.create(user);
     if (!userCreated) {
-      try {
-        await this.profileRepository.delete(profile.id.toString());
-      } catch (e) {
-      }
+      await this.profileRepository.delete(profile.id.toString());
       return fail(new CannotCreateError('User'));
     }
 
-    const created = await this.teacherRepository.create(teacher, seriesIds);
+    // Criar Teacher no repositório (sem parâmetro extra seriesIds)
+    const created = await this.teacherRepository.create(teacher);
 
     if (!created) {
+      // Rollback manual (Idealmente seria uma transaction no repositório ou serviço de domínio, mas ok aqui)
       try {
         await this.userRepository.delete(user.id.toString());
-      } catch (e) {}
-      try {
         await this.profileRepository.delete(profile.id.toString());
-      } catch (e) {}
+      } catch (e) {
+        console.error('Rollback failed', e);
+      }
       return fail(new CannotCreateError('Teacher'));
     }
 

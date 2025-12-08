@@ -1,17 +1,20 @@
 import { Entity } from 'apps/server/src/core/entities/entity';
 import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
+import { Optional } from 'apps/server/src/core/types/optional';
 
 export interface LessonProps {
-  lessonDate: Date;
+  date: Date;
   classId: string;
   startTime: string | null;
   endTime: string | null;
   duration: string | null;
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export class LessonEntity extends Entity<LessonProps> {
-  get lessonDate() {
-    return this.props.lessonDate;
+  get date() {
+    return this.props.date;
   }
 
   get classId() {
@@ -30,21 +33,29 @@ export class LessonEntity extends Entity<LessonProps> {
     return this.props.duration;
   }
 
-  set lessonDate(value: Date) {
-    this.props.lessonDate = value;
-  }
-  set startTime(value: string | null) {
-    this.props.startTime = value;
-  }
-  set endTime(value: string | null) {
-    this.props.endTime = value;
-  }
-  set duration(value: string | null) {
-    this.props.duration = value;
+  get createdAt() {
+    return this.props.createdAt;
   }
 
-  static create(props: LessonProps, id?: UniqueEntityId): LessonEntity {
-    const lessonEntity = new LessonEntity(props, id);
+  get deletedAt() {
+    return this.props.deletedAt;
+  }
+
+  static create(
+    props: Optional<LessonProps, 'createdAt' | 'deletedAt' | 'startTime' | 'endTime' | 'duration'>,
+    id?: UniqueEntityId,
+  ): LessonEntity {
+    const lessonEntity = new LessonEntity(
+      {
+        ...props,
+        startTime: props.startTime ?? null,
+        endTime: props.endTime ?? null,
+        duration: props.duration ?? null,
+        createdAt: props.createdAt ?? new Date(),
+        deletedAt: props.deletedAt ?? null,
+      },
+      id,
+    );
     return lessonEntity;
   }
 }

@@ -1,3 +1,5 @@
-import { User } from '@prisma/client';
+import { User, Profile } from '@prisma/client';
 
-export type UserSchema = User;
+export type UserSchema = User & {
+  profile?: Profile;
+};

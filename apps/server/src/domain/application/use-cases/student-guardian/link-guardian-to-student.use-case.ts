@@ -16,16 +16,17 @@ import {
   IStudentRepository,
   STUDENT_REPOSITORY_TOKEN,
 } from '../../repositories/student.repository';
+import { Kinship } from 'apps/server/src/core/types/school-enums';
 
 type LinkGuardianToStudentUseCaseRequest = {
   studentId: string;
   guardianId: string;
-  kinship: string | null;
+  kinship: Kinship; // Correção: enum
 };
 
 type LinkGuardianToStudentUseCaseResponse = Either<
   ResourceNotFoundError | AlreadyExistsError | CannotCreateError,
-  { linkId: string }
+  { linkId: string } // Retornamos o id composto
 >;
 
 @singleton()
@@ -45,30 +46,36 @@ export class LinkGuardianToStudentUseCase {
     kinship,
   }: LinkGuardianToStudentUseCaseRequest): Promise<LinkGuardianToStudentUseCaseResponse> {
     try {
+      // Verifica se Aluno existe
       const student = await this.studentRepository.findById(studentId);
       if (!student) return fail(new ResourceNotFoundError('Student'));
 
+      // Verifica se Responsável existe
       const guardian = await this.guardianRepository.findById(guardianId);
       if (!guardian) return fail(new ResourceNotFoundError('Guardian'));
 
+      // Verifica se já existe o vínculo
       const linkExists = await this.studentGuardianRepository.findUnique(studentId, guardianId);
       if (linkExists) return fail(new AlreadyExistsError('Student-Guardian link'));
 
+      // Cria a entidade de vínculo
       const linkEntity = StudentGuardianEntity.create({
         studentId,
         guardianId,
         kinship,
       });
 
+      // Persiste
       const canCreateLink = await this.studentGuardianRepository.create(linkEntity);
 
       if (!canCreateLink) return fail(new CannotCreateError('Student-Guardian link'));
 
+      // Como é uma chave composta, geramos uma representação textual ou retornamos sucesso
       const linkId = `${studentId}_${guardianId}`;
 
       return succeed({ linkId });
     } catch (error) {
-      return fail(new Error('Cannot create link due to error' + error));
+      return fail(new Error('Cannot create link due to error: ' + error));
     }
   }
 }

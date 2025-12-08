@@ -14,3 +14,17 @@ export enum Shift {
   MATUTINO = 'MATUTINO',
   VESPERTINO = 'VESPERTINO',
 }
+
+export enum AttendanceStatus {
+  PRESENTE = 'PRESENTE',
+  AUSENTE = 'AUSENTE',
+  JUSTIFICADO = 'JUSTIFICADO',
+}
+
+export enum Kinship {
+  PAI_MAE = 'PAI_MAE',
+  AVOS = 'AVOS',
+  TIOS = 'TIOS',
+  IRMAOS = 'IRMAOS',
+  OUTRO = 'OOUTRO',
+}

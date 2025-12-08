@@ -5,10 +5,13 @@ import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.err
 import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { CreateClassUseCase } from 'apps/server/src/domain/application/use-cases/class/create-class.use-case';
+import { SchoolGrade, Shift } from 'apps/server/src/core/types/school-enums';
 
 const createClassBodySchema = z.object({
   name: z.string(),
   teacherId: z.string(),
+  shift: z.enum(Shift),
+  grades: z.array(z.enum(SchoolGrade)),
 });
 
 type CreateClassBodySchema = z.infer<typeof createClassBodySchema>;
@@ -25,23 +28,19 @@ export class CreateClassController {
   }
 
   private registerRoutes(): void {
-    this.router.post(
-      '/class',
-      checkJwt,
-      bodyValidationPipe,
-
-      this.handle.bind(this),
-    );
+    this.router.post('/class', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request, res: Response) {
     const body = req.body as CreateClassBodySchema;
 
-    const { name, teacherId } = body;
+    const { name, teacherId, shift, grades } = body;
 
     const result = await this.createClassUseCase.execute({
       name,
       teacherId,
+      shift,
+      grades,
     });
 
     if (result.isFail()) {
@@ -58,6 +57,6 @@ export class CreateClassController {
 
     const { classId } = result.value;
 
-    return res.status(200).json({ classId });
+    return res.status(201).json({ classId });
   }
 }

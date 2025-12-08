@@ -11,7 +11,7 @@ type DeleteGuardianUseCaseRequest = {
   guardianId: string;
 };
 
-type DeleteGuardianUseCaseResponse = Either<Error, void>;
+type DeleteGuardianUseCaseResponse = Either<ResourceNotFoundError | CannotDeleteError, null>;
 
 @singleton()
 export class DeleteGuardianUseCase {
@@ -33,6 +33,6 @@ export class DeleteGuardianUseCase {
       return fail(new CannotDeleteError('Guardian'));
     }
 
-  return succeed(undefined);
+    return succeed(null);
   }
 }

@@ -60,6 +60,9 @@ model User {
 
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId String  @unique
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Profile {
@@ -89,6 +92,9 @@ model Teacher {
   status    String   @default("ATIVO") // String simples ou poderia ser Enum se preferir
 
   classes Class[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Class {
@@ -106,6 +112,9 @@ model Class {
 
   lessons  Lesson[]
   students Student[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Lesson {
@@ -114,12 +123,14 @@ model Lesson {
   startTime String? // hora_inicio (ex: "13:00")
   endTime   String? // hora_final (ex: "14:00")
   duration  String? // duracao (ex: "1h")
-  contents  String? // Conteúdo ministrado
 
   classId String
   class   Class  @relation(fields: [classId], references: [id])
 
   attendances Attendance[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 // ------------------------------------------------------
@@ -142,19 +153,25 @@ model Student {
 
   enrollments Enrollment[]
   attendances Attendance[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Guardian {
-  id     String   @id @unique @default(ulid())
-  name   String
-  email  String?  @unique
-  phones String[] // Array de strings para múltiplos telefones
+  id    String  @id @unique @default(ulid())
+  name  String
+  email String? @unique
+  phone String // Tel único
 
   addresses Address[]            @relation("GuardianAddresses")
   students  StudentHasGuardian[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-// Tabela associativa com o parentesco em Português
+// Tabela associativa
 model StudentHasGuardian {
   studentId  String
   guardianId String
@@ -163,6 +180,9 @@ model StudentHasGuardian {
 
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime
+  deletedAt DateTime?
 
   @@id([studentId, guardianId])
 }
@@ -178,6 +198,9 @@ model Address {
 
   students  Student[]  @relation("StudentAddresses")
   guardians Guardian[] @relation("GuardianAddresses")
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 // ------------------------------------------------------
@@ -191,6 +214,9 @@ model Contract {
   documentUrl   String?
 
   enrollments Enrollment[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Enrollment {
@@ -205,6 +231,9 @@ model Enrollment {
   contract Contract @relation(fields: [contractId], references: [id])
 
   payments Payment[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Payment {
@@ -216,6 +245,9 @@ model Payment {
 
   enrollmentId String
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 // ------------------------------------------------------
@@ -231,6 +263,9 @@ model Attendance {
 
   student Student @relation(fields: [studentId], references: [id])
   lesson  Lesson  @relation(fields: [lessonId], references: [id])
+
+  createdAt DateTime
+  deletedAt DateTime?
 
   // Chave composta para garantir unicidade
   @@unique([studentId, lessonId])
