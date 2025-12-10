@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import os
+
+file_path = r"c:\Users\ediva\escola-cantinho-do-saber\apps\web\src\renderer\components\students\StudentsList.tsx"
+
+new_content = """import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { useDebounce } from '../../hooks/useDebounce';
 import { studentService, type Student } from '../../services/studentService';
@@ -41,9 +45,7 @@ export function StudentsList() {
   const performSearch = async (term: string) => {
     setIsLoading(true);
     try {
-      console.log('[StudentsList] Buscando por:', term);
       const data = await studentService.searchStudentsByName(term);
-      console.log('[StudentsList] Resultados recebidos:', data.length, 'alunos');
       setStudents(data);
     } catch (error) {
       console.error('Erro ao buscar alunos:', error);
@@ -52,11 +54,6 @@ export function StudentsList() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
-    setStudents([]);
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -91,6 +88,7 @@ export function StudentsList() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
@@ -99,18 +97,18 @@ export function StudentsList() {
       <div className={styles.card}>
         <div className={styles.header}>
           <div>
-            <h1 className={styles.title}>Alunos Cadastrados</h1>
+            <h1 className={styles.title}>Alunos</h1>
             <p className={styles.subtitle}>
               {totalCount !== null
                 ? `${totalCount} ${totalCount === 1 ? 'aluno' : 'alunos'} no sistema`
-                : 'Busque por nome para ver os alunos'}
+                : 'Gerencie os alunos'}
             </p>
           </div>
           <button
             className={styles.saveBtn}
             onClick={() => navigate('/dashboard/students/register')}
           >
-            + Cadastrar Aluno
+            Novo Aluno
           </button>
         </div>
 
@@ -121,96 +119,74 @@ export function StudentsList() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.input}
-            style={{ maxWidth: '400px' }}
           />
-          {searchTerm && (
-            <button onClick={handleClearSearch} className={styles.cancelBtn}>
-              Limpar
-            </button>
-          )}
         </div>
 
-        {isLoading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-            Carregando alunos...
-          </div>
-        ) : students.length === 0 && searchTerm ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-            <p>Nenhum aluno encontrado com o nome "{searchTerm}".</p>
-          </div>
-        ) : students.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-            <p>Use a busca acima para encontrar alunos por nome.</p>
-          </div>
-        ) : (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Data de Nascimento</th>
-                  <th>Série</th>
-                  <th>Turma</th>
-                  <th>Professor(a)</th>
-                  <th>Responsável</th>
-                  <th>Telefone</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td style={{ fontWeight: 500 }}>{student.name}</td>
-                    <td>{formatDate(student.birthDate)}</td>
-                    <td>{student.grade}º ano</td>
-                    <td>{student.class}</td>
-                    <td>{student.teacher}</td>
-                    <td>{student.guardian?.name || '-'}</td>
-                    <td>{student.guardian?.phone || '-'}</td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${
-                          student.status === 'active' ? styles.ativo : styles.inativo
-                        }`}
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Série/Turma</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.id}>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{student.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                      Nasc: {formatDate(student.birthDate)}
+                    </div>
+                  </td>
+                  <td>
+                    <div>{student.grade}º ano</div>
+                    <div style={{ fontSize: '0.75rem', color: '#666' }}>{student.class}</div>
+                  </td>
+                  <td>
+                    <div>{student.guardian.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#666' }}>{student.guardian.phone}</div>
+                  </td>
+                  <td>
+                    <span
+                      className={`${styles.statusBadge} ${
+                        student.status === 'active' ? styles.ativo : styles.inativo
+                      }`}
+                    >
+                      {student.status === 'active' ? 'ATIVO' : 'INATIVO'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <Link 
+                        to={`/dashboard/students/${student.id}`} 
+                        style={{ fontSize: '0.85rem', color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}
                       >
-                        {student.status === 'active' ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={styles.actions} style={{ marginTop: 0 }}>
-                        <button
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '1.1rem',
-                          }}
-                          onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                          title="Visualizar"
-                        >
-                          👁️
-                        </button>
-                        <button
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '1.1rem',
-                          }}
-                          onClick={() => handleDelete(student.id, student.name)}
-                          title="Excluir"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        Editar
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(student.id, student.name)}
+                        style={{ border: 'none', background: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {students.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+                    {searchTerm ? 'Nenhum aluno encontrado.' : 'Use a busca para encontrar alunos.'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal de Confirmação de Exclusão */}
@@ -238,3 +214,7 @@ export function StudentsList() {
     </div>
   );
 }
+"""
+
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(new_content)

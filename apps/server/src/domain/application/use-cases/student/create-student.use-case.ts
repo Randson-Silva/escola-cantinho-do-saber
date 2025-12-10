@@ -107,16 +107,16 @@ export class CreateStudentUseCase {
       const canCreateStudent = await this.studentRepository.create(studentEntity);
       if (!canCreateStudent) return fail(new CannotCreateError('Student'));
 
-      // const studentGuardianEntity = StudentGuardianEntity.create({
-      //   guardianId: guardianEntity.id.toString(),
-      //   kinship: guardian.kinship,
-      //   studentId: studentEntity.id.toString(),
-      // });
+      const studentGuardianEntity = StudentGuardianEntity.create({
+        guardianId: guardianEntity.id.toString(),
+        kinship: guardian.kinship,
+        studentId: studentEntity.id.toString(),
+      });
 
-      // const canCreateGuardianStudent =
-      //   await this.guardianStudentRepository.create(studentGuardianEntity);
+      const canCreateGuardianStudent =
+        await this.guardianStudentRepository.create(studentGuardianEntity);
 
-      // if (!canCreateGuardianStudent) return fail(new CannotCreateError('StudentGuardian'));
+      if (!canCreateGuardianStudent) return fail(new CannotCreateError('StudentGuardian'));
 
       await this.addressRepository.linkToStudent(
         finalStudentAddress.id.toString(),

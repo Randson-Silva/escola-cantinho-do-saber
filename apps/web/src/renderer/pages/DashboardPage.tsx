@@ -1,9 +1,38 @@
 import { DashboardLayout } from '../components/dashboard/Layout/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { studentService } from '../services/studentService';
+import { teacherService } from '../services/teacherService';
 import styles from '../styles/dashboard-page.module.css';
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const [studentsCount, setStudentsCount] = useState<number>(0);
+  const [teachersCount, setTeachersCount] = useState<number>(0);
+
+  useEffect(() => {
+    async function loadCounts() {
+      // 1. Tenta pegar contagem de alunos
+      try {
+        const count = await studentService.getStudentsCount();
+        setStudentsCount(count);
+      } catch (error) {
+        console.error('Erro ao contar alunos:', error);
+        setStudentsCount(0); // Se falhar, assume 0
+      }
+
+      // 2. Tenta pegar contagem de professores
+      // (Dica: O ideal seria ter um teacherService.getTeachersCount() também,
+      // em vez de listar todos os professores aqui em baixo)
+      try {
+        const teachers = await teacherService.getAll();
+        setTeachersCount(Array.isArray(teachers) ? teachers.length : 0);
+      } catch {
+        setTeachersCount(0);
+      }
+    }
+    loadCounts();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -18,8 +47,8 @@ export function DashboardPage() {
             <div className={styles.statIcon}>👨‍🎓</div>
             <div className={styles.statContent}>
               <h3 className={styles.statLabel}>Total de Alunos</h3>
-              <p className={styles.statValue}>245</p>
-              <span className={styles.statChange}>+12 este mês</span>
+              <p className={styles.statValue}>{studentsCount}</p>
+              <span className={styles.statChange}>cadastrados</span>
             </div>
             <div className={styles.statActions}>
               <button className={styles.statButton} onClick={() => navigate('/dashboard/students')}>
@@ -48,13 +77,21 @@ export function DashboardPage() {
             <div className={styles.statIcon}>👥</div>
             <div className={styles.statContent}>
               <h3 className={styles.statLabel}>Professores</h3>
-              <p className={styles.statValue}>18</p>
+              <p className={styles.statValue}>{teachersCount}</p>
               <span className={styles.statChange}>Todos ativos</span>
             </div>
-            <button className={styles.statButton}>Adicionar Professor</button>
+            <div className={styles.statActions}>
+              <button className={styles.statButton} onClick={() => navigate('/dashboard/teachers')}>
+                Ver Professores
+              </button>
+              <button
+                className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                onClick={() => navigate('/dashboard/teachers/register')}
+              >
+                Cadastrar Professor
+              </button>
+            </div>
           </div>
-
-         
         </div>
       </div>
     </DashboardLayout>

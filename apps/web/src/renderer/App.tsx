@@ -17,6 +17,9 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ToastContainer } from './components/ToastContainer';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { TeachersPage } from './pages/TeachersPage';
+import { TeachersRegisterPage } from './pages/TeachersRegisterPage';
+import EditTeacherPage from './pages/EditTeacherPage';
 
 import './global.css';
 
@@ -114,6 +117,30 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <ClassesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/teachers"
+              element={
+                <ProtectedRoute>
+                  <TeachersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/teachers/register"
+              element={
+                <ProtectedRoute>
+                  <TeachersRegisterPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/teachers/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditTeacherPage />
                 </ProtectedRoute>
               }
             />

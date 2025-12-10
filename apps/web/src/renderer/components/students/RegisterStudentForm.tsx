@@ -1,18 +1,26 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
-import { studentService, type CreateStudentDTO } from '../../services/studentService';
-import styles from './register-student.module.css';
+import { studentService, type StudentFormData } from '../../services/studentService';
+import { SmartScheduleSearch } from './SmartScheduleSearch';
+import { EnrollmentSummary } from './EnrollmentSummary';
+import styles from './students.module.css';
 
 export function RegisterStudentForm() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<'form' | 'schedule' | 'summary'>('form');
+  const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ start: string; end: string } | null>(
+    null,
+  );
 
-  const [formData, setFormData] = useState<CreateStudentDTO>({
+  const [formData, setFormData] = useState<StudentFormData>({
     name: '',
     birthDate: '',
-    grade: '1',
+    grade: 'series-1-ano',
     schoolType: 'publica',
     class: '',
     teacher: '',
@@ -62,7 +70,6 @@ export function RegisterStudentForm() {
         guardian: { ...prev.guardian, [field]: value },
       }));
     } else {
-      // Converte monthlyFee para número
       const finalValue = name === 'monthlyFee' ? Number(value) : value;
       setFormData((prev) => ({ ...prev, [name]: finalValue }));
     }
@@ -73,391 +80,433 @@ export function RegisterStudentForm() {
     setIsSubmitting(true);
 
     try {
-      // Tenta fazer a requisição para a API (que ainda não existe)
-      await studentService.createStudent(formData);
+      const newStudent = await studentService.createStudent(formData);
+      addToast('Aluno cadastrado! Selecione a turma.', 'success');
+      if (newStudent && newStudent) {
+        setCreatedStudentId(newStudent);
+      }
+      setStep('schedule');
+    } catch (error: any) {
+      console.error('Erro ao cadastrar aluno:', error);
+      const message = error.response?.data?.message || error.message || 'Erro ao cadastrar aluno';
 
-  addToast('Aluno cadastrado com sucesso!', 'success');
-      navigate('/dashboard/students');
-    } catch (error) {
-      // Como a API não existe, simula o salvamento localmente
-      console.log('API não disponível. Salvando dados localmente:', formData);
+      // Fallback local
+      try {
+        const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
+        const genId = `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+        const newLocalStudent = {
+          id: genId,
+          name: formData.name,
+          birthDate: formData.birthDate,
+          grade: formData.grade,
+          schoolType: formData.schoolType,
+          class: formData.class,
+          teacher: formData.teacher,
+          monthlyFee: formData.monthlyFee || 0,
+          address: formData.address,
+          guardian: formData.guardian,
+          enrollmentDate: new Date().toISOString(),
+          status: formData.status || 'active',
+        };
 
-      // Salva no localStorage como mock
-      const existingStudents = JSON.parse(localStorage.getItem('students') || '[]');
-      const newStudent = {
-        id: Date.now().toString(),
-        ...formData,
-        enrollmentDate: new Date().toISOString(),
-        status: 'active' as const,
-      };
-      localStorage.setItem('students', JSON.stringify([...existingStudents, newStudent]));
+        localStudents.unshift(newLocalStudent);
+        localStorage.setItem('students', JSON.stringify(localStudents));
 
-  addToast('Aluno cadastrado com sucesso!', 'success');
-      navigate('/dashboard/students');
+        setCreatedStudentId(genId);
+        addToast('API indisponível — aluno salvo localmente.', 'info');
+        setStep('schedule');
+        return;
+      } catch (saveError) {
+        addToast(message, 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/dashboard');
+    navigate('/dashboard/students');
   };
+
+  const handleScheduleNext = (cls: any, timeSlot: { start: string; end: string }) => {
+    setSelectedClass(cls);
+    setSelectedTimeSlot(timeSlot);
+    setStep('summary');
+  };
+
+  const handleEnrollmentConfirm = async (financialData: {
+    monthlyFee: number;
+    firstPaymentDate: string;
+  }) => {
+    console.log('Finalizing enrollment for student', createdStudentId);
+
+    // Update local storage to simulate backend update
+    try {
+      const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
+      const studentIndex = localStudents.findIndex((s: any) => s.id === createdStudentId);
+
+      if (studentIndex >= 0) {
+        localStudents[studentIndex] = {
+          ...localStudents[studentIndex],
+          class: selectedClass.nome,
+          teacher: selectedClass.professor,
+          monthlyFee: financialData.monthlyFee,
+          schedule: {
+            shift: selectedClass.turno,
+            ...selectedTimeSlot,
+          },
+          firstPaymentDate: financialData.firstPaymentDate,
+          status: 'active',
+        };
+        localStorage.setItem('students', JSON.stringify(localStudents));
+      }
+    } catch (e) {
+      console.error('Error updating local student', e);
+    }
+
+    addToast('Matrícula realizada com sucesso!', 'success');
+    navigate('/dashboard/students');
+  };
+
+  if (step === 'schedule') {
+    return (
+      <SmartScheduleSearch
+        onBack={() => navigate('/dashboard/students')}
+        onNext={handleScheduleNext}
+      />
+    );
+  }
+
+  if (step === 'summary' && selectedClass && selectedTimeSlot) {
+    return (
+      <EnrollmentSummary
+        studentData={formData}
+        classData={selectedClass}
+        scheduleData={selectedTimeSlot}
+        onBack={() => setStep('schedule')}
+        onConfirm={handleEnrollmentConfirm}
+      />
+    );
+  }
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
+      <div className={styles.header}>
+        <div>
           <h1 className={styles.title}>Cadastrar Novo Aluno</h1>
           <p className={styles.subtitle}>Preencha os dados do aluno e do responsável</p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-        {/* Dados do Aluno */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Dados do Aluno</h2>
+      <div className={styles.card}>
+        <form onSubmit={handleSubmit}>
+          {/* Dados do Aluno */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Dados do Aluno</h2>
 
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="name" className={styles.label}>
-                Nome Completo <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name" className={styles.label}>
+                  Nome Completo <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="birthDate" className={styles.label}>
-                Data de Nascimento <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="date"
-                id="birthDate"
-                name="birthDate"
-                value={formData.birthDate}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="birthDate" className={styles.label}>
+                  Data de Nascimento <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="date"
+                  id="birthDate"
+                  name="birthDate"
+                  value={formData.birthDate}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="grade" className={styles.label}>
-                Série <span className={styles.required}>*</span>
-              </label>
-              <select
-                id="grade"
-                name="grade"
-                value={formData.grade}
-                onChange={handleInputChange}
-                className={styles.select}
-                required
-              >
-                <option value="1">1º ano</option>
-                <option value="2">2º ano</option>
-                <option value="3">3º ano</option>
-                <option value="4">4º ano</option>
-                <option value="5">5º ano</option>
-                <option value="6">6º ano</option>
-                <option value="7">7º ano</option>
-              </select>
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="grade" className={styles.label}>
+                  Série <span className={styles.required}>*</span>
+                </label>
+                <select
+                  id="grade"
+                  name="grade"
+                  value={formData.grade}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                  required
+                >
+                  <option value="series-1-ano">1º ano</option>
+                  <option value="series-2-ano">2º ano</option>
+                  <option value="series-3-ano">3º ano</option>
+                  <option value="series-4-ano">4º ano</option>
+                  <option value="series-5-ano">5º ano</option>
+                  <option value="series-6-ano">6º ano</option>
+                  <option value="series-7-ano">7º ano</option>
+                  <option value="series-8-ano">8º ano</option>
+                  <option value="series-9-ano">9º ano</option>
+                </select>
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="schoolType" className={styles.label}>
-                Escola <span className={styles.required}>*</span>
-              </label>
-              <select
-                id="schoolType"
-                name="schoolType"
-                value={formData.schoolType}
-                onChange={handleInputChange}
-                className={styles.select}
-                required
-              >
-                <option value="publica">Pública</option>
-                <option value="particular">Particular</option>
-              </select>
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="schoolType" className={styles.label}>
+                  Escola <span className={styles.required}>*</span>
+                </label>
+                <select
+                  id="schoolType"
+                  name="schoolType"
+                  value={formData.schoolType}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                  required
+                >
+                  <option value="publica">Pública</option>
+                  <option value="particular">Particular</option>
+                </select>
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="class" className={styles.label}>
-                Turma <span className={styles.required}>*</span>
-              </label>
-              <select
-                id="class"
-                name="class"
-                value={formData.class}
-                onChange={handleInputChange}
-                className={styles.select}
-                required
-              >
-                <option value="">Selecione a turma</option>
-                <option value="Turma A - Manhã">Turma A - Manhã</option>
-                <option value="Turma B - Manhã">Turma B - Manhã</option>
-                <option value="Turma C - Tarde">Turma C - Tarde</option>
-                <option value="Turma D - Tarde">Turma D - Tarde</option>
-                <option value="Turma E - Integral">Turma E - Integral</option>
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="teacher" className={styles.label}>
-                Professor(a) <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="teacher"
-                name="teacher"
-                value={formData.teacher}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="Nome do professor(a)"
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="monthlyFee" className={styles.label}>
-                Valor da Mensalidade (R$) <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="number"
-                id="monthlyFee"
-                name="monthlyFee"
-                value={formData.monthlyFee}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                required
-              />
+              <div className={styles.formGroup}>
+                <label htmlFor="teacher" className={styles.label}>
+                  Professor(a)
+                </label>
+                <input
+                  type="text"
+                  id="teacher"
+                  name="teacher"
+                  value={formData.teacher}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  placeholder="Nome do professor(a)"
+                />
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* Endereço do Aluno */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Endereço do Aluno</h2>
+          {/* Endereço do Aluno */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Endereço do Aluno</h2>
 
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="address.street" className={styles.label}>
-                Rua <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="address.street"
-                name="address.street"
-                value={formData.address.street}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="address.street" className={styles.label}>
+                  Rua <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="address.street"
+                  name="address.street"
+                  value={formData.address.street}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="address.number" className={styles.label}>
-                Número <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="address.number"
-                name="address.number"
-                value={formData.address.number}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="address.number" className={styles.label}>
+                  Número <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="address.number"
+                  name="address.number"
+                  value={formData.address.number}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="address.neighborhood" className={styles.label}>
-                Bairro <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="address.neighborhood"
-                name="address.neighborhood"
-                value={formData.address.neighborhood}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="address.neighborhood" className={styles.label}>
+                  Bairro <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="address.neighborhood"
+                  name="address.neighborhood"
+                  value={formData.address.neighborhood}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="address.complement" className={styles.label}>
-                Complemento
-              </label>
-              <input
-                type="text"
-                id="address.complement"
-                name="address.complement"
-                value={formData.address.complement}
-                onChange={handleInputChange}
-                className={styles.input}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Dados do Responsável */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Dados do Responsável</h2>
-
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.name" className={styles.label}>
-                Nome Completo <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="guardian.name"
-                name="guardian.name"
-                value={formData.guardian.name}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.relationship" className={styles.label}>
-                Parentesco <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="guardian.relationship"
-                name="guardian.relationship"
-                value={formData.guardian.relationship}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="Ex: Pai, Mãe, Avó"
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.phone" className={styles.label}>
-                Telefone <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="tel"
-                id="guardian.phone"
-                name="guardian.phone"
-                value={formData.guardian.phone}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="(00) 00000-0000"
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.email" className={styles.label}>
-                E-mail <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="email"
-                id="guardian.email"
-                name="guardian.email"
-                value={formData.guardian.email}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
+              <div className={styles.formGroup}>
+                <label htmlFor="address.complement" className={styles.label}>
+                  Complemento
+                </label>
+                <input
+                  type="text"
+                  id="address.complement"
+                  name="address.complement"
+                  value={formData.address.complement}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                />
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* Endereço do Responsável */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Endereço do Responsável</h2>
+          {/* Dados do Responsável */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Dados do Responsável</h2>
 
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.address.street" className={styles.label}>
-                Rua <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="guardian.address.street"
-                name="guardian.address.street"
-                value={formData.guardian.address.street}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.name" className={styles.label}>
+                  Nome Completo <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="guardian.name"
+                  name="guardian.name"
+                  value={formData.guardian.name}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.address.number" className={styles.label}>
-                Número <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="guardian.address.number"
-                name="guardian.address.number"
-                value={formData.guardian.address.number}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.relationship" className={styles.label}>
+                  Parentesco <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="guardian.relationship"
+                  name="guardian.relationship"
+                  value={formData.guardian.relationship}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  placeholder="Ex: Pai, Mãe, Avó"
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.address.neighborhood" className={styles.label}>
-                Bairro <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                id="guardian.address.neighborhood"
-                name="guardian.address.neighborhood"
-                value={formData.guardian.address.neighborhood}
-                onChange={handleInputChange}
-                className={styles.input}
-                required
-              />
-            </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.phone" className={styles.label}>
+                  Telefone <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="guardian.phone"
+                  name="guardian.phone"
+                  value={formData.guardian.phone}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  placeholder="(00) 00000-0000"
+                  required
+                />
+              </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="guardian.address.complement" className={styles.label}>
-                Complemento
-              </label>
-              <input
-                type="text"
-                id="guardian.address.complement"
-                name="guardian.address.complement"
-                value={formData.guardian.address.complement}
-                onChange={handleInputChange}
-                className={styles.input}
-              />
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.email" className={styles.label}>
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  id="guardian.email"
+                  name="guardian.email"
+                  value={formData.guardian.email}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                />
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* Botões */}
-        <div className={styles.actions}>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className={styles.cancelBtn}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </button>
-          <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
-            {isSubmitting ? 'Cadastrando...' : 'Cadastrar Aluno'}
-          </button>
-        </div>
+          {/* Endereço do Responsável */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Endereço do Responsável</h2>
+
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.address.street" className={styles.label}>
+                  Rua <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="guardian.address.street"
+                  name="guardian.address.street"
+                  value={formData.guardian.address.street}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.address.number" className={styles.label}>
+                  Número <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="guardian.address.number"
+                  name="guardian.address.number"
+                  value={formData.guardian.address.number}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.address.neighborhood" className={styles.label}>
+                  Bairro <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="guardian.address.neighborhood"
+                  name="guardian.address.neighborhood"
+                  value={formData.guardian.address.neighborhood}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="guardian.address.complement" className={styles.label}>
+                  Complemento
+                </label>
+                <input
+                  type="text"
+                  id="guardian.address.complement"
+                  name="guardian.address.complement"
+                  value={formData.guardian.address.complement}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Botões */}
+          <div className={styles.actions}>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className={styles.cancelBtn}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className={styles.saveBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Cadastrando...' : 'Cadastrar Aluno'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

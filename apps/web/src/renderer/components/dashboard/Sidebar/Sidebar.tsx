@@ -66,6 +66,12 @@ export function Sidebar() {
           active={location.pathname === '/dashboard/students'}
         />
         <SidebarItem
+          icon="👨‍🏫"
+          label="Professores"
+          path="/dashboard/teachers"
+          active={location.pathname === '/dashboard/teachers'}
+        />
+        <SidebarItem
           icon="📚"
           label="Turmas"
           path="/dashboard/classes"

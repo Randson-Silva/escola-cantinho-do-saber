@@ -49,6 +49,7 @@ import { RefreshUserSessionController } from './infra/http/controllers/user/refr
 import { FindUserByEmailController } from './infra/http/controllers/user/find-user-by-email.controller';
 import { SelfFindUserController } from './infra/http/controllers/user/self-find-user.controller';
 import { DeleteUserController } from './infra/http/controllers/user/delete-user.controller';
+import { UpdateUserController } from './infra/http/controllers/user/update-user.controller';
 import {
   IStudentRepository,
   STUDENT_REPOSITORY_TOKEN,
@@ -95,7 +96,6 @@ import { FindStudentByNameController } from './infra/http/controllers/student/fi
 import { GetStudentsCountController } from './infra/http/controllers/student/get-students-count.controller';
 
 import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
-import { UpdateUserController } from './infra/http/controllers/user/update-user.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -154,6 +154,7 @@ const refreshUserSessionController = container.resolve(RefreshUserSessionControl
 const deleteUserController = container.resolve(DeleteUserController);
 const findUserByEmailController = container.resolve(FindUserByEmailController);
 const selfGetUserController = container.resolve(SelfFindUserController);
+const updateUserController = container.resolve(UpdateUserController);
 
 const createStudentController = container.resolve(CreateStudentController);
 const findStudentByIdController = container.resolve(FindStudentByIdController);
@@ -187,7 +188,6 @@ const registerStudentAttendanceController = container.resolve(RegisterStudentAtt
 const getStudentAttendanceHistoryController = container.resolve(
   GetStudentAttendanceHistoryController,
 );
-const updateUserController = container.resolve(UpdateUserController);
 
 router.use('/', authUserController.router);
 router.use('/', forgotPasswordController.router);
@@ -199,9 +199,6 @@ router.use('/', deleteUserController.router);
 router.use('/', findUserByEmailController.router);
 router.use('/', selfGetUserController.router);
 router.use('/', updateUserController.router);
-router.use('/', deleteUserController.router);
-router.use('/', findUserByEmailController.router);
-router.use('/', selfGetUserController.router);
 
 router.use('/', createStudentController.router);
 router.use('/', findStudentByIdController.router);

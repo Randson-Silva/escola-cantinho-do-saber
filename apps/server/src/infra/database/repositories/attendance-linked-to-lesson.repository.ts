@@ -70,7 +70,9 @@ export class AttendanceLinkedToLessonRepository
     studentId: string,
   ): Promise<AttendanceLinkedToLessonEntity[] | null> {
     const links = await prisma.attendanceLinkedToLesson.findMany({
-      where: { studentId },
+      where: { 
+        attendance: { studentId } 
+      },
     });
     if (!links || links.length === 0) return null;
     return links.map(AttendanceLinkedToLessonMapper.toDomain);

@@ -1,0 +1,234 @@
+.container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+  align-items: start;
+}
+
+/* Left Column: Filters */
+.filterCard {
+  background-color: white;
+  border: 1px solid #e2e8f0; /* border-slate-200 */
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filterTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b; /* slate-800 */
+  margin: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b; /* text-slate-500 */
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1; /* slate-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  background-color: white;
+  color: #334155;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.select:focus,
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.confirmButton {
+  width: 100%;
+  background-color: #a8d5ba; /* User specified green */
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.confirmButton:hover {
+  background-color: #8bc4a1; /* Slightly darker for hover */
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0;
+}
+
+.backButton:hover {
+  color: #334155;
+}
+
+/* Right Column: Results */
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.resultsTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.emptyState {
+  background-color: #f8fafc;
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+  color: #94a3b8;
+  border: 2px dashed #e2e8f0;
+}
+
+/* Result Card */
+.classCard {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.classCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.classInfo {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.classAvatar {
+  width: 48px;
+  height: 48px;
+  background-color: #eff6ff; /* blue-50 */
+  color: #3b82f6; /* blue-500 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.classDetails h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.classMeta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statusBadge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.statusAvailable {
+  background-color: #dcfce7; /* green-100 */
+  color: #166534; /* green-800 */
+}
+
+.statusFull {
+  background-color: #fee2e2; /* red-100 */
+  color: #991b1b; /* red-800 */
+}
+
+.selectButton {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.selectButton:hover {
+  background-color: #0f172a;
+}
+
+.cardRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
