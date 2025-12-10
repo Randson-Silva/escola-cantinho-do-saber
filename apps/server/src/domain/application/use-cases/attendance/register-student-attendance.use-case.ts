@@ -5,6 +5,7 @@ import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-
 import { inject, singleton } from 'tsyringe';
 import { AttendanceEntity } from '../../../enterprise/entities/attendance.entity';
 import { AttendanceLinkedToLessonEntity } from '../../../enterprise/entities/attendance-linked-to-lesson.entity';
+import { NotAllowedError } from 'apps/server/src/core/errors/not-allowed.error';
 import {
   ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN,
   IAttendanceLinkedToLessonRepository,
@@ -21,11 +22,16 @@ import {
   IStudentRepository,
   STUDENT_REPOSITORY_TOKEN,
 } from '../../repositories/student.repository';
+import {
+  CLASS_REPOSITORY_TOKEN,
+  IClassRepository,
+} from '../../repositories/class.repository';
 
 type RegisterStudentAttendanceUseCaseRequest = {
   studentId: string;
   lessonId: string;
   presenceStatus: string;
+  teacherId: string;
 };
 
 type RegisterStudentAttendanceUseCaseResponse = Either<
@@ -44,12 +50,15 @@ export class RegisterStudentAttendanceUseCase {
     private readonly attendanceRepository: IAttendanceRepository,
     @inject(ATTENDANCE_LINKED_TO_LESSON_REPOSITORY_TOKEN)
     private readonly linkRepository: IAttendanceLinkedToLessonRepository,
+    @inject(CLASS_REPOSITORY_TOKEN)
+    private readonly classRepository: IClassRepository,
   ) {}
 
   async execute({
     studentId,
     lessonId,
     presenceStatus,
+    teacherId
   }: RegisterStudentAttendanceUseCaseRequest): Promise<RegisterStudentAttendanceUseCaseResponse> {
     try {
       const student = await this.studentRepository.findById(studentId);
@@ -57,6 +66,19 @@ export class RegisterStudentAttendanceUseCase {
 
       const lesson = await this.lessonRepository.findById(lessonId);
       if (!lesson) return fail(new ResourceNotFoundError('Lesson'));
+
+      const classEntity = await this.classRepository.findById(
+        lesson.classId.toString(),
+      );
+      if (!classEntity) {
+        return fail(new ResourceNotFoundError('Class'));
+      }
+
+      if (classEntity.teacherId.toString() !== teacherId.toString()) {
+        return fail(
+          new NotAllowedError('Teacher cannot register attendance for this class'),
+        );
+      }
 
       const attendance = AttendanceEntity.create({
         studentId,
