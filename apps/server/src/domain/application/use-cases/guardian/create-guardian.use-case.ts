@@ -11,7 +11,7 @@ import {
 type CreateGuardianUseCaseRequest = {
   name: string;
   email: string | null;
-  phones: string[];
+  phone: string;
 };
 
 type CreateGuardianUseCaseResponse = Either<
@@ -29,7 +29,7 @@ export class CreateGuardianUseCase {
   async execute({
     name,
     email,
-    phones,
+    phone,
   }: CreateGuardianUseCaseRequest): Promise<CreateGuardianUseCaseResponse> {
     try {
       if (email) {
@@ -42,7 +42,7 @@ export class CreateGuardianUseCase {
       const guardian = GuardianEntity.create({
         name,
         email,
-        phones,
+        phone,
       });
 
       const canCreateGuardian = await this.guardianRepository.create(guardian);

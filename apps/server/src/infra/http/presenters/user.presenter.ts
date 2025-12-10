@@ -2,14 +2,15 @@ import { UserEntity } from 'apps/server/src/core/entities/user';
 
 export class UserPresenter {
   static toHTTP(user: UserEntity) {
-    const profile = {
-      accessLevel: user.profile.accessLevel,
-    };
-
     return {
+      id: user.id.toString(),
       name: user.name,
       email: user.email,
-      profile,
+      profile: {
+        id: user.profile.id.toString(),
+        accessLevel: user.profile.accessLevel,
+      },
+      createdAt: user.createdAt,
     };
   }
 }

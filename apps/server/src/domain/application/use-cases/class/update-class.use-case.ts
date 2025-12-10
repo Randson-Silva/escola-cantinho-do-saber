@@ -5,12 +5,15 @@ import { ClassEntity } from '../../../enterprise/entities/class.entity';
 import { IClassRepository, CLASS_REPOSITORY_TOKEN } from '../../repositories/class.repository';
 import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
 import { inject, singleton } from 'tsyringe';
+import { SchoolGrade, Shift } from 'apps/server/src/core/types/school-enums';
 
 type UpdateClassUseCaseRequest = {
   classId: string;
   name: string;
   teacherId: string;
-  seriesIds?: string[] | null;
+  shift: Shift;
+  grades: SchoolGrade[];
+
   studentIds?: string[] | null;
   lessonIds?: string[] | null;
 };
@@ -31,7 +34,8 @@ export class UpdateClassUseCase {
     classId,
     name,
     teacherId,
-    seriesIds = null,
+    shift,
+    grades,
     studentIds = null,
     lessonIds = null,
   }: UpdateClassUseCaseRequest): Promise<UpdateClassUseCaseResponse> {
@@ -46,14 +50,18 @@ export class UpdateClassUseCase {
         {
           name,
           teacherId,
-          seriesIds,
+          shift,
+          grades,
           studentIds,
           lessonIds,
+          createdAt: foundClass.createdAt,
+          deletedAt: foundClass.deletedAt,
         },
         new UniqueEntityId(classId),
       );
 
       const canUpdateClass = await this.classRepository.update(updatedClassEntity);
+
       if (!canUpdateClass) {
         return fail(new CannotUpdateError('Class'));
       }

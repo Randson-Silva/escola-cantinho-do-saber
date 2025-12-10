@@ -2,20 +2,21 @@ import { Either, fail, succeed } from 'apps/server/src/core/either';
 import { CannotUpdateError } from 'apps/server/src/core/errors/cannot-update.error';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { inject, singleton } from 'tsyringe';
-import {
-  ILessonRepository,
-  LESSON_REPOSITORY_TOKEN,
-} from '../../repositories/lesson.repository';
+import { ILessonRepository, LESSON_REPOSITORY_TOKEN } from '../../repositories/lesson.repository';
+import { LessonEntity } from '../../../enterprise/entities/lesson.entity';
 
 type UpdateLessonUseCaseRequest = {
   lessonId: string;
-  lessonDate: Date;
-  startTime: string | null;
-  endTime: string | null;
-  duration: string | null;
+  date: Date;
+  startTime?: string;
+  endTime?: string;
+  duration?: string;
 };
 
-type UpdateLessonUseCaseResponse = Either<Error, { lessonId: string }>;
+type UpdateLessonUseCaseResponse = Either<
+  ResourceNotFoundError | CannotUpdateError,
+  { lessonId: string }
+>;
 
 @singleton()
 export class UpdateLessonUseCase {
@@ -26,7 +27,7 @@ export class UpdateLessonUseCase {
 
   async execute({
     lessonId,
-    lessonDate,
+    date,
     startTime,
     endTime,
     duration,
@@ -36,16 +37,25 @@ export class UpdateLessonUseCase {
       return fail(new ResourceNotFoundError('Lesson'));
     }
 
-    lesson.lessonDate = lessonDate;
-    lesson.startTime = startTime;
-    lesson.endTime = endTime;
-    lesson.duration = duration;
+    // Recria mantendo dados originais de criação
+    const lessonEntity = LessonEntity.create(
+      {
+        classId: lesson.classId,
+        date: date,
+        duration: duration ?? lesson.duration,
+        endTime: endTime ?? lesson.endTime,
+        startTime: startTime ?? lesson.startTime,
+        createdAt: lesson.createdAt,
+        deletedAt: lesson.deletedAt,
+      },
+      lesson.id, // mesno ID
+    );
 
-    const canUpdate = await this.lessonRepository.update(lesson);
+    const canUpdate = await this.lessonRepository.update(lessonEntity);
     if (!canUpdate) {
       return fail(new CannotUpdateError('Lesson'));
     }
 
-return succeed({ lessonId: lesson.id.toString() });
+    return succeed({ lessonId: lesson.id.toString() });
   }
 }

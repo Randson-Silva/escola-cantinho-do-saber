@@ -6,6 +6,7 @@ import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { UpdateClassUseCase } from 'apps/server/src/domain/application/use-cases/class/update-class.use-case';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
+import { SchoolGrade, Shift } from 'apps/server/src/core/types/school-enums';
 
 const updateClassParamSchema = z.object({
   classId: z.string(),
@@ -13,13 +14,12 @@ const updateClassParamSchema = z.object({
 
 type UpdateParamSchema = z.infer<typeof updateClassParamSchema>;
 
+// Schema correto baseado na Entidade
 const updateClassBodySchema = z.object({
   name: z.string(),
-  startTime: z.string().nullable(),
-  endTime: z.string().nullable(),
-  duration: z.string().nullable(),
-
   teacherId: z.string(),
+  shift: z.enum(Shift),
+  grades: z.array(z.enum(SchoolGrade)),
 });
 
 type UpdateClassBodySchema = z.infer<typeof updateClassBodySchema>;
@@ -36,26 +36,21 @@ export class UpdateClassController {
   }
 
   private registerRoutes(): void {
-    this.router.put(
-      '/class/:classId',
-      checkJwt,
-      bodyValidationPipe,
-
-      this.handle.bind(this),
-    );
+    this.router.put('/class/:classId', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request<UpdateParamSchema>, res: Response) {
     const body = req.body as UpdateClassBodySchema;
-
-    const { name, teacherId } = body;
-
     const { classId } = req.params;
+
+    const { name, teacherId, shift, grades } = body;
 
     const result = await this.updateClassUseCase.execute({
       classId,
       name,
       teacherId,
+      shift,
+      grades,
     });
 
     if (result.isFail()) {

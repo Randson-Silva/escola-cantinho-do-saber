@@ -3,13 +3,23 @@ import { StudentGuardianEntity } from 'apps/server/src/domain/enterprise/entitie
 import { prisma } from 'packages/database/src/client';
 import { singleton } from 'tsyringe';
 import { StudentGuardianMapper } from '../mapper/student-guardian.mapper';
+import { StudentGuardianSchema } from '../schemas/student-guardian.schema';
 
 @singleton()
 export class StudentGuardianRepository implements IStudentGuardianRepository {
   async create(entity: StudentGuardianEntity): Promise<boolean> {
     try {
-      const data = StudentGuardianMapper.toDatabase(entity);
-      await prisma.studentHasGuardian.create({ data });
+      const raw = StudentGuardianMapper.toDatabase(entity);
+
+      await prisma.studentHasGuardian.create({
+        data: {
+          studentId: raw.studentId,
+          guardianId: raw.guardianId,
+          kinship: raw.kinship,
+          createdAt: raw.createdAt,
+          deletedAt: raw.deletedAt,
+        },
+      });
       return true;
     } catch (error) {
       console.error('Error creating student-guardian link:', error);
@@ -19,17 +29,18 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
 
   async update(entity: StudentGuardianEntity): Promise<boolean> {
     try {
-      const data = StudentGuardianMapper.toDatabase(entity);
+      const raw = StudentGuardianMapper.toDatabase(entity);
+
       await prisma.studentHasGuardian.update({
         where: {
           studentId_guardianId: {
-            // Sintaxe do Prisma para chave composta
-            studentId: entity.studentId,
-            guardianId: entity.guardianId,
+            studentId: raw.studentId,
+            guardianId: raw.guardianId,
           },
         },
         data: {
-          kinship: data.kinship, // Só podemos atualizar o parentesco
+          kinship: raw.kinship, // Atualiza o parentesco
+          deletedAt: raw.deletedAt, // Caso precise reativar (soft delete reverso)
         },
       });
       return true;
@@ -39,16 +50,35 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
     }
   }
 
+  // Hard Delete
+  // async delete(studentId: string, guardianId: string): Promise<boolean> {
+  //   try {
+  //     await prisma.studentHasGuardian.delete({
+  //       where: {
+  //         studentId_guardianId: { studentId, guardianId },
+  //       },
+  //     });
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Error deleting student-guardian link:', error);
+  //     return false;
+  //   }
+  // }
+
+  // Soft Delete
   async delete(studentId: string, guardianId: string): Promise<boolean> {
     try {
-      await prisma.studentHasGuardian.delete({
+      await prisma.studentHasGuardian.update({
         where: {
           studentId_guardianId: { studentId, guardianId },
+        },
+        data: {
+          deletedAt: new Date(),
         },
       });
       return true;
     } catch (error) {
-      console.error('Error deleting student-guardian link:', error);
+      console.error('Error soft-deleting student-guardian link:', error);
       return false;
     }
   }
@@ -60,7 +90,7 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
       },
     });
     if (!link) return null;
-    return StudentGuardianMapper.toDomain(link);
+    return StudentGuardianMapper.toDomain(link as StudentGuardianSchema);
   }
 
   async findByStudentId(studentId: string): Promise<StudentGuardianEntity[] | null> {
@@ -68,7 +98,7 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
       where: { studentId },
     });
     if (!links || links.length === 0) return null;
-    return links.map(StudentGuardianMapper.toDomain);
+    return links.map((l) => StudentGuardianMapper.toDomain(l as StudentGuardianSchema));
   }
 
   async findByGuardianId(guardianId: string): Promise<StudentGuardianEntity[] | null> {
@@ -76,6 +106,6 @@ export class StudentGuardianRepository implements IStudentGuardianRepository {
       where: { guardianId },
     });
     if (!links || links.length === 0) return null;
-    return links.map(StudentGuardianMapper.toDomain);
+    return links.map((l) => StudentGuardianMapper.toDomain(l as StudentGuardianSchema));
   }
 }

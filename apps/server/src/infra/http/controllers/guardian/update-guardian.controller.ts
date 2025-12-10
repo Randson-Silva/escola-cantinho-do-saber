@@ -15,10 +15,11 @@ type UpdateParamSchema = z.infer<typeof updateGuardianParamSchema>;
 const updateGuardianBodySchema = z.object({
   name: z.string().nonempty(),
   email: z.string().email().nullable().default(null),
-  phones: z.array(z.string()).min(1),
+  // CORREÇÃO: O Prisma e a Entidade definem phone como String única
+  phone: z.string().min(1),
 });
-type UpdateGuardianBodySchema = z.infer<typeof updateGuardianBodySchema>;
 
+type UpdateGuardianBodySchema = z.infer<typeof updateGuardianBodySchema>;
 
 const bodyValidationPipe = validateBody(updateGuardianBodySchema);
 
@@ -32,12 +33,7 @@ export class UpdateGuardianController {
   }
 
   private registerRoutes(): void {
-    this.router.put(
-      '/guardians/:id',
-      checkJwt,
-      bodyValidationPipe,
-      this.handle.bind(this),
-    );
+    this.router.put('/guardians/:id', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request<UpdateParamSchema>, res: Response) {
@@ -48,7 +44,7 @@ export class UpdateGuardianController {
       guardianId: id,
       name: body.name,
       email: body.email,
-      phones: body.phones,
+      phone: body.phone,
     });
 
     if (result.isFail()) {

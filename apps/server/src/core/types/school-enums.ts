@@ -1,0 +1,30 @@
+export enum SchoolGrade {
+  PRIMEIRO_ANO = 'PRIMEIRO_ANO',
+  SEGUNDO_ANO = 'SEGUNDO_ANO',
+  TERCEIRO_ANO = 'TERCEIRO_ANO',
+  QUARTO_ANO = 'QUARTO_ANO',
+  QUINTO_ANO = 'QUINTO_ANO',
+  SEXTO_ANO = 'SEXTO_ANO',
+  SETIMO_ANO = 'SETIMO_ANO',
+  OITAVO_ANO = 'OITAVO_ANO',
+  NONO_ANO = 'NONO_ANO',
+}
+
+export enum Shift {
+  MATUTINO = 'MATUTINO',
+  VESPERTINO = 'VESPERTINO',
+}
+
+export enum AttendanceStatus {
+  PRESENTE = 'PRESENTE',
+  AUSENTE = 'AUSENTE',
+  JUSTIFICADO = 'JUSTIFICADO',
+}
+
+export enum Kinship {
+  PAI_MAE = 'PAI_MAE',
+  AVOS = 'AVOS',
+  TIOS = 'TIOS',
+  IRMAOS = 'IRMAOS',
+  OUTRO = 'OOUTRO',
+}

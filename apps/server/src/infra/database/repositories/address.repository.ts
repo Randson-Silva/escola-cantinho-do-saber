@@ -3,50 +3,80 @@ import { AddressEntity } from 'apps/server/src/domain/enterprise/entities/addres
 import { prisma } from 'packages/database/src/client';
 import { AddressMapper } from '../mapper/address.mapper';
 import { singleton } from 'tsyringe';
+import { AddressSchema } from '../schemas/address.schema';
 
 @singleton()
 export class AddressRepository implements IAddressRepository {
   async create(address: AddressEntity): Promise<boolean> {
     try {
-      await prisma.address.create({ data: AddressMapper.toDatabase(address) });
+      const { studentIds, guardianIds, ...raw } = AddressMapper.toDatabase(address);
+
+      await prisma.address.create({
+        data: {
+          ...raw,
+
+          students:
+            studentIds && studentIds.length > 0
+              ? { connect: studentIds.map((id) => ({ id })) }
+              : undefined,
+
+          guardians:
+            guardianIds && guardianIds.length > 0
+              ? { connect: guardianIds.map((id) => ({ id })) }
+              : undefined,
+        },
+      });
       return true;
     } catch (error) {
-      console.error('Error creating address:', error);
+      console.error('[AddressRepository] Create Error:', error);
       return false;
     }
   }
 
   async update(address: AddressEntity): Promise<boolean> {
     try {
+      const { studentIds, guardianIds, ...raw } = AddressMapper.toDatabase(address);
+
       await prisma.address.update({
         where: { id: address.id.toString() },
-        data: AddressMapper.toDatabase(address),
+        data: {
+          ...raw,
+          students: {
+            set: studentIds?.map((id) => ({ id })) ?? [],
+          },
+          guardians: {
+            set: guardianIds?.map((id) => ({ id })) ?? [],
+          },
+        },
       });
       return true;
     } catch (error) {
-      console.error('Error updating address:', error);
+      console.error('[AddressRepository] Update Error:', error);
       return false;
     }
   }
 
   async delete(id: string): Promise<boolean> {
     try {
-      await prisma.address.delete({ where: { id } });
+      await prisma.address.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
       return true;
     } catch (error) {
-      console.error('Error deleting address:', error);
+      console.error(error);
       return false;
     }
   }
 
   async findById(id: string): Promise<AddressEntity | null> {
     const row = await prisma.address.findUnique({ where: { id } });
-    return row ? AddressMapper.toDomain(row) : null;
+    return row ? AddressMapper.toDomain(row as AddressSchema) : null;
   }
 
   async listAll(): Promise<AddressEntity[]> {
-    const rows = await prisma.address.findMany();
-    return rows.map(AddressMapper.toDomain);
+    const rows = await prisma.address.findMany({ where: { deletedAt: null } });
+    return rows.map((r) => AddressMapper.toDomain(r as AddressSchema));
   }
 
   async findDuplicate(address: AddressEntity): Promise<AddressEntity | null> {
@@ -56,9 +86,12 @@ export class AddressRepository implements IAddressRepository {
         number: address.number,
         district: address.district,
         complement: address.complement ?? null,
+        city: address.city ?? null,
+        state: address.state ?? null,
+        deletedAt: null,
       },
     });
-    return row ? AddressMapper.toDomain(row) : null;
+    return row ? AddressMapper.toDomain(row as AddressSchema) : null;
   }
 
   async linkToStudent(addressId: string, studentId: string): Promise<void> {
@@ -68,7 +101,7 @@ export class AddressRepository implements IAddressRepository {
         data: { students: { connect: { id: studentId } } },
       });
     } catch (error) {
-      console.error('Error linking address to student:', error);
+      console.error(error);
     }
   }
 
@@ -79,15 +112,21 @@ export class AddressRepository implements IAddressRepository {
         data: { students: { disconnect: { id: studentId } } },
       });
     } catch (error) {
-      console.error('Error unlinking address from student:', error);
+      console.error(error);
     }
   }
 
   async listByStudent(studentId: string) {
     const rows = await prisma.address.findMany({
-      where: { students: { some: { id: studentId } } },
+      where: {
+        students: { some: { id: studentId } },
+        deletedAt: null,
+      },
     });
-    return rows.map((r) => ({ address: AddressMapper.toDomain(r), isPrimary: false }));
+    return rows.map((r) => ({
+      address: AddressMapper.toDomain(r as AddressSchema),
+      isPrimary: false,
+    }));
   }
 
   async linkToGuardian(addressId: string, guardianId: string): Promise<void> {
@@ -97,7 +136,7 @@ export class AddressRepository implements IAddressRepository {
         data: { guardians: { connect: { id: guardianId } } },
       });
     } catch (error) {
-      console.error('Error linking address to guardian:', error);
+      console.error(error);
     }
   }
 
@@ -108,14 +147,20 @@ export class AddressRepository implements IAddressRepository {
         data: { guardians: { disconnect: { id: guardianId } } },
       });
     } catch (error) {
-      console.error('Error unlinking address from guardian:', error);
+      console.error(error);
     }
   }
 
   async listByGuardian(guardianId: string) {
     const rows = await prisma.address.findMany({
-      where: { guardians: { some: { id: guardianId } } },
+      where: {
+        guardians: { some: { id: guardianId } },
+        deletedAt: null,
+      },
     });
-    return rows.map((r) => ({ address: AddressMapper.toDomain(r), isPrimary: false }));
+    return rows.map((r) => ({
+      address: AddressMapper.toDomain(r as AddressSchema),
+      isPrimary: false,
+    }));
   }
 }

@@ -3,11 +3,14 @@ import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.err
 import { inject, singleton } from 'tsyringe';
 import { ClassEntity } from '../../../enterprise/entities/class.entity';
 import { CLASS_REPOSITORY_TOKEN, IClassRepository } from '../../repositories/class.repository';
+import { SchoolGrade, Shift } from 'apps/server/src/core/types/school-enums'; // Ajuste o path se necessário
 
 type CreateClassUseCaseRequest = {
   name: string;
   teacherId: string;
-  seriesIds?: string[] | null;
+  shift: Shift;
+  grades: SchoolGrade[];
+
   studentIds?: string[] | null;
   lessonIds?: string[] | null;
 };
@@ -24,7 +27,8 @@ export class CreateClassUseCase {
   async execute({
     name,
     teacherId,
-    seriesIds = null,
+    shift,
+    grades,
     studentIds = null,
     lessonIds = null,
   }: CreateClassUseCaseRequest): Promise<CreateClassUseCaseResponse> {
@@ -32,12 +36,14 @@ export class CreateClassUseCase {
       const classEntity = ClassEntity.create({
         name,
         teacherId,
-        seriesIds,
+        shift,
+        grades,
         studentIds,
         lessonIds,
       });
 
       const canCreateClass = await this.classRepository.create(classEntity);
+
       if (!canCreateClass) {
         return fail(new CannotCreateError('Class'));
       }

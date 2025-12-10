@@ -6,7 +6,7 @@ import 'dotenv/config';
 const tokenPayloadSchema = z.object({
   sub: z.ulid(),
   code: z.string().optional(),
-  accessLevel: z.enum(['ADMIN', 'COMUM']),
+  accessLevel: z.enum(['ADMIN', 'COMUM', 'PROFESSOR']),
   type: z.enum(['access', 'refresh', 'pass_reset']),
 });
 

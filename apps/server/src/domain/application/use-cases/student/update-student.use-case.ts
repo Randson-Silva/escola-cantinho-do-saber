@@ -8,16 +8,20 @@ import {
   IStudentRepository,
   STUDENT_REPOSITORY_TOKEN,
 } from '../../repositories/student.repository';
+import { SchoolGrade } from 'apps/server/src/core/types/school-enums';
 
 type UpdateStudentUseCaseRequest = {
   studentId: string;
   name?: string;
   birthDate?: Date;
   classId?: string;
-  seriesId?: string | null;
+  currentGrade?: SchoolGrade;
 };
 
-type UpdateStudentUseCaseResponse = Either<CannotUpdateError, { studentId: string }>;
+type UpdateStudentUseCaseResponse = Either<
+  CannotUpdateError | ResourceNotFoundError,
+  { studentId: string }
+>;
 
 @singleton()
 export class UpdateStudentUseCase {
@@ -31,7 +35,7 @@ export class UpdateStudentUseCase {
     name,
     birthDate,
     classId,
-    seriesId,
+    currentGrade,
   }: UpdateStudentUseCaseRequest): Promise<UpdateStudentUseCaseResponse> {
     try {
       const foundStudent = await this.studentRepository.findById(studentId);
@@ -40,17 +44,20 @@ export class UpdateStudentUseCase {
         return fail(new ResourceNotFoundError('Student not found'));
       }
 
-      // mantém os dados originais e atualiza apenas os campos informados
       const updatedStudent = StudentEntity.create(
         {
           name: name ?? foundStudent.name,
           birthDate: birthDate ?? foundStudent.birthDate,
           classId: classId ?? foundStudent.classId,
-          seriesId: seriesId ?? foundStudent.seriesId,
-          addresses: foundStudent.addresses,
-          guardians: foundStudent.guardians,
+          currentGrade: currentGrade ?? foundStudent.currentGrade,
+
+          // Preserva relacionamentos e auditoria
+          addressIds: foundStudent.addressIds,
+          guardianIds: foundStudent.guardianIds,
           enrollmentIds: foundStudent.enrollmentIds,
           attendanceIds: foundStudent.attendanceIds,
+          createdAt: foundStudent.createdAt,
+          deletedAt: foundStudent.deletedAt,
         },
         new UniqueEntityId(studentId),
       );

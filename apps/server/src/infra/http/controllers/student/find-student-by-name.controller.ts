@@ -3,14 +3,15 @@ import { z } from 'zod';
 import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { FindStudentByNameUseCase } from 'apps/server/src/domain/application/use-cases/student/find-student-by-name.use-case';
-import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { StudentPresenter } from '../../presenters/student.presenter';
+import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 
-const findStudentByNameBodySchema = z.object({
-  studentName: z.string(),
+// GET requests validam query params, não body
+const findStudentByNameQuerySchema = z.object({
+  studentName: z.string().min(1),
 });
 
-type FindBodySchema = z.infer<typeof findStudentByNameBodySchema>;
+type FindStudentQuerySchema = z.infer<typeof findStudentByNameQuerySchema>;
 
 @injectable()
 export class FindStudentByNameController {
@@ -22,16 +23,18 @@ export class FindStudentByNameController {
   }
 
   private registerRoutes(): void {
-    this.router.get(
-      '/student',
-      checkJwt,
-
-      this.handle.bind(this),
-    );
+    // Rota corrigida para plural e sem conflito com ID
+    this.router.get('/students/search', checkJwt, this.handle.bind(this));
   }
 
   async handle(req: Request, res: Response) {
-    const { studentName } = req.body as FindBodySchema;
+    const queryValidation = findStudentByNameQuerySchema.safeParse(req.query);
+
+    if (!queryValidation.success) {
+      return res.status(400).json({ message: 'Invalid search query' });
+    }
+
+    const { studentName } = queryValidation.data;
 
     const result = await this.findStudentByNameStudentUseCase.execute({ studentName });
 

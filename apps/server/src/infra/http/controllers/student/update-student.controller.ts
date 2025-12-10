@@ -5,6 +5,7 @@ import { CannotUpdateError } from 'apps/server/src/core/errors/cannot-update.err
 import { injectable } from 'tsyringe';
 import { checkJwt } from '../../../auth/auth.middleware';
 import { UpdateStudentUseCase } from 'apps/server/src/domain/application/use-cases/student/update-student.use-case';
+import { SchoolGrade } from 'apps/server/src/core/types/school-enums';
 
 const updateStudentParamSchema = z.object({
   studentId: z.string(),
@@ -13,8 +14,23 @@ const updateStudentParamSchema = z.object({
 type UpdateParamSchema = z.infer<typeof updateStudentParamSchema>;
 
 const updateStudentBodySchema = z.object({
-  name: z.string().nonempty(),
-  birthDate: z.iso.date(),
+  name: z.string().nonempty().optional(),
+  birthDate: z
+    .string()
+    .transform((val) => {
+      const [day, month, year] = val.split('/');
+
+      const date = new Date(`${year}-${month}-${day}T00:00:00`);
+
+      if (isNaN(date.getTime())) {
+        throw new Error('Formato inválido, esperado: DD/MM/YYYY');
+      }
+
+      return date;
+    })
+    .optional(),
+  classId: z.string().optional(),
+  currentGrade: z.enum(SchoolGrade).optional(), // Permitir atualização de série
 });
 
 type UpdateStudentBodySchema = z.infer<typeof updateStudentBodySchema>;
@@ -31,26 +47,22 @@ export class UpdateStudentController {
   }
 
   private registerRoutes(): void {
-    this.router.put(
-      '/student/:studentId',
-      checkJwt,
-      bodyValidationPipe,
-
-      this.handle.bind(this),
-    );
+    this.router.put('/student/:studentId', checkJwt, bodyValidationPipe, this.handle.bind(this));
   }
 
   async handle(req: Request<UpdateParamSchema>, res: Response) {
     const body = req.body as UpdateStudentBodySchema;
-
-    const { birthDate, name } = body;
-
     const { studentId } = req.params;
+
+    // Passar todos os campos opcionais
+    const { name, birthDate, classId, currentGrade } = body;
 
     const result = await this.updateStudentUseCase.execute({
       studentId,
-      birthDate: new Date(birthDate),
       name,
+      birthDate,
+      classId,
+      currentGrade,
     });
 
     if (result.isFail()) {

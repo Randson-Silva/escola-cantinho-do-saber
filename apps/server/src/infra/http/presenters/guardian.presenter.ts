@@ -6,7 +6,10 @@ export class GuardianPresenter {
       id: guardian.id.toString(),
       name: guardian.name,
       email: guardian.email,
-      phones: guardian.phones,
+      phone: guardian.phone,
+      addressIds: guardian.addressIds,
+      studentIds: guardian.studentIds,
+      createdAt: guardian.createdAt,
     };
   }
 }

@@ -10,7 +10,8 @@ import { AuthService } from 'apps/server/src/infra/auth/auth.service';
 import { CannotCreateError } from 'apps/server/src/core/errors/cannot-create.error';
 import { inject, singleton } from 'tsyringe';
 
-type CreateUserUseCaseRequest = Omit<UserProps, 'profile'> & ProfileProps;
+type CreateUserUseCaseRequest = Omit<UserProps, 'profile' | 'createdAt' | 'deletedAt'> &
+  ProfileProps;
 
 type CreateUserUseCaseResponse = Either<CannotCreateError, { userId: string }>;
 

@@ -1,15 +1,57 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-/**
- * * USUÁRIOS / PERFIS
- */
+// ------------------------------------------------------
+// ENUMS (Valores em Português para o Banco de Dados)
+// ------------------------------------------------------
+
+enum SchoolGrade {
+  PRIMEIRO_ANO
+  SEGUNDO_ANO
+  TERCEIRO_ANO
+  QUARTO_ANO
+  QUINTO_ANO
+  SEXTO_ANO
+  SETIMO_ANO
+  OITAVO_ANO
+  NONO_ANO
+}
+
+enum Shift {
+  MATUTINO
+  VESPERTINO
+}
+
+enum AccessLevel {
+  ADMIN
+  PROFESSOR
+  COMUM
+}
+
+enum AttendanceStatus {
+  PRESENTE
+  AUSENTE
+  JUSTIFICADO
+}
+
+enum Kinship {
+  PAI_MAE
+  AVOS
+  TIOS
+  IRMAOS
+  OUTRO
+}
+
+// ------------------------------------------------------
+// USUÁRIOS E PERFIS
+// ------------------------------------------------------
+
 model User {
   id       String @id @unique @default(ulid())
   name     String
@@ -18,244 +60,213 @@ model User {
 
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId String  @unique
-}
 
-enum AccessLevel {
-  ADMIN
-  COMUM
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
 model Profile {
   id          String      @id @unique @default(ulid())
-  accessLevel AccessLevel @default(COMUM)
+  accessLevel AccessLevel
 
   user User?
 }
 
-/**
- * * MODELOS ACADÊMICOS
- */
-model Series {
-  id       String             @id @unique @default(ulid())
-  name     String
-  classes  ClassHasSeries[] //* N:N Turma <-> Série
-  students Student[] //* 1:N Série -> Alunos
-  teachers TeacherQualified[] //* N:N Professor <-> Série
-}
+// ------------------------------------------------------
+// PEDAGÓGICO: PROFESSOR, TURMA, AULA
+// ------------------------------------------------------
 
-/**
- * * PROFESSOR
- */
 model Teacher {
-  id        String @id @unique @default(ulid())
+  id        String  @id @unique @default(ulid())
   name      String
-  taxId     String @unique
-  phone     String @unique
+  taxId     String  @unique // CPF
+  phone     String  @unique
   pixKey    String
-  expertise String
+  expertise String?
 
-  //* 1:N Professor -> Turma
-  classes   Class[]
-  //* N:N Professor <-> Série
-  qualified TeacherQualified[]
+  // Quais séries este professor está habilitado? (Array de Enums)
+  qualifiedGrades SchoolGrade[]
+
+  email     String   @unique
+  startDate DateTime
+  status    String   @default("ATIVO") // String simples ou poderia ser Enum se preferir
+
+  classes Class[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * RELAÇÃO N:N PROFESSOR <-> SÉRIE
- */
-model TeacherQualified {
-  teacherId String
-  seriesId  String
-
-  teacher Teacher @relation(fields: [teacherId], references: [id])
-  series  Series  @relation(fields: [seriesId], references: [id])
-
-  @@id([teacherId, seriesId])
-}
-
-/**
- * * TURMA
- */
 model Class {
-  id        String @id @unique @default(ulid())
-  name      String
+  id   String @id @unique @default(ulid())
+  name String
 
-  //* Relação 1:N com Professor
+  // Turno da turma (Matutino, Vespertino...)
+  shift Shift
+
+  // A turma atende quais séries? (Array permite turmas multisseriadas)
+  grades SchoolGrade[]
+
   teacherId String
   teacher   Teacher @relation(fields: [teacherId], references: [id])
 
-  //* Relação N:N com Série
-  series ClassHasSeries[]
-
-  //* Relação 1:N com Aula
-  lessons Lesson[]
-
-  //* Relação 1:N com Aluno
+  lessons  Lesson[]
   students Student[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * TABELA ASSOCIATIVA TURMA_POSSUI_SÉRIE
- */
-model ClassHasSeries {
-  seriesId String
-  classId  String
+model Lesson {
+  id        String   @id @unique @default(ulid())
+  date      DateTime // data_aula
+  startTime String? // hora_inicio (ex: "13:00")
+  endTime   String? // hora_final (ex: "14:00")
+  duration  String? // duracao (ex: "1h")
 
-  series Series @relation(fields: [seriesId], references: [id])
-  class  Class  @relation(fields: [classId], references: [id])
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
 
-  @@id([seriesId, classId])
+  attendances Attendance[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * ALUNO / RESPONSÁVEL
- */
+// ------------------------------------------------------
+// ALUNO, RESPONSÁVEL E ENDEREÇO
+// ------------------------------------------------------
+
 model Student {
   id        String   @id @unique @default(ulid())
   name      String
   birthDate DateTime
 
-  //* Relação com Turma
+  // Série atual do aluno (Enum fixo)
+  currentGrade SchoolGrade
+
   classId String
   class   Class  @relation(fields: [classId], references: [id])
 
-  //* Relação opcional com Série
-  seriesId String?
-  series   Series? @relation(fields: [seriesId], references: [id])
-
-  //* Relação N:N com Endereço
-  addresses Address[] @relation("StudentAddresses")
-
-  //* Relação N:N com Responsável
+  addresses Address[]            @relation("StudentAddresses")
   guardians StudentHasGuardian[]
 
-  //* Matrículas e Pagamentos
   enrollments Enrollment[]
   attendances Attendance[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * RESPONSÁVEL
- */
 model Guardian {
-  id     String   @id @unique @default(ulid())
-  name   String
-  email  String?  @unique
-  phones String[]
+  id    String  @id @unique @default(ulid())
+  name  String
+  email String? @unique
+  phone String // Tel único
 
-  //* Relação N:N com Endereço
-  addresses Address[] @relation("GuardianAddresses")
+  addresses Address[]            @relation("GuardianAddresses")
+  students  StudentHasGuardian[]
 
-  //* Relação N:N com Aluno via intermediária
-  students StudentHasGuardian[]
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * ENTIDADE ASSOCIATIVA ALUNO_POSSUI_RESPONSÁVEL
- */
+// Tabela associativa
 model StudentHasGuardian {
   studentId  String
   guardianId String
-  kinship    String?
+
+  kinship Kinship @default(PAI_MAE)
 
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
 
+  createdAt DateTime
+  deletedAt DateTime?
+
   @@id([studentId, guardianId])
 }
 
-/**
- * * ENDEREÇO
- */
 model Address {
   id         String  @id @unique @default(ulid())
   street     String
   number     String
   district   String
   complement String?
+  city       String?
+  state      String?
 
   students  Student[]  @relation("StudentAddresses")
   guardians Guardian[] @relation("GuardianAddresses")
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * CONTRATO / MATRÍCULA / PAGAMENTO
- */
+// ------------------------------------------------------
+// FINANCEIRO E ADMINISTRATIVO
+// ------------------------------------------------------
+
 model Contract {
   id            String    @id @unique @default(ulid())
   signatureDate DateTime
   dueDate       DateTime?
-  document      String?
+  documentUrl   String?
 
-  //* 1:N Contrato -> Matrícula
   enrollments Enrollment[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * MATRÍCULA
- */
 model Enrollment {
   id             String   @id @unique @default(ulid())
-  status         String
+  status         String // Ex: ATIVA, TRANCADA
   enrollmentDate DateTime
-  studentId      String
-  contractId     String
 
-  student  Student   @relation(fields: [studentId], references: [id])
-  contract Contract  @relation(fields: [contractId], references: [id])
+  studentId  String
+  contractId String
+
+  student  Student  @relation(fields: [studentId], references: [id])
+  contract Contract @relation(fields: [contractId], references: [id])
+
   payments Payment[]
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * MENSALIDADE (PAYMENT)
- */
 model Payment {
-  id            String    @id @unique @default(ulid())
-  amount        Float
-  dueDate       DateTime
-  paymentDate   DateTime?
-  paymentStatus String
-  enrollmentId  String
+  id          String    @id @unique @default(ulid())
+  amount      Float
+  dueDate     DateTime // Data vencimento
+  paymentDate DateTime? // Data pagamento
+  status      String // PENDENTE, PAGO...
 
-  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  createdAt DateTime
+  deletedAt DateTime?
 }
 
-/**
- * * AULA (LESSON)
- */
-model Lesson {
-  id         String   @id @unique @default(ulid())
-  lessonDate DateTime
-  classId    String
-  startTime  String?
-  endTime    String?
-  duration   String?
+// ------------------------------------------------------
+// FREQUÊNCIA
+// ------------------------------------------------------
 
-  class       Class                      @relation(fields: [classId], references: [id])
-  attendances AttendanceLinkedToLesson[]
-}
-
-/**
- * * FREQUÊNCIA (ATTENDANCE)
- */
 model Attendance {
-  id             String @id @unique @default(ulid())
-  presenceStatus String
-  studentId      String
+  id     String           @id @unique @default(ulid())
+  status AttendanceStatus // PRESENTE, AUSENTE, JUSTIFICADO
 
-  student       Student                    @relation(fields: [studentId], references: [id])
-  linkedLessons AttendanceLinkedToLesson[]
-}
+  studentId String
+  lessonId  String
 
-/**
- * * TABELA ASSOCIATIVA FREQUÊNCIA_VINCULADA_A_AULA
- */
-model AttendanceLinkedToLesson {
-  attendanceId String
-  lessonId     String
+  student Student @relation(fields: [studentId], references: [id])
+  lesson  Lesson  @relation(fields: [lessonId], references: [id])
 
-  attendance Attendance @relation(fields: [attendanceId], references: [id])
-  lesson     Lesson     @relation(fields: [lessonId], references: [id])
+  createdAt DateTime
+  deletedAt DateTime?
 
-  @@id([attendanceId, lessonId])
+  // Chave composta para garantir unicidade
+  @@unique([studentId, lessonId])
 }

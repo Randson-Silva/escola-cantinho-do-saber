@@ -1,10 +1,7 @@
 import { Either, fail, succeed } from 'apps/server/src/core/either';
 import { ResourceNotFoundError } from 'apps/server/src/core/errors/resource-not-found.error';
 import { CannotDeleteError } from 'apps/server/src/core/errors/cannot-delete.error';
-import {
-  IClassRepository,
-  CLASS_REPOSITORY_TOKEN,
-} from '../../repositories/class.repository';
+import { IClassRepository, CLASS_REPOSITORY_TOKEN } from '../../repositories/class.repository';
 import { inject, singleton } from 'tsyringe';
 
 type DeleteClassUseCaseRequest = {

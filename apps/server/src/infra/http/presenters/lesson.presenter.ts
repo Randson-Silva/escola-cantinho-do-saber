@@ -5,10 +5,11 @@ export class LessonPresenter {
     return {
       id: lesson.id.toString(),
       classId: lesson.classId,
-      lessonDate: lesson.lessonDate,
+      date: lesson.date,
       startTime: lesson.startTime,
       endTime: lesson.endTime,
       duration: lesson.duration,
+      createdAt: lesson.createdAt,
     };
   }
 }
