@@ -101,6 +101,14 @@ export function Sidebar() {
           />
         )}
 
+        {/* Frequência - todos podem ver (professor vê só suas turmas) */}
+        <SidebarItem
+          icon="📋"
+          label="Frequência"
+          path="/dashboard/attendance"
+          active={location.pathname.startsWith('/dashboard/attendance')}
+        />
+
         {/* Finanças - apenas Admin */}
         {isAdmin && (
           <SidebarItem

@@ -20,6 +20,8 @@ import { ToastProvider } from './context/ToastContext';
 import { TeachersPage } from './pages/TeachersPage';
 import { TeachersRegisterPage } from './pages/TeachersRegisterPage';
 import EditTeacherPage from './pages/EditTeacherPage';
+import { AttendancePage } from './pages/AttendancePage';
+import { DailyAttendancePage } from './pages/DailyAttendancePage';
 import { PrivateRoute } from './components/PrivateRoute';
 
 import './global.css';
@@ -131,6 +133,24 @@ export function App() {
               element={
                 <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <EditTeacherPage />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Frequência - todos podem acessar */}
+            <Route
+              path="/dashboard/attendance"
+              element={
+                <PrivateRoute>
+                  <AttendancePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/dashboard/attendance/:classId"
+              element={
+                <PrivateRoute>
+                  <DailyAttendancePage />
                 </PrivateRoute>
               }
             />

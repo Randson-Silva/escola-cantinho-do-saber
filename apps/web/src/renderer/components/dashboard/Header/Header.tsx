@@ -8,6 +8,7 @@ function computeTitle(pathname: string) {
   if (p.startsWith('/dashboard/users')) return 'Usuários';
   if (p.startsWith('/dashboard/students')) return 'Alunos';
   if (p.startsWith('/dashboard/classes')) return 'Turmas';
+  if (p.startsWith('/dashboard/attendance')) return 'Frequência';
   if (p.startsWith('/dashboard/finances')) return 'Finanças';
   if (p.startsWith('/dashboard/settings')) return 'Configurações';
   return 'Dashboard';
@@ -19,6 +20,7 @@ function computeSubtitle(pathname: string) {
   if (p.startsWith('/dashboard/users')) return 'Gerencie usuários, permissões e acessos';
   if (p.startsWith('/dashboard/students')) return 'Cadastre, edite e acompanhe os alunos';
   if (p.startsWith('/dashboard/classes')) return 'Organize turmas, horários e matrículas';
+  if (p.startsWith('/dashboard/attendance')) return 'Registre e acompanhe a frequência dos alunos';
   if (p.startsWith('/dashboard/finances')) return 'Controle receitas, despesas e fluxo de caixa';
   if (p.startsWith('/dashboard/settings')) return 'Ajuste preferências e configurações do sistema';
   return 'Navegue pelos módulos do sistema';
