@@ -91,6 +91,7 @@ import { FindAttendanceByIdController } from './infra/http/controllers/attendanc
 import { UpdateAttendanceController } from './infra/http/controllers/attendance/update-attendance.controller';
 import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
 import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
+import { UpdateUserController } from './infra/http/controllers/user/update-user.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -144,7 +145,7 @@ const refreshUserSessionController = container.resolve(RefreshUserSessionControl
 const deleteUserController = container.resolve(DeleteUserController);
 const findUserByEmailController = container.resolve(FindUserByEmailController);
 const selfGetUserController = container.resolve(SelfFindUserController);
-// const updateUserController = container.resolve(UpdateUserController);
+const updateUserController = container.resolve(UpdateUserController);
 
 const createStudentController = container.resolve(CreateStudentController);
 const findStudentByIdController = container.resolve(FindStudentByIdController);
@@ -192,7 +193,7 @@ router.use('/', refreshUserSessionController.router);
 router.use('/', deleteUserController.router);
 router.use('/', findUserByEmailController.router);
 router.use('/', selfGetUserController.router);
-// router.use('/', updateUserController.router);
+router.use('/', updateUserController.router);
 
 router.use('/', createStudentController.router);
 router.use('/', findStudentByIdController.router);
