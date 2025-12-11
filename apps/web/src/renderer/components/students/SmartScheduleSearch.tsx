@@ -255,14 +255,47 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
   const [results, setResults] = useState<ClassData[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Limites de horário por turno
+  const SHIFT_END_TIME = {
+    Manhã: '12:00',
+    Tarde: '17:30',
+  };
+
+  // Calcula quantos minutos restam até o fim do turno
+  const getAvailableMinutes = (start: string, shiftType: Shift): number => {
+    const [startH, startM] = start.split(':').map(Number);
+    const endTimeStr = SHIFT_END_TIME[shiftType];
+    const [endH, endM] = endTimeStr.split(':').map(Number);
+
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    return endMinutes - startMinutes;
+  };
+
   // Dynamic Time Options based on Shift
   const timeOptions = useMemo(() => {
     if (shift === 'Manhã') {
-      return ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30'];
+      return ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00'];
     } else {
       return ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'];
     }
   }, [shift]);
+
+  // Duration options filtered by available time
+  const durationOptions = useMemo(() => {
+    const allOptions = [
+      { label: '1h 00min', value: '60' },
+      { label: '1h 30min (Padrão)', value: '90' },
+      { label: '2h 00min', value: '120' },
+      { label: '3h 00min', value: '180' },
+      { label: '4h 30min (Tarde Toda)', value: '270' },
+    ];
+
+    const availableMinutes = getAvailableMinutes(startTime, shift);
+
+    return allOptions.filter((opt) => parseInt(opt.value) <= availableMinutes);
+  }, [startTime, shift]);
 
   // Reset start time when shift changes if current start time is invalid
   useEffect(() => {
@@ -270,6 +303,15 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
       setStartTime(timeOptions[0]);
     }
   }, [shift, timeOptions, startTime]);
+
+  // Reset duration when it becomes invalid for the selected time
+  useEffect(() => {
+    const isValidDuration = durationOptions.some((opt) => opt.value === duration);
+    if (!isValidDuration && durationOptions.length > 0) {
+      // Seleciona a maior duração disponível
+      setDuration(durationOptions[durationOptions.length - 1].value);
+    }
+  }, [durationOptions, duration]);
 
   const handleSearch = () => {
     // Filter classes by shift
@@ -339,38 +381,48 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
         <div className={styles.formGroup}>
           <label className={styles.label}>Duração Desejada</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {[
-              { label: '1h 00min', value: '60' },
-              { label: '1h 30min (Padrão)', value: '90' },
-              { label: '2h 00min', value: '120' },
-              { label: '3h 00min', value: '180' },
-              { label: '4h 30min (Tarde Toda)', value: '270' },
-            ].map((opt) => (
-              <label
-                key={opt.value}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.75rem',
-                  border: duration === opt.value ? '1px solid #3b82f6' : '1px solid #e2e8f0',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  backgroundColor: duration === opt.value ? '#eff6ff' : 'white',
-                }}
-              >
-                <input
-                  type="radio"
-                  name="duration"
-                  value={opt.value}
-                  checked={duration === opt.value}
-                  onChange={(e) => setDuration(e.target.value)}
-                  style={{ accentColor: '#3b82f6' }}
-                />
-                <span style={{ fontSize: '0.9rem', color: '#334155' }}>{opt.label}</span>
-              </label>
-            ))}
+            {durationOptions.length === 0 ? (
+              <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>
+                Nenhuma duração disponível para este horário.
+              </p>
+            ) : (
+              durationOptions.map((opt) => (
+                <label
+                  key={opt.value}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem',
+                    border: duration === opt.value ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    backgroundColor: duration === opt.value ? '#eff6ff' : 'white',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="duration"
+                    value={opt.value}
+                    checked={duration === opt.value}
+                    onChange={(e) => setDuration(e.target.value)}
+                    style={{ accentColor: '#3b82f6' }}
+                  />
+                  <span style={{ fontSize: '0.9rem', color: '#334155' }}>{opt.label}</span>
+                </label>
+              ))
+            )}
           </div>
+          {shift === 'Tarde' && (
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>
+              ⏰ Turno da tarde encerra às 17:30
+            </p>
+          )}
+          {shift === 'Manhã' && (
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>
+              ⏰ Turno da manhã encerra às 12:00
+            </p>
+          )}
         </div>
 
         <button className={styles.confirmButton} onClick={handleSearch}>
@@ -494,4 +546,3 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
     </div>
   );
 }
-

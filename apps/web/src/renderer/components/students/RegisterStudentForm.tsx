@@ -11,7 +11,6 @@ export function RegisterStudentForm() {
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'form' | 'schedule' | 'summary'>('form');
-  const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ start: string; end: string } | null>(
     null,
@@ -77,51 +76,16 @@ export function RegisterStudentForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    try {
-      const newStudent = await studentService.createStudent(formData);
-      addToast('Aluno cadastrado! Selecione a turma.', 'success');
-      if (newStudent && newStudent) {
-        setCreatedStudentId(newStudent);
-      }
-      setStep('schedule');
-    } catch (error: any) {
-      console.error('Erro ao cadastrar aluno:', error);
-      const message = error.response?.data?.message || error.message || 'Erro ao cadastrar aluno';
-
-      // Fallback local
-      try {
-        const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
-        const genId = `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-        const newLocalStudent = {
-          id: genId,
-          name: formData.name,
-          birthDate: formData.birthDate,
-          grade: formData.grade,
-          schoolType: formData.schoolType,
-          class: formData.class,
-          teacher: formData.teacher,
-          monthlyFee: formData.monthlyFee || 0,
-          address: formData.address,
-          guardian: formData.guardian,
-          enrollmentDate: new Date().toISOString(),
-          status: formData.status || 'active',
-        };
-
-        localStudents.unshift(newLocalStudent);
-        localStorage.setItem('students', JSON.stringify(localStudents));
-
-        setCreatedStudentId(genId);
-        addToast('API indisponível — aluno salvo localmente.', 'info');
-        setStep('schedule');
-        return;
-      } catch (saveError) {
-        addToast(message, 'error');
-      }
-    } finally {
-      setIsSubmitting(false);
+    // Validação básica dos campos obrigatórios
+    if (!formData.name.trim() || !formData.birthDate || !formData.guardian.name.trim()) {
+      addToast('Preencha todos os campos obrigatórios', 'error');
+      return;
     }
+
+    // Não salva ainda - apenas avança para seleção de turma
+    addToast('Dados validados! Selecione a turma.', 'success');
+    setStep('schedule');
   };
 
   const handleCancel = () => {
@@ -138,34 +102,46 @@ export function RegisterStudentForm() {
     monthlyFee: number;
     firstPaymentDate: string;
   }) => {
-    console.log('Finalizing enrollment for student', createdStudentId);
+    setIsSubmitting(true);
 
-    // Update local storage to simulate backend update
     try {
-      const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
-      const studentIndex = localStudents.findIndex((s: any) => s.id === createdStudentId);
+      // Monta os dados completos do aluno com turma e valores
+      const completeStudentData: StudentFormData = {
+        ...formData,
+        class: selectedClass.nome,
+        teacher: selectedClass.professor,
+        monthlyFee: financialData.monthlyFee,
+      };
 
-      if (studentIndex >= 0) {
-        localStudents[studentIndex] = {
-          ...localStudents[studentIndex],
-          class: selectedClass.nome,
-          teacher: selectedClass.professor,
-          monthlyFee: financialData.monthlyFee,
-          schedule: {
-            shift: selectedClass.turno,
-            ...selectedTimeSlot,
-          },
-          firstPaymentDate: financialData.firstPaymentDate,
-          status: 'active',
-        };
-        localStorage.setItem('students', JSON.stringify(localStudents));
+      // Agora sim salva o aluno no mock
+      const result = await studentService.createStudent(completeStudentData);
+
+      // Atualiza com dados adicionais de agendamento
+      if (result && result.id) {
+        const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
+        const studentIndex = localStudents.findIndex((s: any) => s.id === result.id);
+
+        if (studentIndex >= 0) {
+          localStudents[studentIndex] = {
+            ...localStudents[studentIndex],
+            schedule: {
+              shift: selectedClass.turno,
+              ...selectedTimeSlot,
+            },
+            firstPaymentDate: financialData.firstPaymentDate,
+          };
+          localStorage.setItem('students', JSON.stringify(localStudents));
+        }
       }
-    } catch (e) {
-      console.error('Error updating local student', e);
-    }
 
-    addToast('Matrícula realizada com sucesso!', 'success');
-    navigate('/dashboard/students');
+      addToast('Matrícula realizada com sucesso!', 'success');
+      navigate('/dashboard/students');
+    } catch (error: any) {
+      console.error('Erro ao finalizar matrícula:', error);
+      addToast('Erro ao finalizar matrícula', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (step === 'schedule') {
