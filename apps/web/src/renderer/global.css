@@ -20,6 +20,12 @@
   --warning-color: #f1c40f;
   --link-color: #175b80;
 
+  /* Cores adicionais para dashboard */
+  --page-bg: #e8f4fc;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #666666;
+
   /* Cores específicas do formulário */
   --input-bg: #3ea6de;
   --input-text: #175b80;
