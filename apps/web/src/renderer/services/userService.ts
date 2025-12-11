@@ -1,21 +1,30 @@
 import { api } from './api';
 
 // Tipos de função para o frontend (o que o usuário vê no <select>)
-type UiRole = 'administrador' | 'recepcionista';
+export type UiRole = 'administrador' | 'recepcionista' | 'professor';
 
 // Tipos de função para o backend (o que é salvo no banco)
-type BackendRole = 'ADMIN' | 'COMUM';
+type BackendRole = 'ADMIN' | 'COMUM' | 'PROFESSOR';
 
 // Mapeamento para converter do frontend para o backend
 const ROLE_TO_BACKEND: Record<UiRole, BackendRole> = {
   administrador: 'ADMIN',
   recepcionista: 'COMUM',
+  professor: 'PROFESSOR',
 };
 
 // Mapeamento para converter do backend para o frontend
 const BACKEND_TO_ROLE: Record<BackendRole, UiRole> = {
   ADMIN: 'administrador',
   COMUM: 'recepcionista',
+  PROFESSOR: 'professor',
+};
+
+// Descrição das permissões de cada role
+export const ROLE_PERMISSIONS: Record<UiRole, string[]> = {
+  administrador: ['Acesso total ao sistema', 'Gerenciar usuários', 'Relatórios financeiros'],
+  recepcionista: ['Cadastrar alunos', 'Gerenciar matrículas', 'Atendimento'],
+  professor: ['Registrar frequência', 'Visualizar dashboard'],
 };
 
 // Interface para os dados que vêm do backend

@@ -17,15 +17,15 @@ export function AddUserForm() {
 
     try {
       await userService.createUser({ name, email, password, role });
-      
+
       addToast('✅ Usuário cadastrado com sucesso!', 'success');
-      
+
       // Resetar formulário
       setName('');
       setEmail('');
       setPassword('');
       setRole('recepcionista');
-      
+
       // Disparar evento para atualizar a lista
       window.dispatchEvent(new CustomEvent('userCreated'));
     } catch (err: any) {
@@ -51,7 +51,7 @@ export function AddUserForm() {
             disabled={loading}
           />
         </label>
-        
+
         <label>
           Email
           <input
@@ -63,7 +63,7 @@ export function AddUserForm() {
             disabled={loading}
           />
         </label>
-        
+
         <label>
           Senha
           <input
@@ -71,29 +71,27 @@ export function AddUserForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="Mínimo 6 caracteres"
-            minLength={6}
+            placeholder="Mínimo 8 caracteres"
+            minLength={8}
             disabled={loading}
           />
         </label>
-        
+
         <label>
           Função
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            disabled={loading}
-          >
+          <select value={role} onChange={(e) => setRole(e.target.value)} disabled={loading}>
             <option value="recepcionista">Recepcionista</option>
+            <option value="professor">Professor</option>
             <option value="administrador">Administrador</option>
           </select>
+          {role === 'professor' && (
+            <small className={styles.permissionHint}>
+              ⚠️ Professores têm acesso limitado: apenas Dashboard e registro de frequência.
+            </small>
+          )}
         </label>
-        
-        <button 
-          className={styles.submitButton} 
-          type="submit" 
-          disabled={loading}
-        >
+
+        <button className={styles.submitButton} type="submit" disabled={loading}>
           {loading ? 'Cadastrando...' : 'Cadastrar Usuário'}
         </button>
       </form>

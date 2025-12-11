@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './sidebar.module.css';
 import logoImg from '../../../assets/LogoCantinho.png';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface SidebarItemProps {
   icon: string;
@@ -32,6 +33,11 @@ function SidebarItem({ icon, label, path, active = false, onClick }: SidebarItem
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Verifica o nível de acesso do usuário
+  const isAdmin = user?.role === 'ADMIN';
+  const isProfessor = user?.role === 'PROFESSOR';
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -47,48 +53,73 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.nav}>
+        {/* Dashboard - visível para todos */}
         <SidebarItem
           icon="📊"
           label="Dashboard"
           path="/dashboard"
           active={location.pathname === '/dashboard'}
         />
-        <SidebarItem
-          icon="👥"
-          label="Usuários"
-          path="/dashboard/users"
-          active={location.pathname === '/dashboard/users'}
-        />
-        <SidebarItem
-          icon="👨‍🎓"
-          label="Alunos"
-          path="/dashboard/students"
-          active={location.pathname === '/dashboard/students'}
-        />
-        <SidebarItem
-          icon="👨‍🏫"
-          label="Professores"
-          path="/dashboard/teachers"
-          active={location.pathname === '/dashboard/teachers'}
-        />
-        <SidebarItem
-          icon="📚"
-          label="Turmas"
-          path="/dashboard/classes"
-          active={location.pathname === '/dashboard/classes'}
-        />
-        <SidebarItem
-          icon="💵"
-          label="Finanças"
-          path="/dashboard/finances"
-          active={location.pathname === '/dashboard/finances'}
-        />
-        <SidebarItem
-          icon="⚙️"
-          label="Configurações"
-          path="/dashboard/settings"
-          active={location.pathname === '/dashboard/settings'}
-        />
+
+        {/* Usuários - apenas Admin */}
+        {isAdmin && (
+          <SidebarItem
+            icon="👥"
+            label="Usuários"
+            path="/dashboard/users"
+            active={location.pathname === '/dashboard/users'}
+          />
+        )}
+
+        {/* Alunos - Admin e Recepcionista (professor NÃO pode matricular) */}
+        {!isProfessor && (
+          <SidebarItem
+            icon="👨‍🎓"
+            label="Alunos"
+            path="/dashboard/students"
+            active={location.pathname === '/dashboard/students'}
+          />
+        )}
+
+        {/* Professores - Admin e Recepcionista */}
+        {!isProfessor && (
+          <SidebarItem
+            icon="👨‍🏫"
+            label="Professores"
+            path="/dashboard/teachers"
+            active={location.pathname === '/dashboard/teachers'}
+          />
+        )}
+
+        {/* Turmas - Admin e Recepcionista */}
+        {!isProfessor && (
+          <SidebarItem
+            icon="📚"
+            label="Turmas"
+            path="/dashboard/classes"
+            active={location.pathname === '/dashboard/classes'}
+          />
+        )}
+
+        {/* Finanças - apenas Admin */}
+        {isAdmin && (
+          <SidebarItem
+            icon="💵"
+            label="Finanças"
+            path="/dashboard/finances"
+            active={location.pathname === '/dashboard/finances'}
+          />
+        )}
+
+        {/* Configurações - Admin e Recepcionista */}
+        {!isProfessor && (
+          <SidebarItem
+            icon="⚙️"
+            label="Configurações"
+            path="/dashboard/settings"
+            active={location.pathname === '/dashboard/settings'}
+          />
+        )}
       </nav>
 
       <div className={styles.footer}>

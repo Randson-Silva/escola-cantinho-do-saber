@@ -44,7 +44,19 @@ export function UserProfile() {
   }
 
   // Formata o papel do usuário para exibição
-  const displayRole = userProfile.profile.accessLevel === 'ADMIN' ? 'Administrador' : 'Recepcionista';
+  const getRoleDisplay = (accessLevel: string) => {
+    switch (accessLevel) {
+      case 'ADMIN':
+        return 'Administrador';
+      case 'PROFESSOR':
+        return 'Professor';
+      case 'COMUM':
+      default:
+        return 'Recepcionista';
+    }
+  };
+
+  const displayRole = getRoleDisplay(userProfile.profile.accessLevel);
 
   const handleChangePassword = () => {
     // Faz logout e redireciona para o fluxo de recuperação de senha
@@ -75,18 +87,18 @@ export function UserProfile() {
 
     setIsSaving(true);
     try {
-  await api.put('/users/profile', { name: editName.trim() });
-      
+      await api.put('/users/profile', { name: editName.trim() });
+
       // Atualiza o perfil local
       setUserProfile({ ...userProfile, name: editName.trim() });
-      
+
       // Atualiza o usuário no contexto
       const token = localStorage.getItem('auth_token');
       if (token) {
         login({ ...user, name: editName.trim() }, token);
       }
-      
-  addToast('Nome atualizado com sucesso!', 'success');
+
+      addToast('Nome atualizado com sucesso!', 'success');
       setIsEditing(false);
     } catch (error: any) {
       console.error('Erro ao atualizar nome:', error);

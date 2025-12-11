@@ -4,7 +4,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'COMUM';
+  role: 'ADMIN' | 'COMUM' | 'PROFESSOR';
 };
 
 type AuthContextType = {
@@ -89,4 +89,3 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 export { AuthContext };
-

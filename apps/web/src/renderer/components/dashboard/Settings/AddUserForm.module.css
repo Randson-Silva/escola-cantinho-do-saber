@@ -110,6 +110,18 @@
   width: 100%;
 }
 
+.permissionHint {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: #856404;
+  background: #fff3cd;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  font-weight: 400;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .formContainer {

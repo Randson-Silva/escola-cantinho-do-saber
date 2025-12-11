@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import React, { useEffect } from 'react';
+import React from 'react';
 import LoginPage from './pages/Login';
 import { SettingsPage } from './pages/SettingsPage';
 import { UsersPage } from './pages/UsersPage';
@@ -20,27 +20,9 @@ import { ToastProvider } from './context/ToastContext';
 import { TeachersPage } from './pages/TeachersPage';
 import { TeachersRegisterPage } from './pages/TeachersRegisterPage';
 import EditTeacherPage from './pages/EditTeacherPage';
+import { PrivateRoute } from './components/PrivateRoute';
 
 import './global.css';
-
-// Componente para proteger rotas que precisam de autenticação
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = !!localStorage.getItem('auth_token');
-
-  console.log('[ProtectedRoute] Verificando autenticação:', {
-    isAuthenticated,
-    hasToken: !!localStorage.getItem('auth_token'),
-    token: localStorage.getItem('auth_token')?.substring(0, 20) + '...',
-  });
-
-  if (!isAuthenticated) {
-    console.log('[ProtectedRoute] ❌ Usuário não autenticado, redirecionando para /login');
-    return <Navigate to="/login" replace />;
-  }
-
-  console.log('[ProtectedRoute] ✅ Usuário autenticado, renderizando conteúdo protegido');
-  return <>{children}</>;
-}
 
 export function App() {
   return (
@@ -55,109 +37,121 @@ export function App() {
             <Route path="/senha-numero" element={<RecoveryNumberPage />} />
             <Route path="/nova-senha" element={<ResetPasswordPage />} />
 
-            {/* Rotas protegidas do dashboard */}
+            {/* Rotas protegidas do dashboard - todos os usuários autenticados */}
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <DashboardPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Usuários - apenas Admin */}
             <Route
               path="/dashboard/users"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN']}>
                   <UsersPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Alunos - Admin e Recepcionista (professor NÃO pode) */}
             <Route
               path="/dashboard/students"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <StudentsPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/students/list"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <StudentsListPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/students/register"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <StudentsRegisterPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/students/:id"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <StudentDetailsPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/students/:id/edit"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <EditStudentPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Turmas - Admin e Recepcionista */}
             <Route
               path="/dashboard/classes"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <ClassesPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Professores - Admin e Recepcionista */}
             <Route
               path="/dashboard/teachers"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <TeachersPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/teachers/register"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <TeachersRegisterPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/dashboard/teachers/:id/edit"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <EditTeacherPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Finanças - apenas Admin */}
             <Route
               path="/dashboard/finances"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN']}>
                   <FinancesPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
+
+            {/* Configurações - Admin e Recepcionista */}
             <Route
               path="/dashboard/settings"
               element={
-                <ProtectedRoute>
+                <PrivateRoute allowedRoles={['ADMIN', 'COMUM']}>
                   <SettingsPage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
           </Routes>
