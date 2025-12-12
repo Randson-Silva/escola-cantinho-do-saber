@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { classService, type Class, type ClassShift } from '../../services/classService';
+import { teacherService, type Teacher } from '../../services/teacherService';
 import styles from './SmartScheduleSearch.module.css';
 
 // --- Icons (Mocking Lucide-react for portability) ---
@@ -122,85 +124,34 @@ const ArrowRight = ({ size = 20, className = '' }) => (
   </svg>
 );
 
-// --- Types & Mock Data ---
+// --- Types ---
 
 type Shift = 'Manhã' | 'Tarde';
 
-interface ClassData {
-  id: number;
+// Mapeamento de grade para competência
+const GRADE_TO_COMPETENCIA: Record<string, string> = {
+  'series-1-ano': '1º Ano',
+  'series-2-ano': '2º Ano',
+  'series-3-ano': '3º Ano',
+  'series-4-ano': '4º Ano',
+  'series-5-ano': '5º Ano',
+  'series-6-ano': '6º Ano',
+  'series-7-ano': '7º Ano',
+  'series-8-ano': '8º Ano',
+  'series-9-ano': '9º Ano',
+};
+
+// Resultado de busca com ocupação
+interface ClassResult {
+  id: string;
   nome: string;
   turno: Shift;
   professor: string;
-  studentsCount: number; // Base count
-  ocupacao: Record<string, number>; // Map of time slot -> current student count
+  studentCount: number;
+  competencias: string[];
+  ocupacao: Record<string, number>;
+  available: boolean;
 }
-
-const MOCK_CLASSES: ClassData[] = [
-  {
-    id: 1,
-    nome: 'Reforço Manhã A',
-    turno: 'Manhã',
-    professor: 'Prof. Carlos',
-    studentsCount: 2,
-    ocupacao: {
-      '08:00': 2,
-      '08:30': 2,
-      '09:00': 2,
-      '09:30': 2, // 2 alunos das 8h às 10h
-      '10:00': 0,
-      '10:30': 0,
-      '11:00': 0,
-      '11:30': 0,
-    },
-  },
-  {
-    id: 2,
-    nome: 'Reforço Manhã B',
-    turno: 'Manhã',
-    professor: 'Profa. Julia',
-    studentsCount: 3,
-    ocupacao: {
-      '08:00': 3,
-      '08:30': 3,
-      '09:00': 4,
-      '09:30': 4, // Lotada (4) das 9h às 10h
-      '10:00': 1,
-      '10:30': 1,
-    },
-  },
-  {
-    id: 3,
-    nome: 'Reforço Mat/Port A',
-    turno: 'Tarde',
-    professor: 'Prof. Carlos',
-    studentsCount: 3,
-    ocupacao: {
-      '13:00': 3,
-      '13:30': 3,
-      '14:00': 3,
-      '14:30': 3,
-      '15:00': 0,
-      '15:30': 0,
-      '16:00': 0,
-    },
-  },
-  {
-    id: 4,
-    nome: 'Reforço Inglês B',
-    turno: 'Tarde',
-    professor: 'Profa. Ana',
-    studentsCount: 4,
-    ocupacao: {
-      '13:00': 4,
-      '13:30': 4,
-      '14:00': 4,
-      '14:30': 4, // Lotada o tempo todo
-      '15:00': 4,
-      '15:30': 4,
-      '16:00': 4,
-    },
-  },
-];
 
 // --- Helper Functions ---
 
@@ -228,12 +179,16 @@ const getSlotsInRange = (start: string, durationMinutes: number): string[] => {
   return slots;
 };
 
-const checkAvailability = (cls: ClassData, start: string, durationMinutes: number): boolean => {
+const checkAvailability = (
+  ocupacao: Record<string, number>,
+  start: string,
+  durationMinutes: number,
+): boolean => {
   const slotsToCheck = getSlotsInRange(start, durationMinutes);
 
   // Regra: Se em QUALQUER bloco de tempo houver >= 4 alunos, está indisponível.
   for (const slot of slotsToCheck) {
-    const count = cls.ocupacao[slot] || 0;
+    const count = ocupacao[slot] || 0;
     if (count >= 4) {
       return false;
     }
@@ -244,16 +199,27 @@ const checkAvailability = (cls: ClassData, start: string, durationMinutes: numbe
 // --- Component ---
 
 interface SmartScheduleSearchProps {
+  studentGrade: string; // Série do aluno (ex: 'series-1-ano')
   onBack?: () => void;
-  onNext?: (selectedClass: ClassData, timeSlot: { start: string; end: string }) => void;
+  onNext?: (selectedClass: ClassResult, timeSlot: { start: string; end: string }) => void;
 }
 
-export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps) {
+export function SmartScheduleSearch({ studentGrade, onBack, onNext }: SmartScheduleSearchProps) {
   const [shift, setShift] = useState<Shift>('Manhã');
   const [startTime, setStartTime] = useState('08:00');
   const [duration, setDuration] = useState('90'); // minutes
-  const [results, setResults] = useState<ClassData[]>([]);
+  const [results, setResults] = useState<ClassResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+  // Carrega professores ao iniciar
+  useEffect(() => {
+    teacherService.getAll().then(setTeachers);
+  }, []);
+
+  // Competência baseada na série do aluno
+  const studentCompetencia = GRADE_TO_COMPETENCIA[studentGrade] || '1º Ano';
 
   // Limites de horário por turno
   const SHIFT_END_TIME = {
@@ -313,14 +279,52 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
     }
   }, [durationOptions, duration]);
 
-  const handleSearch = () => {
-    // Filter classes by shift
-    const shiftClasses = MOCK_CLASSES.filter((c) => c.turno === shift);
-    setResults(shiftClasses);
-    setHasSearched(true);
+  const handleSearch = async () => {
+    setIsLoading(true);
+    try {
+      // Busca todas as turmas
+      const allClasses = await classService.getAll();
+
+      // Filtra por turno e competência do aluno
+      const shiftValue: ClassShift = shift === 'Manhã' ? 'MANHA' : 'TARDE';
+      const filteredClasses = allClasses.filter((cls) => {
+        // Verifica se o turno corresponde
+        if (cls.shift !== shiftValue) return false;
+
+        // Verifica se a turma tem a competência do aluno
+        if (!cls.competencias.includes(studentCompetencia)) return false;
+
+        return true;
+      });
+
+      // Transforma para o formato de resultado com ocupação
+      const classResults: ClassResult[] = filteredClasses.map((cls) => {
+        const ocupacao = classService.getSlotOccupancy(cls);
+        const available = checkAvailability(ocupacao, startTime, parseInt(duration));
+        const teacher = teachers.find((t) => t.id === cls.teacherId);
+
+        return {
+          id: cls.id,
+          nome: cls.name,
+          turno: shift,
+          professor: teacher?.nome || 'Não definido',
+          studentCount: cls.studentCount,
+          competencias: cls.competencias,
+          ocupacao,
+          available,
+        };
+      });
+
+      setResults(classResults);
+      setHasSearched(true);
+    } catch (error) {
+      console.error('Erro ao buscar turmas:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSelect = (cls: ClassData) => {
+  const handleSelect = (cls: ClassResult) => {
     if (onNext) {
       const end = calculateEndTime(startTime, parseInt(duration));
       onNext(cls, { start: startTime, end });
@@ -459,19 +463,23 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
           </div>
         ) : results.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>Nenhuma turma encontrada para este turno.</p>
+            <p>
+              Nenhuma turma encontrada para a série <strong>{studentCompetencia}</strong> no turno
+              da {shift.toLowerCase()}.
+            </p>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>
+              Verifique se existem turmas com professores que tenham essa competência.
+            </p>
           </div>
         ) : (
           results.map((cls) => {
-            const isAvailable = checkAvailability(cls, startTime, parseInt(duration));
-
             return (
               <div
                 key={cls.id}
                 className={styles.classCard}
                 style={{
-                  opacity: isAvailable ? 1 : 0.7,
-                  backgroundColor: isAvailable ? 'white' : '#fff1f2',
+                  opacity: cls.available ? 1 : 0.7,
+                  backgroundColor: cls.available ? 'white' : '#fff1f2',
                 }}
               >
                 <div className={styles.classInfo}>
@@ -481,8 +489,32 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
                     <div className={styles.classMeta}>
                       <div className={styles.metaItem}>
                         <User size={14} />
-                        {cls.professor} • {cls.studentsCount} alunos
+                        {cls.professor} • {cls.studentCount} alunos
                       </div>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        flexWrap: 'wrap',
+                        marginTop: '0.5rem',
+                      }}
+                    >
+                      {cls.competencias.map((comp) => (
+                        <span
+                          key={comp}
+                          style={{
+                            fontSize: '0.7rem',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '999px',
+                            backgroundColor: comp === studentCompetencia ? '#dcfce7' : '#f1f5f9',
+                            color: comp === studentCompetencia ? '#166534' : '#475569',
+                            fontWeight: comp === studentCompetencia ? 600 : 400,
+                          }}
+                        >
+                          {comp}
+                        </span>
+                      ))}
                     </div>
                     <div
                       style={{
@@ -507,7 +539,7 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
                 </div>
 
                 <div className={styles.cardRight}>
-                  {isAvailable ? (
+                  {cls.available ? (
                     <span className={`${styles.statusBadge} ${styles.statusAvailable}`}>
                       <CheckCircle size={14} />
                       Disponível
@@ -516,7 +548,7 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
                     <div style={{ textAlign: 'right' }}>
                       <span className={`${styles.statusBadge} ${styles.statusFull}`}>
                         <XCircle size={14} />
-                        Indisponível
+                        Lotado
                       </span>
                       <span
                         style={{
@@ -526,12 +558,12 @@ export function SmartScheduleSearch({ onBack, onNext }: SmartScheduleSearchProps
                           marginTop: '2px',
                         }}
                       >
-                        Lotado às {startTime}
+                        4 alunos no horário
                       </span>
                     </div>
                   )}
 
-                  {isAvailable && (
+                  {cls.available && (
                     <button className={styles.selectButton} onClick={() => handleSelect(cls)}>
                       Selecionar
                       <ArrowRight size={16} />

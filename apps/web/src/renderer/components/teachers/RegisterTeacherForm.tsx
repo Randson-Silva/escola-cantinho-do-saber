@@ -95,8 +95,15 @@ export function RegisterTeacherForm() {
         // status automático ATIVO no cadastro
         status: 'ATIVO',
       };
-      await teacherService.create(payload);
-      addToast('Professor cadastrado com sucesso!', 'success');
+      const result = await teacherService.create(payload);
+
+      // Mostra a senha gerada pelo backend
+      if (result.generatedPassword) {
+        addToast(`Professor cadastrado! Senha de acesso: ${result.generatedPassword}`, 'success');
+      } else {
+        addToast('Professor cadastrado com sucesso!', 'success');
+      }
+
       reset();
       navigate('/dashboard/teachers');
     } catch (err: any) {
@@ -161,7 +168,10 @@ export function RegisterTeacherForm() {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label} htmlFor="email">
-                E-mail *
+                E-mail *{' '}
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
+                  (será usado para login)
+                </span>
               </label>
               <input
                 id="email"
@@ -170,9 +180,13 @@ export function RegisterTeacherForm() {
                 value={values.email}
                 onChange={handleChange}
                 className={styles.input}
+                placeholder="professor@email.com"
                 required
               />
               {errors.email && <div className={styles.errorMsg}>{errors.email}</div>}
+              <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                🔐 Um usuário será criado automaticamente. A senha será exibida após o cadastro.
+              </p>
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label} htmlFor="chavePix">

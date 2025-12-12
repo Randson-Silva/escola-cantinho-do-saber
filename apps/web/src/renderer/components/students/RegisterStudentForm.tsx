@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { studentService, type StudentFormData } from '../../services/studentService';
+import { classService } from '../../services/classService';
 import { SmartScheduleSearch } from './SmartScheduleSearch';
 import { EnrollmentSummary } from './EnrollmentSummary';
 import { maskPhone } from '../../utils/masks';
@@ -117,14 +118,24 @@ export function RegisterStudentForm() {
       // Agora sim salva o aluno no mock
       const result = await studentService.createStudent(completeStudentData);
 
-      // Atualiza com dados adicionais de agendamento
-      if (result && result.id) {
+      // Adiciona o aluno ao slot da turma
+      if (result && result.id && selectedTimeSlot) {
+        await classService.addStudentToSlot(
+          selectedClass.id,
+          result.id,
+          result.name,
+          selectedTimeSlot.start,
+          selectedTimeSlot.end,
+        );
+
+        // Atualiza com dados adicionais de agendamento
         const localStudents: any[] = JSON.parse(localStorage.getItem('students') || '[]');
         const studentIndex = localStudents.findIndex((s: any) => s.id === result.id);
 
         if (studentIndex >= 0) {
           localStudents[studentIndex] = {
             ...localStudents[studentIndex],
+            classId: selectedClass.id,
             schedule: {
               shift: selectedClass.turno,
               ...selectedTimeSlot,
@@ -139,7 +150,7 @@ export function RegisterStudentForm() {
       navigate('/dashboard/students');
     } catch (error: any) {
       console.error('Erro ao finalizar matrícula:', error);
-      addToast('Erro ao finalizar matrícula', 'error');
+      addToast(error.message || 'Erro ao finalizar matrícula', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +159,8 @@ export function RegisterStudentForm() {
   if (step === 'schedule') {
     return (
       <SmartScheduleSearch
-        onBack={() => navigate('/dashboard/students')}
+        studentGrade={formData.grade}
+        onBack={() => setStep('form')}
         onNext={handleScheduleNext}
       />
     );
