@@ -66,7 +66,7 @@ let savedAttendance: Map<string, AttendanceRecord[]> = loadAttendanceFromStorage
 // Converte Class para ClassInfo
 async function classToClassInfo(cls: Class): Promise<ClassInfo> {
   let teacherName = 'Sem professor';
-
+  
   if (cls.teacherId) {
     try {
       const teachers = await teacherService.getAll();
@@ -122,7 +122,7 @@ export const attendanceService = {
     // Busca o professor correspondente ao email do usuário logado
     const teachers = await teacherService.getAll();
     const teacher = teachers.find((t) => t.email === userEmail);
-
+    
     if (!teacher) {
       console.warn('[attendanceService] Professor não encontrado para o email:', userEmail);
       return [];
@@ -146,15 +146,17 @@ export const attendanceService = {
   async listStudentsByClass(classId: string): Promise<Student[]> {
     // Busca todos os alunos cadastrados
     const allStudents = await studentService.getAll();
-
+    
     // Busca o nome da turma para compatibilidade com dados antigos
     const classes = await classService.getAll();
     const cls = classes.find((c) => c.id === classId);
     const className = cls?.name || '';
-
+    
     // Filtra alunos que pertencem a esta turma (por ID ou nome)
-    const classStudents = allStudents.filter((s) => s.class === classId || s.class === className);
-
+    const classStudents = allStudents.filter(
+      (s) => s.class === classId || s.class === className
+    );
+    
     // Retorna no formato esperado (id e name)
     return classStudents.map((s) => ({
       id: s.id,

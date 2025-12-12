@@ -330,64 +330,64 @@ export function DailyAttendance() {
             {attendanceList.map((attendance) => {
               const isDisabled = hasSavedAttendance && !isEditing;
               return (
-                <div key={attendance.studentId} className={styles.studentRow}>
-                  {/* Avatar */}
-                  <div
-                    className={styles.avatar}
-                    style={{ backgroundColor: getAvatarColor(attendance.studentName) }}
-                  >
-                    {getInitial(attendance.studentName)}
-                  </div>
+              <div key={attendance.studentId} className={styles.studentRow}>
+                {/* Avatar */}
+                <div
+                  className={styles.avatar}
+                  style={{ backgroundColor: getAvatarColor(attendance.studentName) }}
+                >
+                  {getInitial(attendance.studentName)}
+                </div>
 
                   {/* Nome */}
                   <div className={styles.studentName}>{attendance.studentName}</div>
 
-                  {/* Botões de status */}
-                  <div className={styles.statusButtons}>
-                    <button
-                      onClick={() => updateAttendance(attendance.studentId, 'PRESENT')}
-                      disabled={isDisabled}
-                      className={`${styles.statusBtn} ${
-                        attendance.status === 'PRESENT' ? styles.presentActive : ''
-                      } ${isDisabled ? styles.disabled : ''}`}
-                    >
-                      ✓ Presente
-                    </button>
-                    <button
-                      onClick={() => updateAttendance(attendance.studentId, 'PARTIAL')}
-                      disabled={isDisabled}
-                      className={`${styles.statusBtn} ${
-                        attendance.status === 'PARTIAL' ? styles.partialActive : ''
-                      } ${isDisabled ? styles.disabled : ''}`}
-                    >
-                      ⏱ Parcial
-                    </button>
-                    <button
-                      onClick={() => updateAttendance(attendance.studentId, 'ABSENT')}
-                      disabled={isDisabled}
-                      className={`${styles.statusBtn} ${
-                        attendance.status === 'ABSENT' ? styles.absentActive : ''
-                      } ${isDisabled ? styles.disabled : ''}`}
-                    >
-                      ✕ Falta
-                    </button>
-                  </div>
-
-                  {/* Observação */}
-                  <input
-                    type="text"
-                    placeholder={
-                      attendance.status === 'PARTIAL'
-                        ? 'Horário e motivo da saída...'
-                        : 'Adicionar obs opcional...'
-                    }
-                    value={attendance.observation}
-                    onChange={(e) => updateObservation(attendance.studentId, e.target.value)}
+                {/* Botões de status */}
+                <div className={styles.statusButtons}>
+                  <button
+                    onClick={() => updateAttendance(attendance.studentId, 'PRESENT')}
                     disabled={isDisabled}
-                    className={`${styles.observationInput} ${isDisabled ? styles.disabled : ''}`}
-                  />
+                    className={`${styles.statusBtn} ${
+                      attendance.status === 'PRESENT' ? styles.presentActive : ''
+                    } ${isDisabled ? styles.disabled : ''}`}
+                  >
+                    ✓ Presente
+                  </button>
+                  <button
+                    onClick={() => updateAttendance(attendance.studentId, 'PARTIAL')}
+                    disabled={isDisabled}
+                    className={`${styles.statusBtn} ${
+                      attendance.status === 'PARTIAL' ? styles.partialActive : ''
+                    } ${isDisabled ? styles.disabled : ''}`}
+                  >
+                    ⏱ Parcial
+                  </button>
+                  <button
+                    onClick={() => updateAttendance(attendance.studentId, 'ABSENT')}
+                    disabled={isDisabled}
+                    className={`${styles.statusBtn} ${
+                      attendance.status === 'ABSENT' ? styles.absentActive : ''
+                    } ${isDisabled ? styles.disabled : ''}`}
+                  >
+                    ✕ Falta
+                  </button>
                 </div>
-              );
+
+                {/* Observação */}
+                <input
+                  type="text"
+                  placeholder={
+                    attendance.status === 'PARTIAL'
+                      ? 'Horário e motivo da saída...'
+                      : 'Adicionar obs opcional...'
+                  }
+                  value={attendance.observation}
+                  onChange={(e) => updateObservation(attendance.studentId, e.target.value)}
+                  disabled={isDisabled}
+                  className={`${styles.observationInput} ${isDisabled ? styles.disabled : ''}`}
+                />
+              </div>
+            );
             })}
           </div>
 

@@ -132,10 +132,10 @@ export function ClassesList() {
         classService.getAll(),
         teacherService.getAll(),
       ]);
-
+      
       // Verifica se é professor dentro da função para garantir valor atualizado
       const userIsProfessor = user?.role === 'PROFESSOR';
-
+      
       // Se for professor, filtra apenas suas turmas
       if (userIsProfessor && user?.email) {
         const teacher = teachersData.find((t) => t.email === user.email);
@@ -152,7 +152,7 @@ export function ClassesList() {
       } else {
         setClasses(classesData);
       }
-
+      
       setTeachers(teachersData);
     } catch (error) {
       addToast('Erro ao carregar dados', 'error');

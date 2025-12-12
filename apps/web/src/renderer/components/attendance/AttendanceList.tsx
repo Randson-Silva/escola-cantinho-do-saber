@@ -20,10 +20,9 @@ export function AttendanceList() {
   async function loadClasses() {
     try {
       setLoading(true);
-      const data =
-        isProfessor && user?.email
-          ? await attendanceService.listMyClasses(user.email)
-          : await attendanceService.listClasses();
+      const data = isProfessor && user?.email
+        ? await attendanceService.listMyClasses(user.email)
+        : await attendanceService.listClasses();
       setClasses(data);
     } catch (error) {
       console.error('Erro ao carregar turmas:', error);
