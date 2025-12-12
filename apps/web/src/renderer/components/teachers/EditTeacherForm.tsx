@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { useToast } from '../../hooks/useToast';
 import { useForm } from '../../hooks/useForm';
+import { maskPhone } from '../../utils/masks';
 import styles from './teachers.module.css';
 import {
   teacherService,
@@ -164,8 +165,9 @@ export function EditTeacherForm() {
                 id="telefone"
                 name="telefone"
                 value={values.telefone}
-                onChange={handleChange}
+                onChange={(e) => setFieldValue('telefone', maskPhone(e.target.value))}
                 className={styles.input}
+                placeholder="(00) 00000-0000"
                 required
               />
               {errors.telefone && <div className={styles.errorMsg}>{errors.telefone}</div>}
@@ -235,4 +237,3 @@ export function EditTeacherForm() {
     </div>
   );
 }
-

@@ -2,6 +2,7 @@ import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { studentService, type Student, type StudentFormData } from '../../services/studentService';
+import { maskPhone } from '../../utils/masks';
 import styles from './students.module.css';
 
 export function EditStudentForm() {
@@ -427,7 +428,12 @@ export function EditStudentForm() {
                   id="guardian.phone"
                   name="guardian.phone"
                   value={formData.guardian.phone}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      guardian: { ...prev.guardian, phone: maskPhone(e.target.value) },
+                    }));
+                  }}
                   className={styles.input}
                   placeholder="(00) 00000-0000"
                   required

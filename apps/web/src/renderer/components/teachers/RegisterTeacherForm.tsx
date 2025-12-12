@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useToast } from '../../hooks/useToast';
 import { useForm } from '../../hooks/useForm';
+import { maskCPF, maskPhone } from '../../utils/masks';
 import styles from './teachers.module.css';
 import {
   teacherService,
@@ -136,8 +137,9 @@ export function RegisterTeacherForm() {
                 id="cpf"
                 name="cpf"
                 value={values.cpf}
-                onChange={handleChange}
+                onChange={(e) => setFieldValue('cpf', maskCPF(e.target.value))}
                 className={styles.input}
+                placeholder="000.000.000-00"
                 required
               />
               {errors.cpf && <div className={styles.errorMsg}>{errors.cpf}</div>}
@@ -150,8 +152,9 @@ export function RegisterTeacherForm() {
                 id="telefone"
                 name="telefone"
                 value={values.telefone}
-                onChange={handleChange}
+                onChange={(e) => setFieldValue('telefone', maskPhone(e.target.value))}
                 className={styles.input}
+                placeholder="(00) 00000-0000"
                 required
               />
               {errors.telefone && <div className={styles.errorMsg}>{errors.telefone}</div>}
@@ -240,4 +243,3 @@ export function RegisterTeacherForm() {
     </div>
   );
 }
-

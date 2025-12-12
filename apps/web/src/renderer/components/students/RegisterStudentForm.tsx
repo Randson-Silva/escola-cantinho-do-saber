@@ -4,6 +4,7 @@ import { useToast } from '../../hooks/useToast';
 import { studentService, type StudentFormData } from '../../services/studentService';
 import { SmartScheduleSearch } from './SmartScheduleSearch';
 import { EnrollmentSummary } from './EnrollmentSummary';
+import { maskPhone } from '../../utils/masks';
 import styles from './students.module.css';
 
 export function RegisterStudentForm() {
@@ -380,7 +381,12 @@ export function RegisterStudentForm() {
                   id="guardian.phone"
                   name="guardian.phone"
                   value={formData.guardian.phone}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      guardian: { ...prev.guardian, phone: maskPhone(e.target.value) },
+                    }));
+                  }}
                   className={styles.input}
                   placeholder="(00) 00000-0000"
                   required

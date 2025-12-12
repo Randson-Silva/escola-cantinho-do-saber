@@ -1,4 +1,5 @@
 import React from 'react';
+import { maskPhone } from '../../utils/masks';
 import styles from './responsible-form.module.css';
 
 export interface ResponsibleData {
@@ -42,7 +43,14 @@ export function ResponsibleForm({ value, onChange }: ResponsibleFormProps) {
       </label>
       <label>
         Telefone
-        <input type="tel" name="phone" value={value.phone} onChange={handleChange} required />
+        <input
+          type="tel"
+          name="phone"
+          value={value.phone}
+          onChange={(e) => onChange({ ...value, phone: maskPhone(e.target.value) })}
+          placeholder="(00) 00000-0000"
+          required
+        />
       </label>
       <label>
         Email
@@ -74,4 +82,3 @@ export function ResponsibleForm({ value, onChange }: ResponsibleFormProps) {
     </div>
   );
 }
-
