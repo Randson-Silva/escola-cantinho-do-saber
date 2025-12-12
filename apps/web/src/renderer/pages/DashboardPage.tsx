@@ -2,37 +2,47 @@ import { DashboardLayout } from '../components/dashboard/Layout/DashboardLayout'
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { studentService } from '../services/studentService';
-import { teacherService } from '../services/teacherService';
+import { teacherService, Teacher } from '../services/teacherService';
+import { classService, Class } from '../services/classService';
 import styles from '../styles/dashboard-page.module.css';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const [studentsCount, setStudentsCount] = useState<number>(0);
   const [teachersCount, setTeachersCount] = useState<number>(0);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCounts() {
-      // 1. Tenta pegar contagem de alunos
-      try {
-        const count = await studentService.getStudentsCount();
-        setStudentsCount(count);
-      } catch (error) {
-        console.error('Erro ao contar alunos:', error);
-        setStudentsCount(0); // Se falhar, assume 0
-      }
-
-      // 2. Tenta pegar contagem de professores
-      // (Dica: O ideal seria ter um teacherService.getTeachersCount() também,
-      // em vez de listar todos os professores aqui em baixo)
-      try {
-        const teachers = await teacherService.getAll();
-        setTeachersCount(Array.isArray(teachers) ? teachers.length : 0);
-      } catch {
-        setTeachersCount(0);
-      }
-    }
-    loadCounts();
+    loadData();
   }, []);
+
+  async function loadData() {
+    setIsLoading(true);
+    try {
+      const [studentsCountData, teachersData, classesData] = await Promise.all([
+        studentService.getStudentsCount(),
+        teacherService.getAll(),
+        classService.getAll(),
+      ]);
+
+      setStudentsCount(studentsCountData);
+      setTeachers(Array.isArray(teachersData) ? teachersData : []);
+      setTeachersCount(Array.isArray(teachersData) ? teachersData.length : 0);
+      setClasses(classesData);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function getTeacherName(teacherId: string | null): string {
+    if (!teacherId) return 'Não definido';
+    const teacher = teachers.find((t) => t.id === teacherId);
+    return teacher ? teacher.nome : 'Professor não encontrado';
+  }
 
   return (
     <DashboardLayout>
@@ -67,10 +77,23 @@ export function DashboardPage() {
             <div className={styles.statIcon}>📚</div>
             <div className={styles.statContent}>
               <h3 className={styles.statLabel}>Turmas Ativas</h3>
-              <p className={styles.statValue}>12</p>
-              <span className={styles.statChange}>3 em andamento</span>
+              <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
+              <span className={styles.statChange}>
+                {classes.filter((c) => c.shift === 'MANHA').length} manhã ·{' '}
+                {classes.filter((c) => c.shift === 'TARDE').length} tarde
+              </span>
             </div>
-            <button className={styles.statButton}>Criar Turma</button>
+            <div className={styles.statActions}>
+              <button className={styles.statButton} onClick={() => navigate('/dashboard/classes')}>
+                Ver Turmas
+              </button>
+              <button
+                className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                onClick={() => navigate('/dashboard/classes?action=create')}
+              >
+                Criar Turma
+              </button>
+            </div>
           </div>
 
           <div className={styles.statCard}>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { classService, type Class, type ClassShift } from '../../services/classService';
 import { teacherService, type Teacher } from '../../services/teacherService';
@@ -90,6 +91,7 @@ const PlusIcon = () => (
 
 export function ClassesList() {
   const { addToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,6 +107,15 @@ export function ClassesList() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Check URL for action=create and open modal
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      openCreateModal();
+      // Clear the query param after opening
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const loadData = async () => {
     try {

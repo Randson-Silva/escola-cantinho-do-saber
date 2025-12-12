@@ -351,7 +351,7 @@ export function FinancesDashboard() {
           </p>
         </div>
 
-        <div className={`${styles.summaryCard} ${styles.highlight}`}>
+        <div className={`${styles.summaryCard}`}>
           <div className={styles.summaryCardHeader}>
             <div className={`${styles.summaryIcon} ${styles.profit}`}>💰</div>
           </div>
@@ -951,4 +951,3 @@ export function FinancesDashboard() {
     </div>
   );
 }
-
