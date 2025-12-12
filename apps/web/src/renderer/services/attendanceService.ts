@@ -1,4 +1,7 @@
-// Serviço de Frequência com dados mockados
+// Serviço de Frequência com integração real
+import { classService, type Class } from './classService';
+import { teacherService } from './teacherService';
+import { studentService } from './studentService';
 
 export type AttendanceStatus = 'PRESENT' | 'PARTIAL' | 'ABSENT';
 
@@ -31,116 +34,151 @@ export interface DailyAttendance {
   records: AttendanceRecord[];
 }
 
-// ==================== DADOS MOCK ====================
+// ==================== STORAGE ====================
 
-const MOCK_CLASSES: ClassInfo[] = [
-  {
-    id: '1',
-    name: 'Reforço Tarde A',
-    teacherId: 'teacher-1',
-    teacherName: 'Prof. Carlos',
-    attendancePercentage: 85,
-  },
-  {
-    id: '2',
-    name: 'Reforço Inglês B',
-    teacherId: 'teacher-2',
-    teacherName: 'Profa. Ana',
-    attendancePercentage: 92,
-  },
-  {
-    id: '3',
-    name: 'Alfabetização',
-    teacherId: 'teacher-3',
-    teacherName: 'Prof. Roberto',
-    attendancePercentage: 70,
-  },
-  {
-    id: '4',
-    name: 'Matemática Avançada',
-    teacherId: 'teacher-1',
-    teacherName: 'Prof. Carlos',
-    attendancePercentage: 95,
-  },
-];
+const ATTENDANCE_STORAGE_KEY = 'attendance_records';
 
-const MOCK_STUDENTS_BY_CLASS: Record<string, Student[]> = {
-  '1': [
-    { id: 's1', name: 'Fernanda Lima' },
-    { id: 's2', name: 'Lucas Pereira' },
-    { id: 's3', name: 'Mariana Souza' },
-    { id: 's4', name: 'Pedro Henrique' },
-    { id: 's5', name: 'Carla Diaz' },
-    { id: 's6', name: 'João Silva' },
-    { id: 's7', name: 'Ana Clara' },
-    { id: 's8', name: 'Bruno Santos' },
-  ],
-  '2': [
-    { id: 's9', name: 'Julia Oliveira' },
-    { id: 's10', name: 'Rafael Costa' },
-    { id: 's11', name: 'Isabela Martins' },
-    { id: 's12', name: 'Gabriel Ferreira' },
-    { id: 's13', name: 'Larissa Almeida' },
-  ],
-  '3': [
-    { id: 's14', name: 'Miguel Rodrigues' },
-    { id: 's15', name: 'Sofia Nunes' },
-    { id: 's16', name: 'Davi Ribeiro' },
-    { id: 's17', name: 'Helena Barbosa' },
-    { id: 's18', name: 'Arthur Cardoso' },
-    { id: 's19', name: 'Laura Moreira' },
-  ],
-  '4': [
-    { id: 's20', name: 'Enzo Gomes' },
-    { id: 's21', name: 'Valentina Dias' },
-    { id: 's22', name: 'Theo Mendes' },
-    { id: 's23', name: 'Alice Campos' },
-  ],
-};
+// Carrega frequências do localStorage
+function loadAttendanceFromStorage(): Map<string, AttendanceRecord[]> {
+  try {
+    const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return new Map(Object.entries(parsed));
+    }
+  } catch {
+    // ignore
+  }
+  return new Map();
+}
 
-// Armazena a frequência salva (mock persistente na memória)
-const savedAttendance: Map<string, AttendanceRecord[]> = new Map();
+// Salva frequências no localStorage
+function saveAttendanceToStorage(attendance: Map<string, AttendanceRecord[]>): void {
+  const obj = Object.fromEntries(attendance);
+  localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(obj));
+}
+
+// Armazena a frequência salva (persistente no localStorage)
+let savedAttendance: Map<string, AttendanceRecord[]> = loadAttendanceFromStorage();
+
+// ==================== HELPERS ====================
+
+// Converte Class para ClassInfo
+async function classToClassInfo(cls: Class): Promise<ClassInfo> {
+  let teacherName = 'Sem professor';
+  
+  if (cls.teacherId) {
+    try {
+      const teachers = await teacherService.getAll();
+      const teacher = teachers.find((t) => t.id === cls.teacherId);
+      if (teacher) {
+        teacherName = teacher.nome;
+      }
+    } catch {
+      // Se falhar ao buscar professor, usa o padrão
+    }
+  }
+
+  // Calcula porcentagem de presença (baseado nos registros salvos)
+  const attendancePercentage = calculateAttendancePercentage(cls.id);
+
+  return {
+    id: cls.id,
+    name: cls.name,
+    teacherId: cls.teacherId || '',
+    teacherName,
+    attendancePercentage,
+  };
+}
+
+// Calcula a porcentagem de presença de uma turma
+function calculateAttendancePercentage(classId: string): number {
+  let totalRecords = 0;
+  let presentRecords = 0;
+
+  savedAttendance.forEach((records, key) => {
+    if (key.startsWith(`${classId}-`)) {
+      totalRecords += records.length;
+      presentRecords += records.filter((r) => r.status === 'PRESENT').length;
+    }
+  });
+
+  if (totalRecords === 0) return 0;
+  return Math.round((presentRecords / totalRecords) * 100);
+}
 
 // ==================== SERVIÇO ====================
 
 export const attendanceService = {
   // Listar todas as turmas (para admin)
   async listClasses(): Promise<ClassInfo[]> {
-    // Simula delay de rede
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_CLASSES;
+    const classes = await classService.getAll();
+    const classInfos = await Promise.all(classes.map(classToClassInfo));
+    return classInfos;
   },
 
-  // Listar turmas do professor logado
-  async listMyClasses(teacherId: string): Promise<ClassInfo[]> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_CLASSES.filter((c) => c.teacherId === teacherId);
+  // Listar turmas do professor logado (busca pelo email do usuário)
+  async listMyClasses(userEmail: string): Promise<ClassInfo[]> {
+    // Busca o professor correspondente ao email do usuário logado
+    const teachers = await teacherService.getAll();
+    const teacher = teachers.find((t) => t.email === userEmail);
+    
+    if (!teacher) {
+      console.warn('[attendanceService] Professor não encontrado para o email:', userEmail);
+      return [];
+    }
+
+    const classes = await classService.getAll();
+    const myClasses = classes.filter((c) => c.teacherId === teacher.id);
+    const classInfos = await Promise.all(myClasses.map(classToClassInfo));
+    return classInfos;
   },
 
   // Buscar detalhes de uma turma
   async getClassById(classId: string): Promise<ClassInfo | undefined> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return MOCK_CLASSES.find((c) => c.id === classId);
+    const classes = await classService.getAll();
+    const cls = classes.find((c) => c.id === classId);
+    if (!cls) return undefined;
+    return classToClassInfo(cls);
   },
 
-  // Listar alunos de uma turma
+  // Listar alunos de uma turma (baseado no campo 'class' do aluno)
   async listStudentsByClass(classId: string): Promise<Student[]> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_STUDENTS_BY_CLASS[classId] || [];
+    // Busca todos os alunos cadastrados
+    const allStudents = await studentService.getAll();
+    
+    // Busca o nome da turma para compatibilidade com dados antigos
+    const classes = await classService.getAll();
+    const cls = classes.find((c) => c.id === classId);
+    const className = cls?.name || '';
+    
+    // Filtra alunos que pertencem a esta turma (por ID ou nome)
+    const classStudents = allStudents.filter(
+      (s) => s.class === classId || s.class === className
+    );
+    
+    // Retorna no formato esperado (id e name)
+    return classStudents.map((s) => ({
+      id: s.id,
+      name: s.name,
+    }));
   },
 
   // Buscar frequência de uma turma em uma data específica
   async getAttendanceByDate(classId: string, date: string): Promise<AttendanceRecord[]> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Recarrega do localStorage
+    savedAttendance = loadAttendanceFromStorage();
     const key = `${classId}-${date}`;
     return savedAttendance.get(key) || [];
   },
 
   // Salvar chamada do dia
   async saveAttendance(attendance: DailyAttendance): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const key = `${attendance.classId}-${attendance.date}`;
     savedAttendance.set(key, attendance.records);
+    saveAttendanceToStorage(savedAttendance);
     console.log('Frequência salva:', key, attendance.records);
   },
 
@@ -150,7 +188,7 @@ export const attendanceService = {
     status: AttendanceStatus,
     observation?: string,
   ): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     // Em uma implementação real, atualizaria o registro específico
     console.log('Atualizando registro:', recordId, status, observation);
   },

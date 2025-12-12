@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
+import { useAuth } from '../../hooks/useAuth';
 import {
   classService,
   type Class,
@@ -96,11 +97,14 @@ const PlusIcon = () => (
 
 export function ClassesList() {
   const { addToast } = useToast();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const isProfessor = user?.role === 'PROFESSOR';
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,7 +115,7 @@ export function ClassesList() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   // Check URL for action=create and open modal
   useEffect(() => {
@@ -128,7 +132,27 @@ export function ClassesList() {
         classService.getAll(),
         teacherService.getAll(),
       ]);
-      setClasses(classesData);
+      
+      // Verifica se é professor dentro da função para garantir valor atualizado
+      const userIsProfessor = user?.role === 'PROFESSOR';
+      
+      // Se for professor, filtra apenas suas turmas
+      if (userIsProfessor && user?.email) {
+        const teacher = teachersData.find((t) => t.email === user.email);
+        console.log('[ClassesList] Professor logado:', user.email);
+        console.log('[ClassesList] Teacher encontrado:', teacher);
+        if (teacher) {
+          const myClasses = classesData.filter((c) => c.teacherId === teacher.id);
+          console.log('[ClassesList] Turmas do professor:', myClasses);
+          setClasses(myClasses);
+        } else {
+          console.log('[ClassesList] Professor não encontrado na lista de teachers');
+          setClasses([]);
+        }
+      } else {
+        setClasses(classesData);
+      }
+      
       setTeachers(teachersData);
     } catch (error) {
       addToast('Erro ao carregar dados', 'error');
@@ -262,10 +286,12 @@ export function ClassesList() {
           />
         </div>
 
-        <button className={styles.headerBtn} onClick={openCreateModal}>
-          <PlusIcon />
-          Nova Turma
-        </button>
+        {!isProfessor && (
+          <button className={styles.headerBtn} onClick={openCreateModal}>
+            <PlusIcon />
+            Nova Turma
+          </button>
+        )}
       </div>
 
       {/* Grid */}
@@ -338,9 +364,11 @@ export function ClassesList() {
                   </div>
                 )}
 
-                <button className={styles.footerButton} onClick={() => openEditModal(turma)}>
-                  Gerenciar / Trocar
-                </button>
+                {!isProfessor && (
+                  <button className={styles.footerButton} onClick={() => openEditModal(turma)}>
+                    Gerenciar / Trocar
+                  </button>
+                )}
               </div>
             ))
           )}

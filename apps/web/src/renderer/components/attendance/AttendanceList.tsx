@@ -15,13 +15,13 @@ export function AttendanceList() {
 
   useEffect(() => {
     loadClasses();
-  }, []);
+  }, [user]);
 
   async function loadClasses() {
     try {
       setLoading(true);
-      const data = isProfessor
-        ? await attendanceService.listMyClasses('teacher-1')
+      const data = isProfessor && user?.email
+        ? await attendanceService.listMyClasses(user.email)
         : await attendanceService.listClasses();
       setClasses(data);
     } catch (error) {

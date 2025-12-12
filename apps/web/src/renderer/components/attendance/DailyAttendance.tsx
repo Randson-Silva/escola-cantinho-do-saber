@@ -28,6 +28,8 @@ export function DailyAttendance() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [hasSavedAttendance, setHasSavedAttendance] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,6 +64,11 @@ export function DailyAttendance() {
 
       const dateStr = formatDateForAPI(date);
       const existingRecords = await attendanceService.getAttendanceByDate(classId!, dateStr);
+
+      // Verifica se já existe frequência salva para esta data
+      const hasExisting = existingRecords.length > 0;
+      setHasSavedAttendance(hasExisting);
+      setIsEditing(false); // Reseta o modo de edição ao trocar de data
 
       const attendance: AttendanceState[] = studentsData.map((student) => {
         const existing = existingRecords.find((r) => r.studentId === student.id);
@@ -174,6 +181,8 @@ export function DailyAttendance() {
         })),
       });
       setShowConfirmModal(false);
+      setHasSavedAttendance(true);
+      setIsEditing(false);
     } catch (error) {
       console.error('Erro ao salvar frequência:', error);
     } finally {
@@ -318,7 +327,9 @@ export function DailyAttendance() {
 
           {/* Lista de alunos */}
           <div className={styles.studentsList}>
-            {attendanceList.map((attendance) => (
+            {attendanceList.map((attendance) => {
+              const isDisabled = hasSavedAttendance && !isEditing;
+              return (
               <div key={attendance.studentId} className={styles.studentRow}>
                 {/* Avatar */}
                 <div
@@ -335,25 +346,28 @@ export function DailyAttendance() {
                 <div className={styles.statusButtons}>
                   <button
                     onClick={() => updateAttendance(attendance.studentId, 'PRESENT')}
+                    disabled={isDisabled}
                     className={`${styles.statusBtn} ${
                       attendance.status === 'PRESENT' ? styles.presentActive : ''
-                    }`}
+                    } ${isDisabled ? styles.disabled : ''}`}
                   >
                     ✓ Presente
                   </button>
                   <button
                     onClick={() => updateAttendance(attendance.studentId, 'PARTIAL')}
+                    disabled={isDisabled}
                     className={`${styles.statusBtn} ${
                       attendance.status === 'PARTIAL' ? styles.partialActive : ''
-                    }`}
+                    } ${isDisabled ? styles.disabled : ''}`}
                   >
                     ⏱ Parcial
                   </button>
                   <button
                     onClick={() => updateAttendance(attendance.studentId, 'ABSENT')}
+                    disabled={isDisabled}
                     className={`${styles.statusBtn} ${
                       attendance.status === 'ABSENT' ? styles.absentActive : ''
-                    }`}
+                    } ${isDisabled ? styles.disabled : ''}`}
                   >
                     ✕ Falta
                   </button>
@@ -369,10 +383,12 @@ export function DailyAttendance() {
                   }
                   value={attendance.observation}
                   onChange={(e) => updateObservation(attendance.studentId, e.target.value)}
-                  className={styles.observationInput}
+                  disabled={isDisabled}
+                  className={`${styles.observationInput} ${isDisabled ? styles.disabled : ''}`}
                 />
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Footer */}
@@ -380,9 +396,15 @@ export function DailyAttendance() {
             <p className={styles.studentsCount}>
               <strong>{students.length}</strong> alunos listados.
             </p>
-            <button onClick={handleSave} className={styles.saveButton}>
-              💾 Salvar Chamada do Dia
-            </button>
+            {hasSavedAttendance && !isEditing ? (
+              <button onClick={() => setIsEditing(true)} className={styles.editButton}>
+                ✏️ Editar Chamada
+              </button>
+            ) : (
+              <button onClick={handleSave} className={styles.saveButton}>
+                💾 Salvar Chamada do Dia
+              </button>
+            )}
           </div>
         </div>
       </div>
