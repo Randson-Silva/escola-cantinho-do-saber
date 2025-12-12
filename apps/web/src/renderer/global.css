@@ -98,6 +98,16 @@
   box-sizing: border-box;
 }
 
+/* Oculta scrollbar em toda aplicação */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 html,
 body {
   /* Use min-height para que o fundo acompanhe o scroll completo */
