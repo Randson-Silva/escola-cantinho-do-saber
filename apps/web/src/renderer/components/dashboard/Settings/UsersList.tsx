@@ -106,39 +106,59 @@ export function UsersList() {
       {users.length === 0 ? (
         <p>Nenhum usuário cadastrado.</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Função</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td style={{ textTransform: 'capitalize' }}>{user.role}</td>
-                <td>
-                  {isAdmin ? (
-                    <div className={styles.actions}>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(user.id, user.name)}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  ) : (
-                    <span className={styles.noPermission}>Sem permissão</span>
-                  )}
-                </td>
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Função</th>
+                <th>Senha Gerada</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{user.role}</td>
+                  <td>
+                    {user.generatedPassword ? (
+                      <code
+                        style={{
+                          background: '#e8f5e9',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontFamily: 'monospace',
+                          color: '#2e7d32',
+                        }}
+                      >
+                        {user.generatedPassword}
+                      </code>
+                    ) : (
+                      <span style={{ color: '#9e9e9e', fontSize: '0.85rem' }}>—</span>
+                    )}
+                  </td>
+                  <td>
+                    {isAdmin ? (
+                      <div className={styles.actions}>
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => handleDelete(user.id, user.name)}
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    ) : (
+                      <span className={styles.noPermission}>Sem permissão</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Modal de confirmação */}
