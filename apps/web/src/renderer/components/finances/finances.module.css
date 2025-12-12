@@ -776,6 +776,33 @@
   background: #219a52;
 }
 
+.revertBtn {
+  padding: var(--space-sm) var(--space-md);
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: var(--input-border-radius);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.revertBtn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.iconButton.revert {
+  color: #6b7280;
+}
+
+.iconButton.revert:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 /* ============================================
    MODAL
    ============================================ */
@@ -1072,4 +1099,181 @@
   padding: var(--space-3xl);
   color: var(--text-secondary);
   font-size: var(--font-size-base);
+}
+
+/* ============================================
+   CONFIRM REVERT MODAL
+   ============================================ */
+.confirmMessage {
+  text-align: center;
+  padding: var(--space-md) 0;
+}
+
+.confirmMessage p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-md) 0;
+  line-height: 1.6;
+}
+
+.revertIcon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-xl);
+  font-size: 32px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.revertItemInfo {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: var(--space-xl);
+  margin: var(--space-lg) 0;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+}
+
+.revertItemType {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: #92400e;
+  background: rgba(146, 64, 14, 0.1);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: var(--space-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.revertItemName {
+  display: block;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: #78350f;
+  margin-top: var(--space-sm);
+}
+
+.warningText {
+  font-size: var(--font-size-sm) !important;
+  color: #b45309 !important;
+  font-weight: var(--font-weight-medium);
+  background: #fef3c7;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--input-border-radius);
+  display: inline-block;
+  margin-top: var(--space-sm);
+}
+
+.confirmRevertBtn {
+  padding: var(--space-md) var(--space-2xl);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--input-border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.confirmRevertBtn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* ============================================
+   CONFIRM DELETE MODAL
+   ============================================ */
+.deleteIcon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-xl);
+  font-size: 32px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.deleteItemInfo {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #f87171;
+  border-radius: 12px;
+  padding: var(--space-xl);
+  margin: var(--space-lg) 0;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.deleteItemType {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: #b91c1c;
+  background: rgba(185, 28, 28, 0.1);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: var(--space-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deleteItemName {
+  display: block;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: #991b1b;
+  margin-top: var(--space-sm);
+}
+
+.deleteWarningText {
+  font-size: var(--font-size-sm) !important;
+  color: #dc2626 !important;
+  font-weight: var(--font-weight-semibold);
+  background: #fee2e2;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--input-border-radius);
+  display: inline-block;
+  margin-top: var(--space-sm);
+}
+
+.confirmDeleteBtn {
+  padding: var(--space-md) var(--space-2xl);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--input-border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.confirmDeleteBtn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* ============================================
+   FORM ROW
+   ============================================ */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
 }

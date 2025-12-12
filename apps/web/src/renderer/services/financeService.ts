@@ -3,13 +3,7 @@
 // ============================================================================
 
 export type ExpenseStatus = 'PAGO' | 'PENDENTE' | 'AGENDADO';
-export type ExpenseCategory =
-  | 'UTILIDADES'
-  | 'SUPRIMENTOS'
-  | 'MANUTENÇÃO'
-  | 'SALÁRIOS'
-  | 'MARKETING'
-  | 'OUTROS';
+export type ExpenseCategory = 'UTILIDADES' | 'SUPRIMENTOS' | 'MANUTENÇÃO' | 'MARKETING' | 'OUTROS';
 
 export type PaymentMethod = 'PIX' | 'DINHEIRO' | 'MISTO';
 
@@ -232,17 +226,16 @@ function initializeMockData(): void {
     writeToStorage(PAYROLLS_KEY, mockPayrolls);
   }
 
-  // Initialize categories if empty
+  // Initialize categories - always ensure correct list without SALÁRIOS
+  const defaultCategories = ['UTILIDADES', 'SUPRIMENTOS', 'MANUTENÇÃO', 'MARKETING', 'OUTROS'];
   const categories = readFromStorage<string>(CATEGORIES_KEY);
-  if (categories.length === 0) {
-    const defaultCategories = [
-      'UTILIDADES',
-      'SUPRIMENTOS',
-      'MANUTENÇÃO',
-      'SALÁRIOS',
-      'MARKETING',
-      'OUTROS',
-    ];
+  // Remove SALÁRIOS if it exists and ensure default categories are present
+  const filteredCategories = categories.filter((cat) => cat !== 'SALÁRIOS');
+  if (
+    categories.length === 0 ||
+    filteredCategories.length !== categories.length ||
+    !defaultCategories.every((cat) => filteredCategories.includes(cat))
+  ) {
     writeToStorage(CATEGORIES_KEY, defaultCategories);
   }
 }
@@ -303,6 +296,13 @@ export const expenseService = {
     });
   },
 
+  async revertToPending(id: string): Promise<Expense> {
+    return this.update(id, {
+      status: 'PENDENTE',
+      paidAt: undefined,
+    });
+  },
+
   async getCategories(): Promise<string[]> {
     return Promise.resolve(readFromStorage<string>(CATEGORIES_KEY));
   },
@@ -348,6 +348,22 @@ export const studentPaymentService = {
       status: 'PAGO',
       paidAt: new Date().toISOString(),
       paymentMethod,
+    };
+    list[idx] = updated;
+    writeToStorage(PAYMENTS_KEY, list);
+    return Promise.resolve(updated);
+  },
+
+  async revertToPending(id: string): Promise<StudentPayment> {
+    const list = readFromStorage<StudentPayment>(PAYMENTS_KEY);
+    const idx = list.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error('Pagamento não encontrado');
+
+    const updated: StudentPayment = {
+      ...list[idx],
+      status: 'PENDENTE',
+      paidAt: undefined,
+      paymentMethod: undefined,
     };
     list[idx] = updated;
     writeToStorage(PAYMENTS_KEY, list);
@@ -401,6 +417,22 @@ export const teacherPayrollService = {
     return Promise.resolve(updated);
   },
 
+  async revertToPending(id: string): Promise<TeacherPayroll> {
+    const list = readFromStorage<TeacherPayroll>(PAYROLLS_KEY);
+    const idx = list.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error('Folha não encontrada');
+
+    const updated: TeacherPayroll = {
+      ...list[idx],
+      status: 'PENDENTE',
+      paidAt: undefined,
+      paymentMethod: undefined,
+    };
+    list[idx] = updated;
+    writeToStorage(PAYROLLS_KEY, list);
+    return Promise.resolve(updated);
+  },
+
   async create(data: Omit<TeacherPayroll, 'id'>): Promise<TeacherPayroll> {
     const payroll: TeacherPayroll = {
       ...data,
@@ -447,4 +479,3 @@ export const financeSummaryService = {
     });
   },
 };
-

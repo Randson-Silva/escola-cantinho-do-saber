@@ -45,11 +45,29 @@ function getCurrentMonth(): string {
 // ============================================
 
 type TabType = 'despesas' | 'mensalidades' | 'folha';
-type ModalType = 'expense' | 'payment' | 'payroll' | null;
+type ModalType =
+  | 'expense'
+  | 'payment'
+  | 'payroll'
+  | 'editExpense'
+  | 'confirmRevert'
+  | 'confirmDelete'
+  | null;
 
 interface ModalData {
   type: ModalType;
-  data?: StudentPayment | TeacherPayroll | null;
+  data?: StudentPayment | TeacherPayroll | Expense | null;
+}
+
+interface RevertAction {
+  type: 'expense' | 'payment' | 'payroll';
+  id: string;
+  description: string;
+}
+
+interface DeleteAction {
+  id: string;
+  description: string;
 }
 
 // ============================================
@@ -79,6 +97,9 @@ export function FinancesDashboard() {
   // Modal states
   const [modal, setModal] = useState<ModalData>({ type: null });
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [revertAction, setRevertAction] = useState<RevertAction | null>(null);
+  const [deleteAction, setDeleteAction] = useState<DeleteAction | null>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   // Expense form state
   const [expenseForm, setExpenseForm] = useState({
@@ -151,8 +172,58 @@ export function FinancesDashboard() {
   // ============================================
 
   const handleOpenExpenseModal = () => {
+    setEditingExpenseId(null);
     setExpenseForm({ description: '', category: '', dueDate: '', amount: '' });
     setModal({ type: 'expense' });
+  };
+
+  const handleOpenEditExpenseModal = (expense: Expense) => {
+    setEditingExpenseId(expense.id);
+    setExpenseForm({
+      description: expense.description,
+      category: expense.category,
+      dueDate: expense.dueDate,
+      amount: expense.amount.toString().replace('.', ','),
+    });
+    setModal({ type: 'editExpense', data: expense });
+  };
+
+  const handleSaveExpense = async () => {
+    if (
+      !expenseForm.description ||
+      !expenseForm.category ||
+      !expenseForm.dueDate ||
+      !expenseForm.amount
+    ) {
+      addToast('Preencha todos os campos', 'error');
+      return;
+    }
+
+    try {
+      if (editingExpenseId) {
+        await expenseService.update(editingExpenseId, {
+          description: expenseForm.description,
+          category: expenseForm.category as ExpenseCategory,
+          dueDate: expenseForm.dueDate,
+          amount: parseFloat(expenseForm.amount.replace(',', '.')),
+        });
+        addToast('Despesa atualizada com sucesso!', 'success');
+      } else {
+        await expenseService.create({
+          description: expenseForm.description,
+          category: expenseForm.category as ExpenseCategory,
+          dueDate: expenseForm.dueDate,
+          amount: parseFloat(expenseForm.amount.replace(',', '.')),
+          status: 'PENDENTE',
+        });
+        addToast('Despesa cadastrada com sucesso!', 'success');
+      }
+      setModal({ type: null });
+      setEditingExpenseId(null);
+      loadData();
+    } catch (error) {
+      addToast('Erro ao salvar despesa', 'error');
+    }
   };
 
   const handleCreateExpense = async () => {
@@ -182,16 +253,28 @@ export function FinancesDashboard() {
     }
   };
 
-  const handleDeleteExpense = async (id: string) => {
-    if (!confirm('Deseja realmente excluir esta despesa?')) return;
+  const handleOpenDeleteModal = (id: string, description: string) => {
+    setDeleteAction({ id, description });
+    setModal({ type: 'confirmDelete' });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteAction) return;
 
     try {
-      await expenseService.delete(id);
+      await expenseService.delete(deleteAction.id);
       addToast('Despesa excluída com sucesso!', 'success');
+      setModal({ type: null });
+      setDeleteAction(null);
       loadData();
     } catch (error) {
       addToast('Erro ao excluir despesa', 'error');
     }
+  };
+
+  const handleCancelDelete = () => {
+    setModal({ type: null });
+    setDeleteAction(null);
   };
 
   const handleMarkExpenseAsPaid = async (id: string) => {
@@ -202,6 +285,46 @@ export function FinancesDashboard() {
     } catch (error) {
       addToast('Erro ao atualizar despesa', 'error');
     }
+  };
+
+  const handleOpenRevertModal = (
+    type: 'expense' | 'payment' | 'payroll',
+    id: string,
+    description: string,
+  ) => {
+    setRevertAction({ type, id, description });
+    setModal({ type: 'confirmRevert' });
+  };
+
+  const handleConfirmRevert = async () => {
+    if (!revertAction) return;
+
+    try {
+      switch (revertAction.type) {
+        case 'expense':
+          await expenseService.revertToPending(revertAction.id);
+          addToast('Despesa revertida para pendente!', 'success');
+          break;
+        case 'payment':
+          await studentPaymentService.revertToPending(revertAction.id);
+          addToast('Pagamento revertido para pendente!', 'success');
+          break;
+        case 'payroll':
+          await teacherPayrollService.revertToPending(revertAction.id);
+          addToast('Folha revertida para pendente!', 'success');
+          break;
+      }
+      setModal({ type: null });
+      setRevertAction(null);
+      loadData();
+    } catch (error) {
+      addToast('Erro ao reverter', 'error');
+    }
+  };
+
+  const handleCancelRevert = () => {
+    setModal({ type: null });
+    setRevertAction(null);
   };
 
   const handleOpenPaymentModal = (payment: StudentPayment) => {
@@ -523,7 +646,7 @@ export function FinancesDashboard() {
                           </td>
                           <td>
                             <div className={styles.actionButtons}>
-                              {expense.status !== 'PAGO' && (
+                              {expense.status !== 'PAGO' ? (
                                 <button
                                   className={styles.iconButton}
                                   onClick={() => handleMarkExpenseAsPaid(expense.id)}
@@ -531,13 +654,33 @@ export function FinancesDashboard() {
                                 >
                                   ✓
                                 </button>
+                              ) : (
+                                <button
+                                  className={`${styles.iconButton} ${styles.revert}`}
+                                  onClick={() =>
+                                    handleOpenRevertModal(
+                                      'expense',
+                                      expense.id,
+                                      expense.description,
+                                    )
+                                  }
+                                  title="Reverter para pendente"
+                                >
+                                  ↩️
+                                </button>
                               )}
-                              <button className={styles.iconButton} title="Editar">
+                              <button
+                                className={styles.iconButton}
+                                onClick={() => handleOpenEditExpenseModal(expense)}
+                                title="Editar"
+                              >
                                 ✏️
                               </button>
                               <button
                                 className={`${styles.iconButton} ${styles.delete}`}
-                                onClick={() => handleDeleteExpense(expense.id)}
+                                onClick={() =>
+                                  handleOpenDeleteModal(expense.id, expense.description)
+                                }
                                 title="Excluir"
                               >
                                 🗑️
@@ -645,12 +788,21 @@ export function FinancesDashboard() {
                             )}
                           </td>
                           <td style={{ textAlign: 'right' }}>
-                            {payment.status !== 'PAGO' && (
+                            {payment.status !== 'PAGO' ? (
                               <button
                                 className={styles.receiveBtn}
                                 onClick={() => handleOpenPaymentModal(payment)}
                               >
                                 Receber
+                              </button>
+                            ) : (
+                              <button
+                                className={styles.revertBtn}
+                                onClick={() =>
+                                  handleOpenRevertModal('payment', payment.id, payment.studentName)
+                                }
+                              >
+                                ↩️ Reverter
                               </button>
                             )}
                           </td>
@@ -699,9 +851,19 @@ export function FinancesDashboard() {
                             💵 Fechar Folha
                           </button>
                         ) : (
-                          <span className={`${styles.statusBadge} ${styles.concluido}`}>
-                            ✓ Concluído
-                          </span>
+                          <>
+                            <span className={`${styles.statusBadge} ${styles.concluido}`}>
+                              ✓ Concluído
+                            </span>
+                            <button
+                              className={styles.revertBtn}
+                              onClick={() =>
+                                handleOpenRevertModal('payroll', payroll.id, payroll.teacherName)
+                              }
+                            >
+                              ↩️ Reverter
+                            </button>
+                          </>
                         )}
                         <button
                           className={styles.expandBtn}
@@ -943,6 +1105,155 @@ export function FinancesDashboard() {
                 disabled={!selectedPaymentMethod}
               >
                 ✓ Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Expense Modal */}
+      {modal.type === 'editExpense' && (
+        <div className={styles.modalOverlay} onClick={() => setModal({ type: null })}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Editar Despesa</h2>
+              <button className={styles.closeModalBtn} onClick={() => setModal({ type: null })}>
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.formGroup}>
+                <label>Descrição *</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Conta de Luz"
+                  value={expenseForm.description}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Categoria *</label>
+                  <select
+                    value={expenseForm.category}
+                    onChange={(e) =>
+                      setExpenseForm({
+                        ...expenseForm,
+                        category: e.target.value as ExpenseCategory,
+                      })
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Valor (R$) *</label>
+                  <input
+                    type="text"
+                    placeholder="0,00"
+                    value={expenseForm.amount}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Data de Vencimento *</label>
+                <input
+                  type="date"
+                  value={expenseForm.dueDate}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, dueDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setModal({ type: null })}>
+                Cancelar
+              </button>
+              <button className={styles.confirmBtn} onClick={handleSaveExpense}>
+                💾 Salvar Alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Revert Modal */}
+      {modal.type === 'confirmRevert' && revertAction && (
+        <div className={styles.modalOverlay} onClick={handleCancelRevert}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Confirmar Reversão</h2>
+              <button className={styles.closeModalBtn} onClick={handleCancelRevert}>
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.confirmMessage}>
+                <div className={styles.revertIcon}>↩️</div>
+                <p>
+                  Você está prestes a reverter este item para <strong>pendente</strong>
+                </p>
+                <div className={styles.revertItemInfo}>
+                  <span className={styles.revertItemType}>
+                    {revertAction.type === 'expense' && '💰 Despesa'}
+                    {revertAction.type === 'payment' && '📚 Mensalidade'}
+                    {revertAction.type === 'payroll' && '👨‍🏫 Folha de Professor'}
+                  </span>
+                  <span className={styles.revertItemName}>{revertAction.description}</span>
+                </div>
+                <p className={styles.warningText}>
+                  ⚠️ Esta ação irá desfazer o registro de pagamento
+                </p>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={handleCancelRevert}>
+                Cancelar
+              </button>
+              <button className={styles.confirmRevertBtn} onClick={handleConfirmRevert}>
+                ↩️ Confirmar Reversão
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {modal.type === 'confirmDelete' && deleteAction && (
+        <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Excluir Despesa</h2>
+              <button className={styles.closeModalBtn} onClick={handleCancelDelete}>
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.confirmMessage}>
+                <div className={styles.deleteIcon}>🗑️</div>
+                <p>
+                  Você está prestes a <strong>excluir permanentemente</strong> esta despesa
+                </p>
+                <div className={styles.deleteItemInfo}>
+                  <span className={styles.deleteItemType}>💰 Despesa</span>
+                  <span className={styles.deleteItemName}>{deleteAction.description}</span>
+                </div>
+                <p className={styles.deleteWarningText}>⚠️ Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={handleCancelDelete}>
+                Cancelar
+              </button>
+              <button className={styles.confirmDeleteBtn} onClick={handleConfirmDelete}>
+                🗑️ Excluir Despesa
               </button>
             </div>
           </div>
