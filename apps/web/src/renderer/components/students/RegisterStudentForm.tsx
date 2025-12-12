@@ -110,7 +110,7 @@ export function RegisterStudentForm() {
       // Monta os dados completos do aluno com turma e valores
       const completeStudentData: StudentFormData = {
         ...formData,
-        class: selectedClass.nome,
+        class: selectedClass.id, // Salva o ID da turma para filtrar na frequência
         teacher: selectedClass.professor,
         monthlyFee: financialData.monthlyFee,
       };

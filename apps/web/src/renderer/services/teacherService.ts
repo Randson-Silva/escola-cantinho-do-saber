@@ -60,7 +60,7 @@ interface TeacherFromBackend {
   phone: string;
   taxId: string;
   pixKey: string;
-  status: 'ATIVO' | 'INATIVO';
+  status: string; // Backend pode retornar 'ACTIVE', 'INACTIVE', 'ATIVO', 'INATIVO'
   expertise?: string;
   qualifiedGrades: BackendGrade[];
   startDate: string;
@@ -81,6 +81,14 @@ export interface Teacher {
   status: TeacherStatus;
 }
 
+// Converte status do backend para frontend
+function convertStatus(status: string): TeacherStatus {
+  const upperStatus = status?.toUpperCase() || 'ATIVO';
+  if (upperStatus === 'ACTIVE' || upperStatus === 'ATIVO') return 'ATIVO';
+  if (upperStatus === 'INACTIVE' || upperStatus === 'INATIVO') return 'INATIVO';
+  return 'ATIVO';
+}
+
 // Converte do formato backend para frontend
 function fromBackend(t: TeacherFromBackend): Teacher {
   return {
@@ -92,7 +100,7 @@ function fromBackend(t: TeacherFromBackend): Teacher {
     competencias: t.qualifiedGrades.map((g) => BACKEND_TO_GRADE[g] || g),
     chavePix: t.pixKey,
     dataInicio: t.startDate,
-    status: t.status,
+    status: convertStatus(t.status),
   };
 }
 
