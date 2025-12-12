@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
-import { classService, type Class, type ClassShift } from '../../services/classService';
+import {
+  classService,
+  type Class,
+  type ClassShift,
+  type TimeSlot,
+} from '../../services/classService';
 import { teacherService, type Teacher } from '../../services/teacherService';
 import styles from './classes.module.css';
 
@@ -164,10 +169,20 @@ export function ClassesList() {
       return;
     }
 
+    // Obtém as competências do professor selecionado
+    let competencias: string[] = [];
+    if (newClassTeacherId) {
+      const teacher = teachers.find((t) => t.id === newClassTeacherId);
+      if (teacher) {
+        competencias = [...teacher.competencias];
+      }
+    }
+
     const payload = {
       name: newClassName,
       shift: newClassShift,
       teacherId: newClassTeacherId || null,
+      competencias,
     };
 
     setIsModalOpen(false);
@@ -190,11 +205,17 @@ export function ClassesList() {
     } else {
       // Create Mode
       const tempId = `temp-${Date.now()}`;
+      const scheduleForShift: TimeSlot =
+        newClassShift === 'MANHA'
+          ? { start: '08:00', end: '12:00' }
+          : { start: '13:00', end: '17:30' };
       const optimisticClass: Class = {
         id: tempId,
         ...payload,
         studentCount: 0,
         capacity: 12,
+        schedule: scheduleForShift,
+        studentSlots: [],
       };
 
       setClasses((prev) => [optimisticClass, ...prev]);
@@ -263,9 +284,26 @@ export function ClassesList() {
                   >
                     {turma.shift === 'MANHA' ? 'MANHÃ' : 'TARDE'}
                   </span>
+                  {turma.schedule && (
+                    <span className={styles.scheduleTime}>
+                      🕒 {turma.schedule.start} - {turma.schedule.end}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className={styles.cardTitle}>{turma.name}</h3>
+
+                {/* Competências / Séries atendidas */}
+                {turma.competencias && turma.competencias.length > 0 && (
+                  <div className={styles.competenciasRow}>
+                    {turma.competencias.map((comp) => (
+                      <span key={comp} className={styles.competenciaBadge}>
+                        {comp}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 <div className={styles.divider} />
 
                 <div className={styles.teacherSection}>
@@ -283,8 +321,22 @@ export function ClassesList() {
                     <UsersIcon />
                     <span>{turma.studentCount} Alunos</span>
                   </div>
-                  <span className={styles.capacity}>Capacidade: {turma.capacity}</span>
+                  <span className={styles.capacity}>Máx: 4/slot</span>
                 </div>
+
+                {/* Ocupação por horário */}
+                {turma.studentSlots && turma.studentSlots.length > 0 && (
+                  <div className={styles.slotsSection}>
+                    <span className={styles.slotsTitle}>Alunos por Horário</span>
+                    <div className={styles.slotsGrid}>
+                      {turma.studentSlots.map((slot, idx) => (
+                        <span key={idx} className={styles.slotItem}>
+                          {slot.studentName.split(' ')[0]} ({slot.start}-{slot.end})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <button className={styles.footerButton} onClick={() => openEditModal(turma)}>
                   Gerenciar / Trocar

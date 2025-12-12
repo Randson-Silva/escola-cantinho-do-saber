@@ -116,8 +116,9 @@
 .cardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 0.75rem;
+  gap: 0.5rem;
 }
 
 .badge {
@@ -127,6 +128,15 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.scheduleTime {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .badgeMorning {
@@ -158,7 +168,23 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: #111;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.75rem 0;
+}
+
+.competenciasRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.competenciaBadge {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background-color: #dcfce7;
+  color: #166534;
+  font-weight: 500;
 }
 
 .divider {
@@ -208,7 +234,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   font-size: 0.85rem;
   color: #4b5563;
 }
@@ -221,6 +247,51 @@
 
 .capacity {
   color: #6b7280;
+}
+
+/* Ocupação por horário */
+.slotsSection {
+  margin-bottom: 1rem;
+}
+
+.slotsTitle {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.slotsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.slotItem {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.slotItem.slotFull {
+  background-color: #fecaca;
+  color: #dc2626;
+}
+
+.slotItem.slotPartial {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.slotItem.slotAvailable {
+  background-color: #dcfce7;
+  color: #16a34a;
 }
 
 .footerButton {
