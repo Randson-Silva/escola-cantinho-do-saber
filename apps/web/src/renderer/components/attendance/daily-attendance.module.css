@@ -1,0 +1,601 @@
+.container {
+  padding: 1rem;
+  background-color: #eff6ff;
+  min-height: calc(100vh - 80px);
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 0.875rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.backButton:hover {
+  color: #1f2937;
+}
+
+.mainCard {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  color: white;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerIcon {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 1.5rem;
+}
+
+.className {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.headerSubtitle {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin: 0.25rem 0 0 0;
+}
+
+.statsContainer {
+  display: flex;
+  gap: 1rem;
+}
+
+.statBox {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.statLabel {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.statValue {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cardContent {
+  background: white;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.dateSelector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dateControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dateButton {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.dateButton:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.datePickerWrapper {
+  position: relative;
+}
+
+.dateDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dateDisplay:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+/* Calendário Popup */
+.calendarPopup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  z-index: 100;
+  min-width: 280px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendarTitle {
+  font-weight: 600;
+  color: #1f2937;
+  text-transform: capitalize;
+}
+
+.calendarNavBtn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.calendarNavBtn:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 0.25rem;
+}
+
+.calendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendarDay {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.calendarDay:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.emptyDay {
+  cursor: default;
+}
+
+.selectedDay {
+  background: #3b82f6 !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.today {
+  border: 2px solid #3b82f6;
+  font-weight: 600;
+}
+
+.calendarFooter {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.todayBtn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.todayBtn:hover {
+  background: #dbeafe;
+}
+
+.saveHint {
+  color: #f97316;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.studentsList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.studentRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s;
+}
+
+.studentRow:hover {
+  background: #f9fafb;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.studentName {
+  flex: 1;
+  font-weight: 500;
+  color: #1f2937;
+  min-width: 150px;
+}
+
+.statusButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.statusBtn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statusBtn:hover {
+  background: #f3f4f6;
+}
+
+.presentActive {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.partialActive {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.absentActive {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.observationInput {
+  width: 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.observationInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.observationInput::placeholder {
+  color: #9ca3af;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.studentsCount {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveButton:hover {
+  background: #2563eb;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.modalHeader h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+}
+
+.modalStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.modalStatRow {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.modalStatIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  margin-right: 0.75rem;
+}
+
+.modalStatIcon.yellow {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.modalStatIcon.red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.modalStatLabel {
+  flex: 1;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modalStatValue {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalCancelBtn:hover {
+  background: #f3f4f6;
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalConfirmBtn:hover {
+  background: #2563eb;
+}
+
+.modalConfirmBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cardHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .studentRow {
+    flex-wrap: wrap;
+  }
+
+  .statusButtons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .observationInput {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
