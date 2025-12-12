@@ -186,6 +186,42 @@ export const studentService = {
       throw new Error('Aluno não encontrado');
     }
 
+    const oldStudent = studentsDb[index];
+    const newStatus = data.status || oldStudent.status;
+    const oldClass = oldStudent.class;
+    const newClass = data.class || oldClass;
+
+    // Se o aluno foi inativado, remove dos slots da turma
+    if (newStatus === 'inactive' && oldStudent.status === 'active') {
+      const { classService } = await import('./classService');
+      try {
+        // Remove de todas as turmas (caso tenha mudado)
+        const allClasses = await classService.getAll();
+        for (const cls of allClasses) {
+          const hasStudent = cls.studentSlots?.some((s) => s.studentId === id);
+          if (hasStudent) {
+            await classService.removeStudentFromSlot(cls.id, id);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao remover aluno da turma:', error);
+      }
+    }
+
+    // Se mudou de turma, remove da antiga e permanece na nova
+    if (newClass !== oldClass && oldClass) {
+      const { classService } = await import('./classService');
+      try {
+        const allClasses = await classService.getAll();
+        const oldClassObj = allClasses.find((c) => c.id === oldClass || c.name === oldClass);
+        if (oldClassObj) {
+          await classService.removeStudentFromSlot(oldClassObj.id, id);
+        }
+      } catch (error) {
+        console.error('Erro ao remover aluno da turma antiga:', error);
+      }
+    }
+
     studentsDb[index] = {
       ...studentsDb[index],
       ...data,
@@ -211,6 +247,21 @@ export const studentService = {
     await delay(200);
 
     studentsDb = loadStudentsFromStorage();
+
+    // Remove o aluno de todas as turmas antes de deletar
+    const { classService } = await import('./classService');
+    try {
+      const allClasses = await classService.getAll();
+      for (const cls of allClasses) {
+        const hasStudent = cls.studentSlots?.some((s) => s.studentId === id);
+        if (hasStudent) {
+          await classService.removeStudentFromSlot(cls.id, id);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao remover aluno das turmas:', error);
+    }
+
     studentsDb = studentsDb.filter((s) => s.id !== id);
     saveStudentsToStorage(studentsDb);
   },

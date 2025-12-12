@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { useDebounce } from '../../hooks/useDebounce';
 import { studentService, type Student } from '../../services/studentService';
+import { classService, type Class } from '../../services/classService';
 import styles from './students.module.css';
 import detailsStyles from './student-details.module.css';
 
@@ -27,6 +28,7 @@ export function StudentsList() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +38,33 @@ export function StudentsList() {
 
   useEffect(() => {
     loadTotalCount();
+    loadClasses();
   }, []);
+
+  const loadClasses = async () => {
+    try {
+      const data = await classService.getAll();
+      setClasses(data);
+    } catch (error) {
+      console.error('Erro ao carregar turmas:', error);
+    }
+  };
+
+  // Retorna o nome da turma baseado no ID ou nome
+  const getClassName = (classIdOrName: string): string => {
+    if (!classIdOrName) return '-';
+
+    // Primeiro tenta encontrar por ID
+    const classById = classes.find((c) => c.id === classIdOrName);
+    if (classById) return classById.name;
+
+    // Se não encontrou por ID, pode ser o nome direto ou turma antiga
+    const classByName = classes.find((c) => c.name === classIdOrName);
+    if (classByName) return classByName.name;
+
+    // Retorna o valor original se não encontrar
+    return classIdOrName;
+  };
 
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
@@ -181,7 +209,7 @@ export function StudentsList() {
                     <td style={{ fontWeight: 500 }}>{student.name}</td>
                     <td>{formatDate(student.birthDate)}</td>
                     <td>{formatGrade(student.grade)}</td>
-                    <td>{student.class || '-'}</td>
+                    <td>{getClassName(student.class)}</td>
                     <td>{student.teacher || '-'}</td>
                     <td>{student.guardian?.name || '-'}</td>
                     <td>{student.guardian?.phone || '-'}</td>

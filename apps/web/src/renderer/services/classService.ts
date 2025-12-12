@@ -191,6 +191,10 @@ export const classService = {
   async getAll(): Promise<Class[]> {
     // Simula delay de rede
     await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Limpa slots de alunos que não existem mais
+    await this.cleanupOrphanedSlots();
+
     return readAll();
   },
 
@@ -337,6 +341,36 @@ export const classService = {
     }
 
     return cls;
+  },
+
+  // Limpa slots de alunos que não existem mais no sistema
+  async cleanupOrphanedSlots(): Promise<void> {
+    const { studentService } = await import('./studentService');
+    const allStudents = await studentService.getAll();
+    const validStudentIds = new Set(allStudents.map((s) => s.id));
+
+    const list = readAll();
+    let hasChanges = false;
+
+    for (const cls of list) {
+      if (cls.studentSlots && cls.studentSlots.length > 0) {
+        const originalLength = cls.studentSlots.length;
+        cls.studentSlots = cls.studentSlots.filter((slot) => validStudentIds.has(slot.studentId));
+        cls.studentCount = new Set(cls.studentSlots.map((s) => s.studentId)).size;
+
+        if (cls.studentSlots.length !== originalLength) {
+          hasChanges = true;
+          console.log(
+            `[classService] Removidos ${originalLength - cls.studentSlots.length} slots órfãos da turma "${cls.name}"`,
+          );
+        }
+      }
+    }
+
+    if (hasChanges) {
+      writeAll(list);
+      console.log('[classService] Slots órfãos removidos com sucesso');
+    }
   },
 
   // Constantes exportadas

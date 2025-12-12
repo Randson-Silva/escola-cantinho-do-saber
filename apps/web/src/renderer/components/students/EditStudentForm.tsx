@@ -2,14 +2,29 @@ import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { studentService, type Student, type StudentFormData } from '../../services/studentService';
+import { classService, type Class } from '../../services/classService';
 import { maskPhone } from '../../utils/masks';
 import styles from './students.module.css';
+
+// Mapeamento de grade do aluno para competência da turma
+const GRADE_TO_COMPETENCIA: Record<string, string> = {
+  'series-1-ano': '1º Ano',
+  'series-2-ano': '2º Ano',
+  'series-3-ano': '3º Ano',
+  'series-4-ano': '4º Ano',
+  'series-5-ano': '5º Ano',
+  'series-6-ano': '6º Ano',
+  'series-7-ano': '7º Ano',
+  'series-8-ano': '8º Ano',
+  'series-9-ano': '9º Ano',
+};
 
 export function EditStudentForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
   const [formData, setFormData] = useState<StudentFormData>({
     name: '',
     birthDate: '',
@@ -42,6 +57,7 @@ export function EditStudentForm() {
 
   useEffect(() => {
     loadStudent();
+    loadClasses();
   }, [id]);
 
   const loadStudent = async () => {
@@ -111,6 +127,25 @@ export function EditStudentForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadClasses = async () => {
+    try {
+      const classes = await classService.getAll();
+      setAvailableClasses(classes);
+    } catch (error) {
+      console.error('Erro ao carregar turmas:', error);
+    }
+  };
+
+  // Filtra turmas baseado na série do aluno
+  const getFilteredClasses = () => {
+    const competencia = GRADE_TO_COMPETENCIA[formData.grade];
+    if (!competencia) return availableClasses;
+
+    return availableClasses.filter(
+      (cls) => cls.competencias && cls.competencias.includes(competencia),
+    );
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -291,11 +326,16 @@ export function EditStudentForm() {
                   required
                 >
                   <option value="">Selecione uma turma</option>
-                  <option value="Turma A - Manhã">Turma A - Manhã</option>
-                  <option value="Turma B - Manhã">Turma B - Manhã</option>
-                  <option value="Turma C - Tarde">Turma C - Tarde</option>
-                  <option value="Turma D - Tarde">Turma D - Tarde</option>
-                  <option value="Turma E - Integral">Turma E - Integral</option>
+                  {getFilteredClasses().map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name} - {cls.shift === 'MANHA' ? 'Manhã' : 'Tarde'}
+                    </option>
+                  ))}
+                  {getFilteredClasses().length === 0 && (
+                    <option value="" disabled>
+                      Nenhuma turma disponível para esta série
+                    </option>
+                  )}
                 </select>
               </div>
 
@@ -456,7 +496,7 @@ export function EditStudentForm() {
 
               <div className={styles.formGroup}>
                 <label htmlFor="guardian.email" className={styles.label}>
-                  E-mail <span className={styles.required}>*</span>
+                  E-mail
                 </label>
                 <input
                   type="email"
@@ -465,7 +505,6 @@ export function EditStudentForm() {
                   value={formData.guardian.email}
                   onChange={handleInputChange}
                   className={styles.input}
-                  required
                 />
               </div>
             </div>

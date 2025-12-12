@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { studentService, type Student } from '../../services/studentService';
+import { classService, type Class } from '../../services/classService';
 import styles from './students.module.css';
 import detailsStyles from './student-details.module.css';
 
@@ -10,12 +11,39 @@ export function StudentDetails() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [student, setStudent] = useState<Student | null>(null);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     loadStudent();
+    loadClasses();
   }, [id]);
+
+  const loadClasses = async () => {
+    try {
+      const data = await classService.getAll();
+      setClasses(data);
+    } catch (error) {
+      console.error('Erro ao carregar turmas:', error);
+    }
+  };
+
+  // Retorna o nome da turma baseado no ID ou nome
+  const getClassName = (classIdOrName: string): string => {
+    if (!classIdOrName) return '-';
+
+    // Primeiro tenta encontrar por ID
+    const classById = classes.find((c) => c.id === classIdOrName);
+    if (classById) return classById.name;
+
+    // Se não encontrou por ID, pode ser o nome direto
+    const classByName = classes.find((c) => c.name === classIdOrName);
+    if (classByName) return classByName.name;
+
+    // Retorna o valor original se não encontrar
+    return classIdOrName;
+  };
 
   const loadStudent = async () => {
     setIsLoading(true);
@@ -149,7 +177,7 @@ export function StudentDetails() {
             <div className={styles.formGroup}>
               <label className={styles.label}>Turma</label>
               <div className={styles.input} style={{ background: '#f9fafb' }}>
-                {student.class}
+                {getClassName(student.class)}
               </div>
             </div>
             <div className={styles.formGroup}>
