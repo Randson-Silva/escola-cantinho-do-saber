@@ -790,10 +790,7 @@ export function FinancesDashboard() {
 
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <div className={styles.categoryHeader}>
-                    <label>Categoria</label>
-                    <button className={styles.addCategoryBtn}>+ Nova</button>
-                  </div>
+                  <label>Categoria</label>
                   <select
                     value={expenseForm.category}
                     onChange={(e) =>

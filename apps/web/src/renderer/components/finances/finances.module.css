@@ -1019,30 +1019,6 @@
   }
 }
 
-.categoryHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-sm);
-}
-
-.categoryHeader label {
-  margin-bottom: 0;
-}
-
-.addCategoryBtn {
-  font-size: var(--font-size-sm);
-  color: #1565c0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: var(--font-weight-medium);
-}
-
-.addCategoryBtn:hover {
-  text-decoration: underline;
-}
-
 .currencyInput {
   position: relative;
 }
