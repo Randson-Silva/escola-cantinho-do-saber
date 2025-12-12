@@ -102,7 +102,7 @@ export function StudentDetails() {
             Voltar
           </button>
           <button
-            onClick={() => navigate(`/dashboard/students/edit/${student.id}`)}
+            onClick={() => navigate(`/dashboard/students/${student.id}/edit`)}
             className={styles.saveBtn}
           >
             ✏️ Editar

@@ -13,10 +13,11 @@ export function EditStudentForm() {
   const [formData, setFormData] = useState<StudentFormData>({
     name: '',
     birthDate: '',
-    grade: '1',
+    grade: 'series-1-ano',
     schoolType: 'publica',
     class: '',
     teacher: '',
+    monthlyFee: 0,
     address: {
       street: '',
       number: '',
@@ -64,6 +65,7 @@ export function EditStudentForm() {
         schoolType: data.schoolType,
         class: data.class,
         teacher: data.teacher,
+        monthlyFee: data.monthlyFee || 0,
         address: data.address,
         guardian: data.guardian,
         status: data.status,
@@ -75,19 +77,31 @@ export function EditStudentForm() {
       const foundStudent = localStudents.find((s: Student) => s.id === id);
 
       if (foundStudent) {
-        const birthDateFormatted = foundStudent.birthDate.split('T')[0];
-        const enrollmentDateFormatted = foundStudent.enrollmentDate.split('T')[0];
+        const birthDateFormatted = foundStudent.birthDate?.split('T')[0] || '';
+        const enrollmentDateFormatted = foundStudent.enrollmentDate?.split('T')[0] || '';
 
         setFormData({
-          name: foundStudent.name,
+          name: foundStudent.name || '',
           birthDate: birthDateFormatted,
-          grade: foundStudent.grade,
-          schoolType: foundStudent.schoolType,
-          class: foundStudent.class,
-          teacher: foundStudent.teacher,
-          address: foundStudent.address,
-          guardian: foundStudent.guardian,
-          status: foundStudent.status,
+          grade: foundStudent.grade || 'series-1-ano',
+          schoolType: foundStudent.schoolType || 'publica',
+          class: foundStudent.class || '',
+          teacher: foundStudent.teacher || '',
+          monthlyFee: foundStudent.monthlyFee || 0,
+          address: foundStudent.address || {
+            street: '',
+            number: '',
+            complement: '',
+            neighborhood: '',
+          },
+          guardian: foundStudent.guardian || {
+            name: '',
+            relationship: '',
+            phone: '',
+            email: '',
+            address: { street: '', number: '', complement: '', neighborhood: '' },
+          },
+          status: foundStudent.status || 'active',
           enrollmentDate: enrollmentDateFormatted,
         });
       } else {

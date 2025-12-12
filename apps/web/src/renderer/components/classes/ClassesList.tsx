@@ -331,7 +331,7 @@ export function ClassesList() {
                     <div className={styles.slotsGrid}>
                       {turma.studentSlots.map((slot, idx) => (
                         <span key={idx} className={styles.slotItem}>
-                          {slot.studentName.split(' ')[0]} ({slot.start}-{slot.end})
+                          {(slot.studentName || 'Aluno').split(' ')[0]} ({slot.start}-{slot.end})
                         </span>
                       ))}
                     </div>

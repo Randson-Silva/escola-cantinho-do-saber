@@ -123,7 +123,7 @@ export function RegisterStudentForm() {
         await classService.addStudentToSlot(
           selectedClass.id,
           result.id,
-          result.name,
+          formData.name, // Usa o nome do formData
           selectedTimeSlot.start,
           selectedTimeSlot.end,
         );

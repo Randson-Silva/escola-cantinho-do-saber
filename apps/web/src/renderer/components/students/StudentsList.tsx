@@ -6,6 +6,23 @@ import { studentService, type Student } from '../../services/studentService';
 import styles from './students.module.css';
 import detailsStyles from './student-details.module.css';
 
+// Mapeamento de grade para exibição
+const GRADE_DISPLAY: Record<string, string> = {
+  'series-1-ano': '1º ano',
+  'series-2-ano': '2º ano',
+  'series-3-ano': '3º ano',
+  'series-4-ano': '4º ano',
+  'series-5-ano': '5º ano',
+  'series-6-ano': '6º ano',
+  'series-7-ano': '7º ano',
+  'series-8-ano': '8º ano',
+  'series-9-ano': '9º ano',
+};
+
+const formatGrade = (grade: string): string => {
+  return GRADE_DISPLAY[grade] || grade;
+};
+
 export function StudentsList() {
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -163,9 +180,9 @@ export function StudentsList() {
                   <tr key={student.id}>
                     <td style={{ fontWeight: 500 }}>{student.name}</td>
                     <td>{formatDate(student.birthDate)}</td>
-                    <td>{student.grade}º ano</td>
-                    <td>{student.class}</td>
-                    <td>{student.teacher}</td>
+                    <td>{formatGrade(student.grade)}</td>
+                    <td>{student.class || '-'}</td>
+                    <td>{student.teacher || '-'}</td>
                     <td>{student.guardian?.name || '-'}</td>
                     <td>{student.guardian?.phone || '-'}</td>
                     <td>

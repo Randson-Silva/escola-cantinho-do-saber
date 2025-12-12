@@ -70,158 +70,30 @@ export interface StudentFormData {
 }
 
 // ============================================================================
-// MOCK DATA
+// STORAGE - Apenas dados criados pelo usuário
 // ============================================================================
 
-const MOCK_STUDENTS: Student[] = [
-  {
-    id: 'mock-1',
-    name: 'João Pedro Silva',
-    birthDate: '2015-03-15',
-    grade: 'series-3-ano',
-    class: 'Turma A - Manhã',
-    schoolType: 'publica',
-    teacher: 'Prof. Maria Santos',
-    monthlyFee: 350,
-    address: {
-      street: 'Rua das Flores',
-      number: '123',
-      complement: 'Apto 101',
-      neighborhood: 'Centro',
-    },
-    guardian: {
-      name: 'Carlos Silva',
-      relationship: 'Pai',
-      phone: '(11) 99999-0001',
-      email: 'carlos.silva@email.com',
-      address: {
-        street: 'Rua das Flores',
-        number: '123',
-        complement: 'Apto 101',
-        neighborhood: 'Centro',
-      },
-    },
-    enrollmentDate: '2024-02-01',
-    status: 'active',
-  },
-  {
-    id: 'mock-2',
-    name: 'Maria Eduarda Costa',
-    birthDate: '2016-07-22',
-    grade: 'series-2-ano',
-    class: 'Turma B - Tarde',
-    schoolType: 'particular',
-    teacher: 'Prof. Ana Paula',
-    monthlyFee: 400,
-    address: {
-      street: 'Av. Principal',
-      number: '456',
-      neighborhood: 'Jardim América',
-    },
-    guardian: {
-      name: 'Fernanda Costa',
-      relationship: 'Mãe',
-      phone: '(11) 99999-0002',
-      email: 'fernanda.costa@email.com',
-      address: {
-        street: 'Av. Principal',
-        number: '456',
-        neighborhood: 'Jardim América',
-      },
-    },
-    enrollmentDate: '2024-01-15',
-    status: 'active',
-  },
-  {
-    id: 'mock-3',
-    name: 'Lucas Oliveira Santos',
-    birthDate: '2014-11-08',
-    grade: 'series-4-ano',
-    class: 'Turma A - Manhã',
-    schoolType: 'publica',
-    teacher: 'Prof. Roberto Lima',
-    monthlyFee: 350,
-    address: {
-      street: 'Rua São Paulo',
-      number: '789',
-      neighborhood: 'Vila Nova',
-    },
-    guardian: {
-      name: 'Patricia Oliveira',
-      relationship: 'Mãe',
-      phone: '(11) 99999-0003',
-      email: 'patricia.oliveira@email.com',
-      address: {
-        street: 'Rua São Paulo',
-        number: '789',
-        neighborhood: 'Vila Nova',
-      },
-    },
-    enrollmentDate: '2023-08-10',
-    status: 'active',
-  },
-  {
-    id: 'mock-4',
-    name: 'Ana Beatriz Ferreira',
-    birthDate: '2017-01-30',
-    grade: 'series-1-ano',
-    class: 'Turma C - Tarde',
-    schoolType: 'particular',
-    teacher: 'Prof. Juliana Mendes',
-    monthlyFee: 450,
-    address: {
-      street: 'Rua dos Ipês',
-      number: '321',
-      complement: 'Casa 2',
-      neighborhood: 'Parque das Árvores',
-    },
-    guardian: {
-      name: 'Ricardo Ferreira',
-      relationship: 'Pai',
-      phone: '(11) 99999-0004',
-      email: 'ricardo.ferreira@email.com',
-      address: {
-        street: 'Rua dos Ipês',
-        number: '321',
-        complement: 'Casa 2',
-        neighborhood: 'Parque das Árvores',
-      },
-    },
-    enrollmentDate: '2024-03-01',
-    status: 'active',
-  },
-  {
-    id: 'mock-5',
-    name: 'Gabriel Henrique Souza',
-    birthDate: '2015-09-12',
-    grade: 'series-3-ano',
-    class: 'Turma B - Manhã',
-    schoolType: 'publica',
-    teacher: 'Prof. Maria Santos',
-    monthlyFee: 350,
-    address: {
-      street: 'Av. Brasil',
-      number: '1000',
-      neighborhood: 'Centro',
-    },
-    guardian: {
-      name: 'Luciana Souza',
-      relationship: 'Mãe',
-      phone: '(11) 99999-0005',
-      email: 'luciana.souza@email.com',
-      address: {
-        street: 'Av. Brasil',
-        number: '1000',
-        neighborhood: 'Centro',
-      },
-    },
-    enrollmentDate: '2023-02-20',
-    status: 'inactive',
-  },
-];
+// Inicializa do localStorage (sem dados mock)
+function loadStudentsFromStorage(): Student[] {
+  try {
+    const stored = localStorage.getItem('students');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Filtra alunos mockados antigos (IDs que começam com 'mock-' de 1 a 9)
+      return parsed.filter((s: Student) => !s.id.match(/^mock-[1-9]$/));
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
 
-// Simula um "banco de dados" em memória
-let mockStudentsDb = [...MOCK_STUDENTS];
+function saveStudentsToStorage(students: Student[]): void {
+  localStorage.setItem('students', JSON.stringify(students));
+}
+
+// Banco de dados em memória (inicializa do localStorage)
+let studentsDb: Student[] = loadStudentsFromStorage();
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -229,16 +101,16 @@ let mockStudentsDb = [...MOCK_STUDENTS];
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const generateId = () => `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `student-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // ============================================================================
-// SERVICE (MOCK)
+// SERVICE
 // ============================================================================
 
 export const studentService = {
   // 1. CRIAR ALUNO
   async createStudent(data: StudentFormData): Promise<{ id: string }> {
-    await delay(300); // Simula latência de rede
+    await delay(300);
 
     const newStudent: Student = {
       id: generateId(),
@@ -271,42 +143,33 @@ export const studentService = {
       status: 'active',
     };
 
-    mockStudentsDb.unshift(newStudent);
-
-    // Também salva no localStorage para persistência
-    localStorage.setItem('students', JSON.stringify(mockStudentsDb));
+    studentsDb.unshift(newStudent);
+    saveStudentsToStorage(studentsDb);
 
     return { id: newStudent.id };
   },
 
-  // 2. BUSCAR POR NOME (Substitui o ListStudents)
+  // 2. BUSCAR POR NOME
   async searchStudentsByName(studentName: string): Promise<Student[]> {
     await delay(200);
 
-    // Tenta carregar do localStorage primeiro
-    const stored = localStorage.getItem('students');
-    if (stored) {
-      mockStudentsDb = JSON.parse(stored);
-    }
+    // Recarrega do localStorage
+    studentsDb = loadStudentsFromStorage();
 
     if (!studentName || studentName.trim() === '') {
-      return mockStudentsDb;
+      return studentsDb;
     }
 
-    return mockStudentsDb.filter((s) => s.name.toLowerCase().includes(studentName.toLowerCase()));
+    return studentsDb.filter((s) => s.name.toLowerCase().includes(studentName.toLowerCase()));
   },
 
-  // 3. BUSCAR POR ID (Para edição/detalhes)
+  // 3. BUSCAR POR ID
   async getStudentById(id: string): Promise<Student> {
     await delay(150);
 
-    // Tenta carregar do localStorage primeiro
-    const stored = localStorage.getItem('students');
-    if (stored) {
-      mockStudentsDb = JSON.parse(stored);
-    }
+    studentsDb = loadStudentsFromStorage();
 
-    const student = mockStudentsDb.find((s) => s.id === id);
+    const student = studentsDb.find((s) => s.id === id);
     if (!student) {
       throw new Error('Aluno não encontrado');
     }
@@ -317,52 +180,50 @@ export const studentService = {
   async updateStudent(id: string, data: Partial<StudentFormData>): Promise<void> {
     await delay(300);
 
-    const index = mockStudentsDb.findIndex((s) => s.id === id);
+    studentsDb = loadStudentsFromStorage();
+    const index = studentsDb.findIndex((s) => s.id === id);
     if (index === -1) {
       throw new Error('Aluno não encontrado');
     }
 
-    mockStudentsDb[index] = {
-      ...mockStudentsDb[index],
+    studentsDb[index] = {
+      ...studentsDb[index],
       ...data,
       address: data.address
-        ? { ...mockStudentsDb[index].address, ...data.address }
-        : mockStudentsDb[index].address,
+        ? { ...studentsDb[index].address, ...data.address }
+        : studentsDb[index].address,
       guardian: data.guardian
         ? {
-            ...mockStudentsDb[index].guardian,
+            ...studentsDb[index].guardian,
             ...data.guardian,
             address: data.guardian.address
-              ? { ...mockStudentsDb[index].guardian.address, ...data.guardian.address }
-              : mockStudentsDb[index].guardian.address,
+              ? { ...studentsDb[index].guardian.address, ...data.guardian.address }
+              : studentsDb[index].guardian.address,
           }
-        : mockStudentsDb[index].guardian,
+        : studentsDb[index].guardian,
     };
 
-    localStorage.setItem('students', JSON.stringify(mockStudentsDb));
+    saveStudentsToStorage(studentsDb);
   },
 
   // 5. DELETAR ALUNO
   async deleteStudent(id: string): Promise<void> {
     await delay(200);
 
-    mockStudentsDb = mockStudentsDb.filter((s) => s.id !== id);
-    localStorage.setItem('students', JSON.stringify(mockStudentsDb));
+    studentsDb = loadStudentsFromStorage();
+    studentsDb = studentsDb.filter((s) => s.id !== id);
+    saveStudentsToStorage(studentsDb);
   },
 
-  // 6. COUNT (Relatórios)
+  // 6. COUNT
   async getStudentsCount(): Promise<number> {
     await delay(100);
 
-    const stored = localStorage.getItem('students');
-    if (stored) {
-      mockStudentsDb = JSON.parse(stored);
-    }
-
-    return mockStudentsDb.length;
+    studentsDb = loadStudentsFromStorage();
+    return studentsDb.length;
   },
 
-  // 7. LISTAR TODOS (Novo método auxiliar)
+  // 7. LISTAR TODOS
   async getAll(): Promise<Student[]> {
     return this.searchStudentsByName('');
   },
