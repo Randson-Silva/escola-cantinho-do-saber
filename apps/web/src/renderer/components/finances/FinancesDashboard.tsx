@@ -12,6 +12,13 @@ import {
   type ExpenseCategory,
   type PaymentMethod,
 } from '../../services/financeService';
+import {
+  dashboardFinanceService,
+  type DashboardFinanceSummary,
+  type MonthlyFeeSummary,
+  type TeacherPaymentSummary,
+  type PaymentMethod as DashboardPaymentMethod,
+} from '../../services/dashboardFinanceService';
 import styles from './finances.module.css';
 
 // ============================================
@@ -40,6 +47,21 @@ function getCurrentMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// Gera lista de meses (6 meses anteriores + mês atual + 6 meses futuros)
+function generateMonthOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = [];
+  const now = new Date();
+
+  for (let i = -6; i <= 6; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+  }
+
+  return options;
+}
+
 // ============================================
 // TYPES
 // ============================================
@@ -52,15 +74,23 @@ type ModalType =
   | 'editExpense'
   | 'confirmRevert'
   | 'confirmDelete'
+  | 'realStudentPayment'
+  | 'realTeacherPayment'
   | null;
 
 interface ModalData {
   type: ModalType;
-  data?: StudentPayment | TeacherPayroll | Expense | null;
+  data?:
+    | StudentPayment
+    | TeacherPayroll
+    | Expense
+    | MonthlyFeeSummary
+    | TeacherPaymentSummary
+    | null;
 }
 
 interface RevertAction {
-  type: 'expense' | 'payment' | 'payroll';
+  type: 'expense' | 'payment' | 'payroll' | 'realStudent' | 'realTeacher';
   id: string;
   description: string;
 }
@@ -79,8 +109,10 @@ export function FinancesDashboard() {
 
   // State
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [activeTab, setActiveTab] = useState<TabType>('despesas');
   const [isLoading, setIsLoading] = useState(true);
+  const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   // Data states
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
@@ -88,6 +120,13 @@ export function FinancesDashboard() {
   const [payments, setPayments] = useState<StudentPayment[]>([]);
   const [payrolls, setPayrolls] = useState<TeacherPayroll[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+
+  // Dados reais de alunos e professores
+  const [realFinanceSummary, setRealFinanceSummary] = useState<DashboardFinanceSummary | null>(
+    null,
+  );
+  const [realStudentPayments, setRealStudentPayments] = useState<MonthlyFeeSummary[]>([]);
+  const [realTeacherPayments, setRealTeacherPayments] = useState<TeacherPaymentSummary[]>([]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,29 +157,126 @@ export function FinancesDashboard() {
 
   useEffect(() => {
     loadData();
-  }, [currentMonth]);
+  }, [currentMonth, selectedMonth]);
 
   const loadData = async () => {
+    // Usa selectedMonth se disponível, senão currentMonth
+    const targetMonth = selectedMonth || currentMonth;
+
     setIsLoading(true);
     try {
-      const [summaryData, expensesData, paymentsData, payrollsData, categoriesData] =
-        await Promise.all([
-          financeSummaryService.getSummary(currentMonth),
-          expenseService.getByMonth(currentMonth),
-          studentPaymentService.getByMonth(currentMonth),
-          teacherPayrollService.getByMonth(currentMonth),
-          expenseService.getCategories(),
-        ]);
+      const [
+        summaryData,
+        expensesData,
+        paymentsData,
+        payrollsData,
+        categoriesData,
+        realFinanceData,
+      ] = await Promise.all([
+        financeSummaryService.getSummary(targetMonth),
+        expenseService.getByMonth(targetMonth),
+        studentPaymentService.getByMonth(targetMonth),
+        teacherPayrollService.getByMonth(targetMonth),
+        expenseService.getCategories(),
+        dashboardFinanceService.getFinanceSummary(targetMonth),
+      ]);
 
       setSummary(summaryData);
       setExpenses(expensesData);
       setPayments(paymentsData);
       setPayrolls(payrollsData);
       setCategories(categoriesData);
+
+      // Dados reais de alunos e professores
+      setRealFinanceSummary(realFinanceData);
+      setRealStudentPayments(realFinanceData.studentPayments);
+      setRealTeacherPayments(realFinanceData.teacherPayments);
     } catch (error) {
       addToast('Erro ao carregar dados financeiros', 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // ============================================
+  // HANDLERS PARA DADOS REAIS
+  // ============================================
+
+  const getTargetMonth = () => selectedMonth || currentMonth;
+
+  // Abre modal para receber mensalidade de aluno
+  const handleOpenRealStudentPaymentModal = (payment: MonthlyFeeSummary) => {
+    setSelectedPaymentMethod(null);
+    setModal({ type: 'realStudentPayment', data: payment });
+  };
+
+  // Confirma recebimento de mensalidade de aluno
+  const handleConfirmRealStudentPayment = async () => {
+    if (!modal.data || !selectedPaymentMethod) {
+      addToast('Selecione a forma de pagamento', 'error');
+      return;
+    }
+
+    try {
+      const payment = modal.data as MonthlyFeeSummary;
+      await dashboardFinanceService.markStudentPaymentAsPaid(
+        payment.studentId,
+        getTargetMonth(),
+        selectedPaymentMethod as DashboardPaymentMethod,
+      );
+      addToast('Mensalidade recebida com sucesso!', 'success');
+      setModal({ type: null });
+      loadData();
+    } catch (error) {
+      addToast('Erro ao receber mensalidade', 'error');
+    }
+  };
+
+  const handleMarkRealStudentPending = async (studentId: string) => {
+    try {
+      await dashboardFinanceService.markStudentPaymentAsPending(studentId, getTargetMonth());
+      addToast('Pagamento revertido para pendente!', 'success');
+      loadData();
+    } catch (error) {
+      addToast('Erro ao reverter pagamento', 'error');
+    }
+  };
+
+  // Abre modal para pagar professor
+  const handleOpenRealTeacherPaymentModal = (payment: TeacherPaymentSummary) => {
+    setSelectedPaymentMethod(null);
+    setModal({ type: 'realTeacherPayment', data: payment });
+  };
+
+  // Confirma pagamento de professor
+  const handleConfirmRealTeacherPayment = async () => {
+    if (!modal.data || !selectedPaymentMethod) {
+      addToast('Selecione a forma de pagamento', 'error');
+      return;
+    }
+
+    try {
+      const payment = modal.data as TeacherPaymentSummary;
+      await dashboardFinanceService.markTeacherPaymentAsPaid(
+        payment.teacherId,
+        getTargetMonth(),
+        selectedPaymentMethod as DashboardPaymentMethod,
+      );
+      addToast('Pagamento do professor realizado com sucesso!', 'success');
+      setModal({ type: null });
+      loadData();
+    } catch (error) {
+      addToast('Erro ao pagar professor', 'error');
+    }
+  };
+
+  const handleMarkRealTeacherPending = async (teacherId: string) => {
+    try {
+      await dashboardFinanceService.markTeacherPaymentAsPending(teacherId, getTargetMonth());
+      addToast('Folha revertida para pendente!', 'success');
+      loadData();
+    } catch (error) {
+      addToast('Erro ao reverter folha', 'error');
     }
   };
 
@@ -288,7 +424,7 @@ export function FinancesDashboard() {
   };
 
   const handleOpenRevertModal = (
-    type: 'expense' | 'payment' | 'payroll',
+    type: 'expense' | 'payment' | 'payroll' | 'realStudent' | 'realTeacher',
     id: string,
     description: string,
   ) => {
@@ -312,6 +448,20 @@ export function FinancesDashboard() {
         case 'payroll':
           await teacherPayrollService.revertToPending(revertAction.id);
           addToast('Folha revertida para pendente!', 'success');
+          break;
+        case 'realStudent':
+          await dashboardFinanceService.markStudentPaymentAsPending(
+            revertAction.id,
+            getTargetMonth(),
+          );
+          addToast('Mensalidade revertida para pendente!', 'success');
+          break;
+        case 'realTeacher':
+          await dashboardFinanceService.markTeacherPaymentAsPending(
+            revertAction.id,
+            getTargetMonth(),
+          );
+          addToast('Pagamento do professor revertido para pendente!', 'success');
           break;
       }
       setModal({ type: null });
@@ -445,8 +595,27 @@ export function FinancesDashboard() {
         </div>
         <div className={styles.monthSelector}>
           <span>📅</span>
-          <span style={{ textTransform: 'capitalize' }}>{getMonthName(currentMonth)}</span>
-          <span>▼</span>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              backgroundColor: '#fff',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              textTransform: 'capitalize',
+              minWidth: '180px',
+            }}
+          >
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -708,7 +877,7 @@ export function FinancesDashboard() {
             </>
           )}
 
-          {/* Mensalidades Tab */}
+          {/* Mensalidades Tab - Dados Reais dos Alunos */}
           {activeTab === 'mensalidades' && (
             <>
               <div className={styles.tableHeader}>
@@ -737,26 +906,26 @@ export function FinancesDashboard() {
 
               {isLoading ? (
                 <div className={styles.loadingState}>Carregando...</div>
-              ) : payments.length === 0 ? (
+              ) : realStudentPayments.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>💳</div>
                   <h3>Nenhuma mensalidade encontrada</h3>
-                  <p>Não há mensalidades registradas para este mês</p>
+                  <p>Não há alunos matriculados para este mês</p>
                 </div>
               ) : (
                 <table className={styles.table}>
                   <thead>
                     <tr>
                       <th>Aluno</th>
-                      <th>Vencimento</th>
+                      <th>Turma</th>
+                      <th>Professor</th>
                       <th>Valor</th>
                       <th>Status</th>
-                      <th>Pagamento</th>
                       <th style={{ textAlign: 'right' }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {payments
+                    {realStudentPayments
                       .filter((p) => {
                         const matchesSearch = p.studentName
                           .toLowerCase()
@@ -765,45 +934,56 @@ export function FinancesDashboard() {
                         return matchesSearch && matchesStatus;
                       })
                       .map((payment) => (
-                        <tr key={payment.id}>
+                        <tr key={payment.studentId}>
                           <td style={{ fontWeight: 500 }}>{payment.studentName}</td>
-                          <td>📅 {formatDate(payment.dueDate)}</td>
+                          <td>{payment.className}</td>
+                          <td>{payment.teacherName}</td>
                           <td className={payment.status === 'PAGO' ? styles.amountPositive : ''}>
-                            {formatCurrency(payment.amount)}
+                            {formatCurrency(payment.monthlyFee)}
                           </td>
                           <td>
                             <span
-                              className={`${styles.statusBadge} ${getStatusClass(payment.status)}`}
+                              className={`${styles.statusBadge} ${
+                                payment.status === 'PAGO'
+                                  ? styles.pago
+                                  : payment.status === 'ATRASADO'
+                                    ? styles.atrasado
+                                    : styles.pendente
+                              }`}
                             >
                               {payment.status === 'PAGO' && '✓'} {payment.status}
                             </span>
-                          </td>
-                          <td>
-                            {payment.paymentMethod ? (
-                              <span className={styles.paymentMethodBadge}>
-                                ✓ {getPaymentMethodLabel(payment.paymentMethod)}
-                              </span>
-                            ) : (
-                              '-'
-                            )}
                           </td>
                           <td style={{ textAlign: 'right' }}>
                             {payment.status !== 'PAGO' ? (
                               <button
                                 className={styles.receiveBtn}
-                                onClick={() => handleOpenPaymentModal(payment)}
+                                onClick={() => handleOpenRealStudentPaymentModal(payment)}
                               >
-                                Receber
+                                💵 Receber
                               </button>
                             ) : (
-                              <button
-                                className={styles.revertBtn}
-                                onClick={() =>
-                                  handleOpenRevertModal('payment', payment.id, payment.studentName)
-                                }
-                              >
-                                ↩️ Reverter
-                              </button>
+                              <div className={styles.paidActions}>
+                                {payment.paymentMethod && (
+                                  <span className={styles.paymentMethodBadge}>
+                                    {payment.paymentMethod === 'PIX' && '💳 PIX'}
+                                    {payment.paymentMethod === 'DINHEIRO' && '💵 Dinheiro'}
+                                    {payment.paymentMethod === 'MISTO' && '💰 Misto'}
+                                  </span>
+                                )}
+                                <button
+                                  className={styles.revertBtn}
+                                  onClick={() =>
+                                    handleOpenRevertModal(
+                                      'realStudent',
+                                      payment.studentId,
+                                      payment.studentName,
+                                    )
+                                  }
+                                >
+                                  ↩️ Reverter
+                                </button>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -811,116 +991,151 @@ export function FinancesDashboard() {
                   </tbody>
                 </table>
               )}
+              {/* Resumo das mensalidades */}
+              {realStudentPayments.length > 0 && (
+                <div className={styles.tableSummary}>
+                  <div className={styles.summaryItem}>
+                    <label>Total Recebido:</label>
+                    <span className={styles.paid}>
+                      {formatCurrency(realFinanceSummary?.paidMonthlyFees || 0)}
+                    </span>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <label>Total Pendente:</label>
+                    <span className={styles.pending}>
+                      {formatCurrency(
+                        (realFinanceSummary?.pendingMonthlyFees || 0) +
+                          (realFinanceSummary?.overdueMonthlyFees || 0),
+                      )}
+                    </span>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <label>Total Esperado:</label>
+                    <span>{formatCurrency(realFinanceSummary?.totalMonthlyFees || 0)}</span>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
-          {/* Folha de Professores Tab */}
+          {/* Folha de Professores Tab - Dados Reais */}
           {activeTab === 'folha' && (
             <div className={styles.payrollList}>
               {isLoading ? (
                 <div className={styles.loadingState}>Carregando...</div>
-              ) : payrolls.length === 0 ? (
+              ) : realTeacherPayments.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>👨‍🏫</div>
-                  <h3>Nenhuma folha encontrada</h3>
-                  <p>Não há folhas de pagamento para este mês</p>
+                  <h3>Nenhum professor encontrado</h3>
+                  <p>Não há professores com alunos ativos para este mês</p>
                 </div>
               ) : (
-                payrolls.map((payroll) => (
-                  <div key={payroll.id} className={styles.payrollCard}>
-                    <div className={styles.payrollHeader}>
-                      <div className={styles.teacherInfo}>
-                        <div className={styles.teacherAvatar}>👤</div>
-                        <div className={styles.teacherDetails}>
-                          <h3>{payroll.teacherName}</h3>
-                          <p>
-                            {payroll.shift} · {payroll.activeStudents} alunos ativos
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.payrollAmount}>
-                        <label>A PAGAR ({(payroll.participationRate * 100).toFixed(0)}%)</label>
-                        <span>{formatCurrency(payroll.amountToPay)}</span>
-                      </div>
-                      <div className={styles.payrollActions}>
-                        {payroll.status === 'PENDENTE' ? (
-                          <button
-                            className={styles.closePayrollBtn}
-                            onClick={() => handleOpenPayrollModal(payroll)}
-                          >
-                            💵 Fechar Folha
-                          </button>
-                        ) : (
-                          <>
-                            <span className={`${styles.statusBadge} ${styles.concluido}`}>
-                              ✓ Concluído
-                            </span>
-                            <button
-                              className={styles.revertBtn}
-                              onClick={() =>
-                                handleOpenRevertModal('payroll', payroll.id, payroll.teacherName)
-                              }
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Professor</th>
+                      <th>Alunos</th>
+                      <th>Receita Total</th>
+                      <th>A Pagar (50%)</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {realTeacherPayments.map((payment) => (
+                      <tr key={payment.teacherId}>
+                        <td style={{ fontWeight: 500 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                backgroundColor: '#e3f2fd',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
                             >
-                              ↩️ Reverter
-                            </button>
-                          </>
-                        )}
-                        <button
-                          className={styles.expandBtn}
-                          onClick={() => togglePayrollExpanded(payroll.id)}
+                              👤
+                            </span>
+                            {payment.teacherName}
+                          </div>
+                        </td>
+                        <td>{payment.totalStudents} alunos</td>
+                        <td>{formatCurrency(payment.totalRevenue)}</td>
+                        <td
+                          className={payment.status === 'PAGO' ? styles.amountPositive : ''}
+                          style={{ fontWeight: 600 }}
                         >
-                          {expandedPayrolls.has(payroll.id) ? '▲' : '▼'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {expandedPayrolls.has(payroll.id) && (
-                      <div className={styles.payrollDetails}>
-                        <div className={styles.auditSection}>
-                          <h4>📋 AUDITORIA DA REMUNERAÇÃO</h4>
-                          <div className={styles.auditRow}>
-                            <label>Total de Contratos Ativos:</label>
-                            <span>{formatCurrency(payroll.totalContracts)}</span>
-                          </div>
-                          <div className={styles.auditRow}>
-                            <label>Regras de Participação:</label>
-                            <span>{(payroll.participationRate * 100).toFixed(0)}%</span>
-                          </div>
-                          <div className={`${styles.auditRow} ${styles.highlight}`}>
-                            <label>Valor Final a Pagar:</label>
-                            <span className={styles.primary}>
-                              {formatCurrency(payroll.amountToPay)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className={styles.auditSection}>
-                          <h4>📋 AUDITORIA DA REMUNERAÇÃO</h4>
-                          <div className={styles.auditRow}>
-                            <label>Receita Realizada (Baixas):</label>
-                            <span className={styles.positive}>
-                              +{formatCurrency(payroll.realizedRevenue)}
-                            </span>
-                          </div>
-                          <div className={styles.auditRow}>
-                            <label>Pagamento ao Professor:</label>
-                            <span className={styles.negative}>
-                              -{formatCurrency(payroll.amountToPay)}
-                            </span>
-                          </div>
-                          <div className={`${styles.auditRow} ${styles.highlight}`}>
-                            <label>Diferença (Custo Extra):</label>
-                            <span>
-                              {formatCurrency(
-                                payroll.realizedRevenue - payroll.amountToPay - payroll.amountToPay,
+                          {formatCurrency(payment.amountToPay)}
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.statusBadge} ${
+                              payment.status === 'PAGO' ? styles.pago : styles.pendente
+                            }`}
+                          >
+                            {payment.status === 'PAGO' && '✓'} {payment.status}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {payment.status !== 'PAGO' ? (
+                            <button
+                              className={styles.closePayrollBtn}
+                              onClick={() => handleOpenRealTeacherPaymentModal(payment)}
+                            >
+                              💵 Pagar
+                            </button>
+                          ) : (
+                            <div className={styles.paidActions}>
+                              {payment.paymentMethod && (
+                                <span className={styles.paymentMethodBadge}>
+                                  {payment.paymentMethod === 'PIX' && '💳 PIX'}
+                                  {payment.paymentMethod === 'DINHEIRO' && '💵 Dinheiro'}
+                                  {payment.paymentMethod === 'MISTO' && '💰 Misto'}
+                                </span>
                               )}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                              <button
+                                className={styles.revertBtn}
+                                onClick={() =>
+                                  handleOpenRevertModal(
+                                    'realTeacher',
+                                    payment.teacherId,
+                                    payment.teacherName,
+                                  )
+                                }
+                              >
+                                ↩️ Reverter
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {/* Resumo da folha de professores */}
+              {realTeacherPayments.length > 0 && (
+                <div className={styles.tableSummary}>
+                  <div className={styles.summaryItem}>
+                    <label>Total Pago:</label>
+                    <span className={styles.paid}>
+                      {formatCurrency(realFinanceSummary?.paidTeacherPayments || 0)}
+                    </span>
                   </div>
-                ))
+                  <div className={styles.summaryItem}>
+                    <label>Total Pendente:</label>
+                    <span className={styles.pending}>
+                      {formatCurrency(realFinanceSummary?.pendingTeacherPayments || 0)}
+                    </span>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <label>Total a Pagar:</label>
+                    <span>{formatCurrency(realFinanceSummary?.totalTeacherPayments || 0)}</span>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1205,6 +1420,8 @@ export function FinancesDashboard() {
                     {revertAction.type === 'expense' && '💰 Despesa'}
                     {revertAction.type === 'payment' && '📚 Mensalidade'}
                     {revertAction.type === 'payroll' && '👨‍🏫 Folha de Professor'}
+                    {revertAction.type === 'realStudent' && '📚 Mensalidade do Aluno'}
+                    {revertAction.type === 'realTeacher' && '👨‍🏫 Pagamento do Professor'}
                   </span>
                   <span className={styles.revertItemName}>{revertAction.description}</span>
                 </div>
@@ -1254,6 +1471,164 @@ export function FinancesDashboard() {
               </button>
               <button className={styles.confirmDeleteBtn} onClick={handleConfirmDelete}>
                 🗑️ Excluir Despesa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Receber Mensalidade de Aluno (Real) */}
+      {modal.type === 'realStudentPayment' && modal.data && (
+        <div className={styles.modalOverlay} onClick={() => setModal({ type: null })}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>💵 Receber Mensalidade</h2>
+                <p>Aluno: {(modal.data as MonthlyFeeSummary).studentName}</p>
+              </div>
+              <button className={styles.closeModalBtn} onClick={() => setModal({ type: null })}>
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.paymentSummary}>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Turma</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {(modal.data as MonthlyFeeSummary).className}
+                  </span>
+                </div>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Professor(a)</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {(modal.data as MonthlyFeeSummary).teacherName}
+                  </span>
+                </div>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Vencimento</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {formatDate((modal.data as MonthlyFeeSummary).dueDate)}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.modalAmount}>
+                <label>VALOR A RECEBER</label>
+                <span className={styles.amountPositive}>
+                  {formatCurrency((modal.data as MonthlyFeeSummary).monthlyFee)}
+                </span>
+              </div>
+
+              <div className={styles.paymentMethods}>
+                <label>Forma de Pagamento *</label>
+                {(['PIX', 'DINHEIRO', 'MISTO'] as PaymentMethod[]).map((method) => (
+                  <div
+                    key={method}
+                    className={`${styles.paymentMethodOption} ${selectedPaymentMethod === method ? styles.selected : ''}`}
+                    onClick={() => setSelectedPaymentMethod(method)}
+                  >
+                    <div className={styles.methodIcon}>
+                      {method === 'PIX' && '💳'}
+                      {method === 'DINHEIRO' && '💵'}
+                      {method === 'MISTO' && '💰'}
+                    </div>
+                    <span>
+                      {method === 'PIX' && 'PIX'}
+                      {method === 'DINHEIRO' && 'Dinheiro'}
+                      {method === 'MISTO' && 'Misto (PIX + Dinheiro)'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setModal({ type: null })}>
+                Cancelar
+              </button>
+              <button
+                className={styles.confirmBtn}
+                onClick={handleConfirmRealStudentPayment}
+                disabled={!selectedPaymentMethod}
+              >
+                ✓ Confirmar Recebimento
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Pagar Professor (Real) */}
+      {modal.type === 'realTeacherPayment' && modal.data && (
+        <div className={styles.modalOverlay} onClick={() => setModal({ type: null })}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>👨‍🏫 Pagar Professor</h2>
+                <p>Professor: {(modal.data as TeacherPaymentSummary).teacherName}</p>
+              </div>
+              <button className={styles.closeModalBtn} onClick={() => setModal({ type: null })}>
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.paymentSummary}>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Alunos Ativos</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {(modal.data as TeacherPaymentSummary).totalStudents} alunos
+                  </span>
+                </div>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Receita Total</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {formatCurrency((modal.data as TeacherPaymentSummary).totalRevenue)}
+                  </span>
+                </div>
+                <div className={styles.paymentSummaryItem}>
+                  <span className={styles.paymentSummaryLabel}>Participação</span>
+                  <span className={styles.paymentSummaryValue}>50%</span>
+                </div>
+              </div>
+
+              <div className={styles.modalAmount}>
+                <label>VALOR A PAGAR</label>
+                <span className={styles.amountNegative}>
+                  {formatCurrency((modal.data as TeacherPaymentSummary).amountToPay)}
+                </span>
+              </div>
+
+              <div className={styles.paymentMethods}>
+                <label>Forma de Pagamento *</label>
+                {(['PIX', 'DINHEIRO', 'MISTO'] as PaymentMethod[]).map((method) => (
+                  <div
+                    key={method}
+                    className={`${styles.paymentMethodOption} ${selectedPaymentMethod === method ? styles.selected : ''}`}
+                    onClick={() => setSelectedPaymentMethod(method)}
+                  >
+                    <div className={styles.methodIcon}>
+                      {method === 'PIX' && '💳'}
+                      {method === 'DINHEIRO' && '💵'}
+                      {method === 'MISTO' && '💰'}
+                    </div>
+                    <span>
+                      {method === 'PIX' && 'PIX'}
+                      {method === 'DINHEIRO' && 'Dinheiro'}
+                      {method === 'MISTO' && 'Misto (PIX + Dinheiro)'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setModal({ type: null })}>
+                Cancelar
+              </button>
+              <button
+                className={styles.confirmBtn}
+                onClick={handleConfirmRealTeacherPayment}
+                disabled={!selectedPaymentMethod}
+              >
+                ✓ Confirmar Pagamento
               </button>
             </div>
           </div>

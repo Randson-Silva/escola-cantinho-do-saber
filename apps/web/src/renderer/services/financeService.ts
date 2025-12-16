@@ -96,7 +96,7 @@ function initializeMockData(): void {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-  // Initialize expenses if empty
+  // Initialize expenses if empty (mantém apenas despesas operacionais)
   const expenses = readFromStorage<Expense>(EXPENSES_KEY);
   if (expenses.length === 0) {
     const mockExpenses: Expense[] = [
@@ -142,89 +142,11 @@ function initializeMockData(): void {
     writeToStorage(EXPENSES_KEY, mockExpenses);
   }
 
-  // Initialize student payments if empty
-  const payments = readFromStorage<StudentPayment>(PAYMENTS_KEY);
-  if (payments.length === 0) {
-    const mockPayments: StudentPayment[] = [
-      {
-        id: generateId(),
-        studentId: 'mock-1',
-        studentName: 'João Pedro Silva',
-        enrollmentId: 'enroll-1',
-        amount: 350,
-        dueDate: `${currentMonth}-10`,
-        status: 'PAGO',
-        paidAt: `${currentMonth}-08`,
-        paymentMethod: 'PIX',
-      },
-      {
-        id: generateId(),
-        studentId: 'mock-2',
-        studentName: 'Maria Clara Santos',
-        enrollmentId: 'enroll-2',
-        amount: 350,
-        dueDate: `${currentMonth}-10`,
-        status: 'PENDENTE',
-      },
-      {
-        id: generateId(),
-        studentId: 'mock-3',
-        studentName: 'Lucas Oliveira',
-        enrollmentId: 'enroll-3',
-        amount: 400,
-        dueDate: `${currentMonth}-10`,
-        status: 'ATRASADO',
-      },
-      {
-        id: generateId(),
-        studentId: 'mock-4',
-        studentName: 'Ana Beatriz Costa',
-        enrollmentId: 'enroll-4',
-        amount: 350,
-        dueDate: `${currentMonth}-10`,
-        status: 'PAGO',
-        paidAt: `${currentMonth}-05`,
-        paymentMethod: 'DINHEIRO',
-      },
-    ];
-    writeToStorage(PAYMENTS_KEY, mockPayments);
-  }
+  // NÃO inicializa mais pagamentos de alunos fictícios
+  // O dashboardFinanceService usa dados reais dos alunos cadastrados
 
-  // Initialize teacher payrolls if empty
-  const payrolls = readFromStorage<TeacherPayroll>(PAYROLLS_KEY);
-  if (payrolls.length === 0) {
-    const mockPayrolls: TeacherPayroll[] = [
-      {
-        id: generateId(),
-        teacherId: 'teacher-1',
-        teacherName: 'Prof Carlos',
-        shift: 'Manhã',
-        activeStudents: 12,
-        totalContracts: 3200,
-        participationRate: 0.5,
-        amountToPay: 1600,
-        realizedRevenue: 3200,
-        status: 'PENDENTE',
-        month: currentMonth,
-      },
-      {
-        id: generateId(),
-        teacherId: 'teacher-2',
-        teacherName: 'Profa. Ana',
-        shift: 'Manhã',
-        activeStudents: 12,
-        totalContracts: 2000,
-        participationRate: 0.5,
-        amountToPay: 1000,
-        realizedRevenue: 2000,
-        status: 'CONCLUIDO',
-        paidAt: `${currentMonth}-05`,
-        paymentMethod: 'MISTO',
-        month: currentMonth,
-      },
-    ];
-    writeToStorage(PAYROLLS_KEY, mockPayrolls);
-  }
+  // NÃO inicializa mais folhas de pagamento fictícias
+  // O dashboardFinanceService usa dados reais dos professores cadastrados
 
   // Initialize categories - always ensure correct list without SALÁRIOS
   const defaultCategories = ['UTILIDADES', 'SUPRIMENTOS', 'MANUTENÇÃO', 'MARKETING', 'OUTROS'];
@@ -447,28 +369,42 @@ export const teacherPayrollService = {
 
 // ============================================================================
 // FINANCE SUMMARY SERVICE
+// Integra dados reais de alunos e professores com despesas operacionais
 // ============================================================================
+
+// Importação dinâmica para evitar dependência circular
+const loadDashboardFinanceService = async () => {
+  const { dashboardFinanceService } = await import('./dashboardFinanceService');
+  return dashboardFinanceService;
+};
 
 export const financeSummaryService = {
   async getSummary(month: string): Promise<FinanceSummary> {
-    const payments = await studentPaymentService.getByMonth(month);
+    // Carrega o dashboardFinanceService dinamicamente
+    const dashboardService = await loadDashboardFinanceService();
+
+    // Obtém dados reais de alunos e professores
+    const realFinanceData = await dashboardService.getFinanceSummary(month);
+
+    // Obtém despesas operacionais
     const expenses = await expenseService.getByMonth(month);
-    const payrolls = await teacherPayrollService.getByMonth(month);
-
-    const paidPayments = payments.filter((p) => p.status === 'PAGO');
     const paidExpenses = expenses.filter((e) => e.status === 'PAGO');
-    const paidPayrolls = payrolls.filter((p) => p.status === 'CONCLUIDO');
-
-    const realizedRevenue = paidPayments.reduce((sum, p) => sum + p.amount, 0);
     const operationalExpenses = paidExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const teacherPayments = paidPayrolls.reduce((sum, p) => sum + p.amountToPay, 0);
-    const totalExpenses = operationalExpenses + teacherPayments;
+
+    // Usa dados reais de mensalidades
+    const realizedRevenue = realFinanceData.paidMonthlyFees;
+
+    // Usa dados reais de pagamentos de professores
+    const teacherPayments = realFinanceData.paidTeacherPayments;
+
+    // Total de despesas = professores pagos + despesas operacionais
+    const totalExpenses = teacherPayments + operationalExpenses;
+
+    // Lucro líquido = receita realizada - total de despesas
     const netProfit = realizedRevenue - totalExpenses;
 
-    const pendingPayments = payments.filter(
-      (p) => p.status === 'PENDENTE' || p.status === 'ATRASADO',
-    );
-    const defaultAmount = pendingPayments.reduce((sum, p) => sum + p.amount, 0);
+    // Inadimplência = mensalidades pendentes + atrasadas
+    const defaultAmount = realFinanceData.pendingMonthlyFees + realFinanceData.overdueMonthlyFees;
 
     return Promise.resolve({
       realizedRevenue,

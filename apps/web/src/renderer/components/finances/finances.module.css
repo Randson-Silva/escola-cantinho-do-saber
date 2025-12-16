@@ -1270,6 +1270,58 @@
 }
 
 /* ============================================
+   PAYMENT ACTIONS & BADGES
+   ============================================ */
+.paidActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.paymentMethodBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================
+   PAYMENT SUMMARY (Modal)
+   ============================================ */
+.paymentSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: #f9fafb;
+  border-radius: var(--input-border-radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.paymentSummaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.paymentSummaryLabel {
+  color: #6b7280;
+  font-size: var(--font-size-sm);
+}
+
+.paymentSummaryValue {
+  color: #111827;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================
    FORM ROW
    ============================================ */
 .formRow {

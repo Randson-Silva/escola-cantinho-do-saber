@@ -1,5 +1,11 @@
 import styles from './students.module.css';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  calculateMonthlyFee,
+  pricingService,
+  formatCurrency,
+  BASE_SLOTS,
+} from '../../services/pricingService';
 
 interface EnrollmentSummaryProps {
   studentData: any;
@@ -16,7 +22,6 @@ export function EnrollmentSummary({
   onBack,
   onConfirm,
 }: EnrollmentSummaryProps) {
-  const [monthlyFee, setMonthlyFee] = useState(350); // Default value
   const [firstPaymentDate, setFirstPaymentDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Calculate duration
@@ -26,6 +31,27 @@ export function EnrollmentSummary({
   const hours = Math.floor(diffMinutes / 60);
   const minutes = diffMinutes % 60;
   const durationString = `${hours}h ${minutes > 0 ? `${minutes}min` : '00min'}`;
+
+  // Calcula slots (cada slot = 30 minutos)
+  const durationSlots = Math.ceil(diffMinutes / 30);
+
+  // Calcula o valor base da tabela (referência: 3 slots = 1h30)
+  const basePrice = useMemo(() => {
+    return pricingService.getBasePrice(studentData.schoolType, studentData.grade);
+  }, [studentData.schoolType, studentData.grade]);
+
+  // Calcula o valor proporcional baseado na duração
+  const calculatedFee = useMemo(() => {
+    return calculateMonthlyFee(studentData.schoolType, studentData.grade, durationSlots);
+  }, [studentData.schoolType, studentData.grade, durationSlots]);
+
+  // Estado para o valor editável (inicia com o valor calculado)
+  const [monthlyFee, setMonthlyFee] = useState(calculatedFee);
+
+  // Atualiza o valor quando o cálculo mudar
+  useEffect(() => {
+    setMonthlyFee(calculatedFee);
+  }, [calculatedFee]);
 
   return (
     <div className={styles.container}>
@@ -135,17 +161,57 @@ export function EnrollmentSummary({
           <hr style={{ margin: '0.5rem 0 1.5rem', borderColor: '#e2e8f0' }} />
 
           <div className={styles.card}>
+            {/* Informações do cálculo */}
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
+                backgroundColor: '#f0fdf4',
+                padding: '1rem',
+                borderRadius: '8px',
                 marginBottom: '1rem',
-                color: '#64748b',
-                fontSize: '0.9rem',
+                border: '1px solid #bbf7d0',
               }}
             >
-              <span>Valor de Tabela (Sugerido):</span>
-              <span style={{ textDecoration: 'line-through' }}>R$ 350,00</span>
+              <div style={{ fontSize: '0.85rem', color: '#166534', marginBottom: '0.5rem' }}>
+                <strong>📊 Cálculo Automático</strong>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem',
+                  color: '#334155',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>
+                    Escola {studentData.schoolType === 'publica' ? 'Pública' : 'Particular'}:
+                  </span>
+                  <span>Valor base: {formatCurrency(basePrice)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>
+                    Duração: {durationString} ({durationSlots} slots)
+                  </span>
+                  <span>Referência: {BASE_SLOTS} slots (1h30)</span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontWeight: 'bold',
+                    color: '#166534',
+                    marginTop: '0.5rem',
+                    paddingTop: '0.5rem',
+                    borderTop: '1px dashed #bbf7d0',
+                  }}
+                >
+                  <span>
+                    Fórmula: ({formatCurrency(basePrice)} ÷ 3) × {durationSlots}
+                  </span>
+                  <span>= {formatCurrency(calculatedFee)}</span>
+                </div>
+              </div>
             </div>
 
             <label className={styles.label}>Valor final da Mensalidade</label>
@@ -250,4 +316,3 @@ export function EnrollmentSummary({
     </div>
   );
 }
-
