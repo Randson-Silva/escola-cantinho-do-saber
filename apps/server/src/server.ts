@@ -91,7 +91,9 @@ import { FindAttendanceByIdController } from './infra/http/controllers/attendanc
 import { UpdateAttendanceController } from './infra/http/controllers/attendance/update-attendance.controller';
 import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
 import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
-
+import { CONTRACT_REPOSITORY_TOKEN, IContractRepository } from './domain/application/repositories/contract.repository';
+import { ContractRepository } from './infra/database/repositories/contract.repository';
+import { CreateContractController } from './infra/http/controllers/contract/create-contract.controller';
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -110,6 +112,8 @@ container.registerSingleton<IAttendanceRepository>(
 );
 container.registerSingleton<IAddressRepository>(ADDRESS_REPOSITORY_TOKEN, AddressRepository);
 container.registerSingleton<ITeacherRepository>(TEACHER_REPOSITORY_TOKEN, TeacherRepository);
+
+container.registerSingleton<IContractRepository>(CONTRACT_REPOSITORY_TOKEN, ContractRepository);
 
 //#endregion
 
@@ -180,6 +184,7 @@ const getStudentAttendanceHistoryController = container.resolve(
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 const updateAttendanceController = container.resolve(UpdateAttendanceController);
 
+const createContractController = container.resolve(CreateContractController);
 // --- Routes Registration ---
 
 router.use('/', authUserController.router);
@@ -225,6 +230,7 @@ router.use('/', getStudentAttendanceHistoryController.router);
 router.use('/', registerStudentAttendanceController.router);
 router.use('/', updateAttendanceController.router);
 
+router.use('/', createContractController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
