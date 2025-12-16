@@ -103,6 +103,8 @@ import { RegisterExpenseController } from './infra/http/controllers/expense/regi
 import { IPayrollRepository, PAYROLL_REPOSITORY_TOKEN } from './domain/application/repositories/payroll.repository';
 import { PayrollRepository } from './infra/database/repositories/payroll.repository';
 import { GenerateMonthlyPayrollController } from './infra/http/controllers/payroll/generate-monthly-payroll.controller';
+import { FetchStudentPaymentsController } from './infra/http/controllers/payment/fetch-student-payments.controller';
+
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -197,6 +199,7 @@ const updateAttendanceController = container.resolve(UpdateAttendanceController)
 const createContractController = container.resolve(CreateContractController);
 
 const payMonthlyFeeController = container.resolve(PayMonthlyFeeController);
+const fetchStudentPaymentsController = container.resolve(FetchStudentPaymentsController);
 
 const registerExpenseController = container.resolve(RegisterExpenseController);
 
@@ -249,6 +252,8 @@ router.use('/', updateAttendanceController.router);
 router.use('/', createContractController.router);
 
 router.use('/', payMonthlyFeeController.router);
+router.use('/', fetchStudentPaymentsController.router);
+
 router.use('/', registerExpenseController.router);
 
 router.use('/', generatePayrollController.router);

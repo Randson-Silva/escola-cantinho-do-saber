@@ -1,6 +1,6 @@
 import { IPaymentRepository } from 'apps/server/src/domain/application/repositories/payment.repository';
 import { PaymentEntity } from 'apps/server/src/domain/enterprise/entities/payment.entity';
-import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id'; // <--- Importe isto
+import { UniqueEntityId } from 'apps/server/src/core/entities/unique-entity-id';
 import { prisma } from 'packages/database/src/client';
 import { singleton } from 'tsyringe';
 
@@ -36,5 +36,28 @@ export class PaymentRepository implements IPaymentRepository {
       console.error(error);
       return false;
     }
+  }
+
+  async findManyByStudentId(studentId: string): Promise<PaymentEntity[]> {
+    const rawPayments = await prisma.payment.findMany({
+      where: {
+        enrollment: {
+          studentId: studentId
+        }
+      },
+      orderBy: {
+        dueDate: 'asc'
+      }
+    });
+
+    return rawPayments.map(raw => PaymentEntity.create({
+      enrollmentId: raw.enrollmentId,
+      amount: raw.amount,
+      dueDate: raw.dueDate,
+      status: raw.status,
+      paymentDate: raw.paymentDate,
+      method: raw.method,
+      createdAt: raw.createdAt,
+    }, new UniqueEntityId(raw.id)));
   }
 }
