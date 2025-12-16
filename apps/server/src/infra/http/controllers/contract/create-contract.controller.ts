@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { injectable, inject } from 'tsyringe';
-import { checkJwt } from '../../../auth/auth.middleware';
-import { ensureAdmin } from '../../../auth/ensure-admin.middleware';
+import { checkJwt, requireAnyRole } from '../../../auth/auth.middleware'; // Ajuste requireRole se necessário
 import { validateBody } from '../../../http-body-validator/validator.middleware';
 import { CreateContractUseCase } from 'apps/server/src/domain/application/use-cases/contract/create-contract.use-case';
 import { SchoolGrade } from 'apps/server/src/core/types/school-enums';
@@ -30,8 +29,8 @@ export class CreateContractController {
     this.router.post(
       '/contracts',
       checkJwt,
-      ensureAdmin,
       validation,
+      requireAnyRole(['ADMIN']),
       this.handle.bind(this)
     );
   }

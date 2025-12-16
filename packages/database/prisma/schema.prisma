@@ -153,6 +153,7 @@ model Student {
 
   enrollments  Enrollment[]
   attendances  Attendance[]
+  contracts    Contract[]
 
   createdAt    DateTime
   deletedAt    DateTime?
@@ -207,15 +208,21 @@ model Address {
 
 model Contract {
   id            String    @id @unique @default(ulid())
-  signatureDate DateTime
-  dueDate       DateTime?
-  documentUrl   String?
+
+  studentId     String
+  student       Student   @relation(fields: [studentId], references: [id])
 
   monthlyValue  Float     @default(0)
+  dueDateDay    Int       // Dia de vencimento (ex: 5, 10)
+  isActive      Boolean   @default(true)
+
+  signatureDate DateTime
+  documentUrl   String?
 
   enrollments   Enrollment[]
 
-  createdAt     DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 }
 
@@ -232,7 +239,7 @@ model Enrollment {
 
   payments       Payment[]
 
-  createdAt      DateTime
+  createdAt      DateTime @default(now())
   deletedAt      DateTime?
 }
 
