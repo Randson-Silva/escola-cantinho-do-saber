@@ -81,10 +81,12 @@ export class CreateUserController {
     const { userId } = result.value;
 
     const accessToken = await this.authService.generateToken({
-      payloadSource: { userId, accessLevel },
+      payloadSource: { userId, accessLevel, name, email },
       payloadGenerator: (data) =>
         ({
           sub: data.userId,
+          name: data.name,
+          email: data.email,
           accessLevel: data.accessLevel,
           type: 'access',
         }) satisfies CreateAccessJwtPayload,

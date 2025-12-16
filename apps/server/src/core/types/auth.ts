@@ -3,6 +3,8 @@ import { TokenType } from './token';
 
 export type CreateAccessJwtPayload = {
   sub: string;
+  name: string;
+  email: string;
   accessLevel: AccessLevel;
   type: TokenType;
 };

@@ -50,6 +50,8 @@ export class RefreshUserSessionUseCase {
         payloadGenerator: ({ id }) =>
           ({
             sub: id.toString(),
+            name: user.name,
+            email: user.email,
             accessLevel: profile.accessLevel,
             type: 'access',
           }) satisfies CreateAccessJwtPayload,
@@ -61,6 +63,8 @@ export class RefreshUserSessionUseCase {
         payloadGenerator: ({ id }) =>
           ({
             sub: id.toString(),
+            name: user.name,
+            email: user.email,
             accessLevel: profile.accessLevel,
             type: 'refresh',
           }) satisfies CreateAccessJwtPayload,

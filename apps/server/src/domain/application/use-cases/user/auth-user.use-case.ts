@@ -55,6 +55,8 @@ export class AuthenticateUserUseCase {
         payloadGenerator: ({ id }) =>
           ({
             sub: id.toString(),
+            name: user.name,
+            email: user.email,
             accessLevel: profile.accessLevel,
             type: 'access',
           }) satisfies CreateAccessJwtPayload,
