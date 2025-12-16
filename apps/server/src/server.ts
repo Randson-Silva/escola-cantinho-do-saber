@@ -100,6 +100,9 @@ import { PayMonthlyFeeController } from './infra/http/controllers/payment/pay-mo
 import { EXPENSE_REPOSITORY_TOKEN, IExpenseRepository } from './domain/application/repositories/expense.repository';
 import { ExpenseRepository } from './infra/database/repositories/expense.repository';
 import { RegisterExpenseController } from './infra/http/controllers/expense/register-expense.controller';
+import { IPayrollRepository, PAYROLL_REPOSITORY_TOKEN } from './domain/application/repositories/payroll.repository';
+import { PayrollRepository } from './infra/database/repositories/payroll.repository';
+import { GenerateMonthlyPayrollController } from './infra/http/controllers/payroll/generate-monthly-payroll.controller';
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -121,6 +124,7 @@ container.registerSingleton<ITeacherRepository>(TEACHER_REPOSITORY_TOKEN, Teache
 container.registerSingleton<IContractRepository>(CONTRACT_REPOSITORY_TOKEN, ContractRepository);
 container.registerSingleton<IPaymentRepository>(PAYMENT_REPOSITORY_TOKEN, PaymentRepository);
 container.registerSingleton<IExpenseRepository>(EXPENSE_REPOSITORY_TOKEN, ExpenseRepository);
+container.registerSingleton<IPayrollRepository>(PAYROLL_REPOSITORY_TOKEN, PayrollRepository);
 //#endregion
 
 //#region EXPRESS CONFIGURATION
@@ -195,6 +199,8 @@ const createContractController = container.resolve(CreateContractController);
 const payMonthlyFeeController = container.resolve(PayMonthlyFeeController);
 
 const registerExpenseController = container.resolve(RegisterExpenseController);
+
+const generatePayrollController = container.resolve(GenerateMonthlyPayrollController);
 // --- Routes Registration ---
 
 router.use('/', authUserController.router);
@@ -244,6 +250,8 @@ router.use('/', createContractController.router);
 
 router.use('/', payMonthlyFeeController.router);
 router.use('/', registerExpenseController.router);
+
+router.use('/', generatePayrollController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
