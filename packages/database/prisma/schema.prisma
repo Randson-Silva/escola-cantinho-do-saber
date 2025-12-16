@@ -8,7 +8,7 @@ generator client {
 }
 
 // ------------------------------------------------------
-// ENUMS (Valores em Português para o Banco de Dados)
+// ENUMS
 // ------------------------------------------------------
 
 enum SchoolGrade {
@@ -48,18 +48,25 @@ enum Kinship {
   OUTRO
 }
 
+enum ExpenseCategory {
+  OPERACIONAL
+  MANUTENCAO
+  MATERIAL
+  OUTRO
+}
+
 // ------------------------------------------------------
 // USUÁRIOS E PERFIS
 // ------------------------------------------------------
 
 model User {
-  id       String @id @unique @default(ulid())
-  name     String
-  email    String @unique
-  password String
+  id        String   @id @unique @default(ulid())
+  name      String
+  email     String   @unique
+  password  String
 
-  profile   Profile @relation(fields: [profileId], references: [id])
-  profileId String  @unique
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @unique
 
   createdAt DateTime
   deletedAt DateTime?
@@ -68,50 +75,45 @@ model User {
 model Profile {
   id          String      @id @unique @default(ulid())
   accessLevel AccessLevel
-
-  user User?
+  user        User?
 }
 
 // ------------------------------------------------------
-// PEDAGÓGICO: PROFESSOR, TURMA, AULA
+// PEDAGÓGICO
 // ------------------------------------------------------
 
 model Teacher {
-  id        String  @id @unique @default(ulid())
+  id        String   @id @unique @default(ulid())
   name      String
-  taxId     String  @unique // CPF
-  phone     String  @unique
+  taxId     String   @unique
+  phone     String   @unique
   pixKey    String
   expertise String?
 
-  // Quais séries este professor está habilitado? (Array de Enums)
   qualifiedGrades SchoolGrade[]
 
   email     String   @unique
   startDate DateTime
-  status    String   @default("ATIVO") // String simples ou poderia ser Enum se preferir
+  status    String   @default("ATIVO")
 
-  classes Class[]
+  classes   Class[]
+  payrolls  Payroll[]
 
   createdAt DateTime
   deletedAt DateTime?
 }
 
 model Class {
-  id   String @id @unique @default(ulid())
-  name String
-
-  // Turno da turma (Matutino, Vespertino...)
-  shift Shift
-
-  // A turma atende quais séries? (Array permite turmas multisseriadas)
-  grades SchoolGrade[]
+  id        String        @id @unique @default(ulid())
+  name      String
+  shift     Shift
+  grades    SchoolGrade[]
 
   teacherId String
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  teacher   Teacher       @relation(fields: [teacherId], references: [id])
 
-  lessons  Lesson[]
-  students Student[]
+  lessons   Lesson[]
+  students  Student[]
 
   createdAt DateTime
   deletedAt DateTime?
@@ -119,13 +121,13 @@ model Class {
 
 model Lesson {
   id        String   @id @unique @default(ulid())
-  date      DateTime // data_aula
-  startTime String? // hora_inicio (ex: "13:00")
-  endTime   String? // hora_final (ex: "14:00")
-  duration  String? // duracao (ex: "1h")
+  date      DateTime
+  startTime String?
+  endTime   String?
+  duration  String?
 
-  classId String
-  class   Class  @relation(fields: [classId], references: [id])
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
 
   attendances Attendance[]
 
@@ -134,61 +136,58 @@ model Lesson {
 }
 
 // ------------------------------------------------------
-// ALUNO, RESPONSÁVEL E ENDEREÇO
+// ALUNO E RESPONSÁVEL
 // ------------------------------------------------------
 
 model Student {
-  id        String   @id @unique @default(ulid())
-  name      String
-  birthDate DateTime
-
-  // Série atual do aluno (Enum fixo)
+  id           String      @id @unique @default(ulid())
+  name         String
+  birthDate    DateTime
   currentGrade SchoolGrade
 
-  classId String
-  class   Class  @relation(fields: [classId], references: [id])
+  classId      String
+  class        Class       @relation(fields: [classId], references: [id])
 
-  addresses Address[]            @relation("StudentAddresses")
-  guardians StudentHasGuardian[]
+  addresses    Address[]   @relation("StudentAddresses")
+  guardians    StudentHasGuardian[]
 
-  enrollments Enrollment[]
-  attendances Attendance[]
+  enrollments  Enrollment[]
+  attendances  Attendance[]
+  contracts    Contract[]
 
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt    DateTime
+  deletedAt    DateTime?
 }
 
 model Guardian {
-  id    String  @id @unique @default(ulid())
-  name  String
-  email String? @unique
-  phone String // Tel único
+  id        String   @id @unique @default(ulid())
+  name      String
+  email     String?  @unique
+  phone     String
 
-  addresses Address[]            @relation("GuardianAddresses")
+  addresses Address[] @relation("GuardianAddresses")
   students  StudentHasGuardian[]
 
   createdAt DateTime
   deletedAt DateTime?
 }
 
-// Tabela associativa
 model StudentHasGuardian {
   studentId  String
   guardianId String
+  kinship    Kinship @default(PAI_MAE)
 
-  kinship Kinship @default(PAI_MAE)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian   Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
 
-  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt  DateTime
+  deletedAt  DateTime?
 
   @@id([studentId, guardianId])
 }
 
 model Address {
-  id         String  @id @unique @default(ulid())
+  id         String   @id @unique @default(ulid())
   street     String
   number     String
   district   String
@@ -196,58 +195,101 @@ model Address {
   city       String?
   state      String?
 
-  students  Student[]  @relation("StudentAddresses")
-  guardians Guardian[] @relation("GuardianAddresses")
+  students   Student[]  @relation("StudentAddresses")
+  guardians  Guardian[] @relation("GuardianAddresses")
 
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt  DateTime
+  deletedAt  DateTime?
 }
 
 // ------------------------------------------------------
-// FINANCEIRO E ADMINISTRATIVO
+// FINANCEIRO (ATUALIZADO COM REQUISITOS)
 // ------------------------------------------------------
 
 model Contract {
   id            String    @id @unique @default(ulid())
+
+  studentId     String
+  student       Student   @relation(fields: [studentId], references: [id])
+
+  monthlyValue  Float     @default(0)
+  dueDateDay    Int       // Dia de vencimento (ex: 5, 10)
+  isActive      Boolean   @default(true)
+
   signatureDate DateTime
-  dueDate       DateTime?
   documentUrl   String?
 
-  enrollments Enrollment[]
+  enrollments   Enrollment[]
 
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 }
 
 model Enrollment {
   id             String   @id @unique @default(ulid())
-  status         String // Ex: ATIVA, TRANCADA
+  status         String
   enrollmentDate DateTime
 
-  studentId  String
-  contractId String
+  studentId      String
+  contractId     String
 
-  student  Student  @relation(fields: [studentId], references: [id])
-  contract Contract @relation(fields: [contractId], references: [id])
+  student        Student  @relation(fields: [studentId], references: [id])
+  contract       Contract @relation(fields: [contractId], references: [id])
 
-  payments Payment[]
+  payments       Payment[]
 
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt      DateTime @default(now())
+  deletedAt      DateTime?
 }
 
 model Payment {
-  id          String    @id @unique @default(ulid())
-  amount      Float
-  dueDate     DateTime // Data vencimento
-  paymentDate DateTime? // Data pagamento
-  status      String // PENDENTE, PAGO...
+  id           String     @id @unique @default(ulid())
+  amount       Float
+  dueDate      DateTime
+  paymentDate  DateTime?
+  status       String     // "PENDENTE", "PAGO", "ATRASADO", "CANCELADO"
+  method       String?    // "PIX", "DINHEIRO"
 
   enrollmentId String
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
 
-  createdAt DateTime
-  deletedAt DateTime?
+  createdAt    DateTime
+  deletedAt    DateTime?
+}
+
+// ------------------------------------------------------
+// FINANCEIRO - (RF-13, RF-15)
+// ------------------------------------------------------
+
+model Expense {
+  id          String          @id @unique @default(ulid())
+  description String
+  amount      Float
+  date        DateTime
+  category    ExpenseCategory
+
+  createdAt   DateTime        @default(now())
+  deletedAt   DateTime?
+}
+
+model Payroll {
+  id              String   @id @unique @default(ulid())
+  referenceMonth  DateTime
+  teacherId       String
+
+  // Valores Calculados (Regra dos 50%)
+  grossAmount     Float
+  collectedAmount Float
+  deficitAmount   Float
+
+  status          String   // "PENDENTE", "PAGO"
+  processedAt     DateTime @default(now())
+
+  teacher         Teacher  @relation(fields: [teacherId], references: [id])
+
+  createdAt       DateTime @default(now())
+  deletedAt       DateTime?
 }
 
 // ------------------------------------------------------
@@ -267,6 +309,5 @@ model Attendance {
   createdAt DateTime
   deletedAt DateTime?
 
-  // Chave composta para garantir unicidade
   @@unique([studentId, lessonId])
 }

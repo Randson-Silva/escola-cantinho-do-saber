@@ -91,6 +91,19 @@ import { FindAttendanceByIdController } from './infra/http/controllers/attendanc
 import { UpdateAttendanceController } from './infra/http/controllers/attendance/update-attendance.controller';
 import { GetStudentAttendanceHistoryController } from './infra/http/controllers/attendance/get-student-attendance-history.controller';
 import { RegisterStudentAttendanceController } from './infra/http/controllers/attendance/register-student-attendance.controller';
+import { CONTRACT_REPOSITORY_TOKEN, IContractRepository } from './domain/application/repositories/contract.repository';
+import { ContractRepository } from './infra/database/repositories/contract.repository';
+import { CreateContractController } from './infra/http/controllers/contract/create-contract.controller';
+import { IPaymentRepository, PAYMENT_REPOSITORY_TOKEN } from './domain/application/repositories/payment.repository';
+import { PaymentRepository } from './infra/database/repositories/payment.repository';
+import { PayMonthlyFeeController } from './infra/http/controllers/payment/pay-monthly-fee.controller';
+import { EXPENSE_REPOSITORY_TOKEN, IExpenseRepository } from './domain/application/repositories/expense.repository';
+import { ExpenseRepository } from './infra/database/repositories/expense.repository';
+import { RegisterExpenseController } from './infra/http/controllers/expense/register-expense.controller';
+import { IPayrollRepository, PAYROLL_REPOSITORY_TOKEN } from './domain/application/repositories/payroll.repository';
+import { PayrollRepository } from './infra/database/repositories/payroll.repository';
+import { GenerateMonthlyPayrollController } from './infra/http/controllers/payroll/generate-monthly-payroll.controller';
+import { FetchStudentPaymentsController } from './infra/http/controllers/payment/fetch-student-payments.controller';
 
 //#region MODULE CONFIGURATION
 
@@ -110,7 +123,10 @@ container.registerSingleton<IAttendanceRepository>(
 );
 container.registerSingleton<IAddressRepository>(ADDRESS_REPOSITORY_TOKEN, AddressRepository);
 container.registerSingleton<ITeacherRepository>(TEACHER_REPOSITORY_TOKEN, TeacherRepository);
-
+container.registerSingleton<IContractRepository>(CONTRACT_REPOSITORY_TOKEN, ContractRepository);
+container.registerSingleton<IPaymentRepository>(PAYMENT_REPOSITORY_TOKEN, PaymentRepository);
+container.registerSingleton<IExpenseRepository>(EXPENSE_REPOSITORY_TOKEN, ExpenseRepository);
+container.registerSingleton<IPayrollRepository>(PAYROLL_REPOSITORY_TOKEN, PayrollRepository);
 //#endregion
 
 //#region EXPRESS CONFIGURATION
@@ -180,6 +196,14 @@ const getStudentAttendanceHistoryController = container.resolve(
 const registerStudentAttendanceController = container.resolve(RegisterStudentAttendanceController);
 const updateAttendanceController = container.resolve(UpdateAttendanceController);
 
+const createContractController = container.resolve(CreateContractController);
+
+const payMonthlyFeeController = container.resolve(PayMonthlyFeeController);
+const fetchStudentPaymentsController = container.resolve(FetchStudentPaymentsController);
+
+const registerExpenseController = container.resolve(RegisterExpenseController);
+
+const generatePayrollController = container.resolve(GenerateMonthlyPayrollController);
 // --- Routes Registration ---
 
 router.use('/', authUserController.router);
@@ -225,6 +249,14 @@ router.use('/', getStudentAttendanceHistoryController.router);
 router.use('/', registerStudentAttendanceController.router);
 router.use('/', updateAttendanceController.router);
 
+router.use('/', createContractController.router);
+
+router.use('/', payMonthlyFeeController.router);
+router.use('/', fetchStudentPaymentsController.router);
+
+router.use('/', registerExpenseController.router);
+
+router.use('/', generatePayrollController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
