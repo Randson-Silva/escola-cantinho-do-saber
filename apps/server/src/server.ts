@@ -97,7 +97,9 @@ import { CreateContractController } from './infra/http/controllers/contract/crea
 import { IPaymentRepository, PAYMENT_REPOSITORY_TOKEN } from './domain/application/repositories/payment.repository';
 import { PaymentRepository } from './infra/database/repositories/payment.repository';
 import { PayMonthlyFeeController } from './infra/http/controllers/payment/pay-monthly-fee.controller';
-
+import { EXPENSE_REPOSITORY_TOKEN, IExpenseRepository } from './domain/application/repositories/expense.repository';
+import { ExpenseRepository } from './infra/database/repositories/expense.repository';
+import { RegisterExpenseController } from './infra/http/controllers/expense/register-expense.controller';
 //#region MODULE CONFIGURATION
 
 container.registerSingleton<IUserRepository>(USERS_REPOSITORY_TOKEN, UserRepository);
@@ -118,6 +120,7 @@ container.registerSingleton<IAddressRepository>(ADDRESS_REPOSITORY_TOKEN, Addres
 container.registerSingleton<ITeacherRepository>(TEACHER_REPOSITORY_TOKEN, TeacherRepository);
 container.registerSingleton<IContractRepository>(CONTRACT_REPOSITORY_TOKEN, ContractRepository);
 container.registerSingleton<IPaymentRepository>(PAYMENT_REPOSITORY_TOKEN, PaymentRepository);
+container.registerSingleton<IExpenseRepository>(EXPENSE_REPOSITORY_TOKEN, ExpenseRepository);
 //#endregion
 
 //#region EXPRESS CONFIGURATION
@@ -190,6 +193,8 @@ const updateAttendanceController = container.resolve(UpdateAttendanceController)
 const createContractController = container.resolve(CreateContractController);
 
 const payMonthlyFeeController = container.resolve(PayMonthlyFeeController);
+
+const registerExpenseController = container.resolve(RegisterExpenseController);
 // --- Routes Registration ---
 
 router.use('/', authUserController.router);
@@ -238,6 +243,7 @@ router.use('/', updateAttendanceController.router);
 router.use('/', createContractController.router);
 
 router.use('/', payMonthlyFeeController.router);
+router.use('/', registerExpenseController.router);
 //#endregion
 
 const PORT = process.env.EXPRESS_BACK_PORT ?? 4000;
