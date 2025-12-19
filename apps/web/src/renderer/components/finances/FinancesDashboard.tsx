@@ -47,6 +47,19 @@ function getCurrentMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// Formata lista de meses atrasados para exibição
+function formatOverdueMonths(months: string[]): string {
+  if (!months || months.length === 0) return '';
+
+  return months
+    .map((m) => {
+      const [year, month] = m.split('-');
+      const date = new Date(Number(year), Number(month) - 1);
+      return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    })
+    .join(', ');
+}
+
 // Gera lista de meses (6 meses anteriores + mês atual + 6 meses futuros)
 function generateMonthOptions(): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
@@ -933,61 +946,83 @@ export function FinancesDashboard() {
                         const matchesStatus = !statusFilter || p.status === statusFilter;
                         return matchesSearch && matchesStatus;
                       })
-                      .map((payment) => (
-                        <tr key={payment.studentId}>
-                          <td style={{ fontWeight: 500 }}>{payment.studentName}</td>
-                          <td>{payment.className}</td>
-                          <td>{payment.teacherName}</td>
-                          <td className={payment.status === 'PAGO' ? styles.amountPositive : ''}>
-                            {formatCurrency(payment.monthlyFee)}
-                          </td>
-                          <td>
-                            <span
-                              className={`${styles.statusBadge} ${
-                                payment.status === 'PAGO'
-                                  ? styles.pago
-                                  : payment.status === 'ATRASADO'
-                                    ? styles.atrasado
-                                    : styles.pendente
-                              }`}
-                            >
-                              {payment.status === 'PAGO' && '✓'} {payment.status}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            {payment.status !== 'PAGO' ? (
-                              <button
-                                className={styles.receiveBtn}
-                                onClick={() => handleOpenRealStudentPaymentModal(payment)}
-                              >
-                                💵 Receber
-                              </button>
-                            ) : (
-                              <div className={styles.paidActions}>
-                                {payment.paymentMethod && (
-                                  <span className={styles.paymentMethodBadge}>
-                                    {payment.paymentMethod === 'PIX' && '💳 PIX'}
-                                    {payment.paymentMethod === 'DINHEIRO' && '💵 Dinheiro'}
-                                    {payment.paymentMethod === 'MISTO' && '💰 Misto'}
+                      .map((payment) => {
+                        const hasOverdueMonths =
+                          payment.overdueMonths && payment.overdueMonths.length > 0;
+
+                        return (
+                          <tr key={payment.studentId}>
+                            <td style={{ fontWeight: 500 }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {payment.studentName}
+                                {hasOverdueMonths && (
+                                  <span className={styles.overdueWarning}>
+                                    Pendente: {formatOverdueMonths(payment.overdueMonths!)}
                                   </span>
                                 )}
-                                <button
-                                  className={styles.revertBtn}
-                                  onClick={() =>
-                                    handleOpenRevertModal(
-                                      'realStudent',
-                                      payment.studentId,
-                                      payment.studentName,
-                                    )
-                                  }
-                                >
-                                  ↩️ Reverter
-                                </button>
                               </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td>{payment.className}</td>
+                            <td>{payment.teacherName}</td>
+                            <td className={payment.status === 'PAGO' ? styles.amountPositive : ''}>
+                              {formatCurrency(payment.monthlyFee)}
+                            </td>
+                            <td>
+                              <span
+                                className={`${styles.statusBadge} ${
+                                  payment.status === 'PAGO'
+                                    ? styles.pago
+                                    : payment.status === 'ATRASADO'
+                                      ? styles.atrasado
+                                      : styles.pendente
+                                }`}
+                              >
+                                {payment.status === 'PAGO' && '✓'} {payment.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              {payment.status !== 'PAGO' ? (
+                                hasOverdueMonths ? (
+                                  <div className={styles.overdueActions}>
+                                    <span className={styles.overdueBlockedText}>
+                                      Regularize meses anteriores
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    className={styles.receiveBtn}
+                                    onClick={() => handleOpenRealStudentPaymentModal(payment)}
+                                  >
+                                    💵 Receber
+                                  </button>
+                                )
+                              ) : (
+                                <div className={styles.paidActions}>
+                                  {payment.paymentMethod && (
+                                    <span className={styles.paymentMethodBadge}>
+                                      {payment.paymentMethod === 'PIX' && '💳 PIX'}
+                                      {payment.paymentMethod === 'DINHEIRO' && '💵 Dinheiro'}
+                                      {payment.paymentMethod === 'MISTO' && '💰 Misto'}
+                                    </span>
+                                  )}
+                                  <button
+                                    className={styles.revertBtn}
+                                    onClick={() =>
+                                      handleOpenRevertModal(
+                                        'realStudent',
+                                        payment.studentId,
+                                        payment.studentName,
+                                      )
+                                    }
+                                  >
+                                    ↩️ Reverter
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               )}

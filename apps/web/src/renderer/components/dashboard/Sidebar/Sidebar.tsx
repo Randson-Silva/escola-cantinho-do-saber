@@ -91,23 +91,15 @@ export function Sidebar() {
           />
         )}
 
-        {/* Turmas - Admin e Recepcionista */}
-        {!isProfessor && (
+        {/* Frequência - apenas Professor */}
+        {isProfessor && (
           <SidebarItem
-            icon="📚"
-            label="Turmas"
-            path="/dashboard/classes"
-            active={location.pathname === '/dashboard/classes'}
+            icon="📋"
+            label="Frequência"
+            path="/dashboard/attendance"
+            active={location.pathname.startsWith('/dashboard/attendance')}
           />
         )}
-
-        {/* Frequência - todos podem ver (professor vê só suas turmas) */}
-        <SidebarItem
-          icon="📋"
-          label="Frequência"
-          path="/dashboard/attendance"
-          active={location.pathname.startsWith('/dashboard/attendance')}
-        />
 
         {/* Finanças - apenas Admin */}
         {isAdmin && (

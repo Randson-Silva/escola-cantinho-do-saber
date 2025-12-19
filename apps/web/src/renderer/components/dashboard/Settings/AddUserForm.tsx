@@ -18,6 +18,11 @@ export function AddUserForm() {
     try {
       await userService.createUser({ name, email, password, role });
 
+      // Se for recepcionista, armazena a senha gerada para exibição na lista
+      if (role === 'recepcionista') {
+        userService.storeGeneratedPassword(email, password);
+      }
+
       addToast('✅ Usuário cadastrado com sucesso!', 'success');
 
       // Resetar formulário

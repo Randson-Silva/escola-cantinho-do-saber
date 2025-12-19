@@ -461,16 +461,21 @@ export function EditStudentForm() {
                 <label htmlFor="guardian.relationship" className={styles.label}>
                   Parentesco <span className={styles.required}>*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   id="guardian.relationship"
                   name="guardian.relationship"
                   value={formData.guardian.relationship}
                   onChange={handleInputChange}
-                  className={styles.input}
-                  placeholder="Ex: Mãe, Pai, Avó"
+                  className={styles.select}
                   required
-                />
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Pai/Mãe">Pai / Mãe</option>
+                  <option value="Tio/Tia">Tio / Tia</option>
+                  <option value="Irmão/Irmã">Irmão / Irmã</option>
+                  <option value="Avô/Avó">Avô / Avó</option>
+                  <option value="Outros">Outros</option>
+                </select>
               </div>
 
               <div className={styles.formGroup}>

@@ -64,26 +64,84 @@ export function DashboardPage() {
         </div>
 
         <div className={styles.statsGrid}>
-          {/* Card de Frequência - Visível para todos */}
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📋</div>
-            <div className={styles.statContent}>
-              <h3 className={styles.statLabel}>Frequência</h3>
-              <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
-              <span className={styles.statChange}>turmas disponíveis</span>
+          {/* Card de Frequência - Visível apenas para Professor */}
+          {isTeacher && (
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>📋</div>
+              <div className={styles.statContent}>
+                <h3 className={styles.statLabel}>Frequência</h3>
+                <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
+                <span className={styles.statChange}>turmas disponíveis</span>
+              </div>
+              <div className={styles.statActions}>
+                <button
+                  className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                  onClick={() => navigate('/dashboard/attendance')}
+                >
+                  Registrar Frequência
+                </button>
+              </div>
             </div>
-            <div className={styles.statActions}>
-              <button
-                className={`${styles.statButton} ${styles.statButtonPrimary}`}
-                onClick={() => navigate('/dashboard/attendance')}
-              >
-                Registrar Frequência
-              </button>
-            </div>
-          </div>
+          )}
 
-          {/* Cards visíveis apenas para Admin */}
-          {!isTeacher && (
+          {/* Cards para Admin - apenas Cadastrar Aluno, Cadastrar Professor e Configurações */}
+          {isAdmin && (
+            <>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>👨‍🎓</div>
+                <div className={styles.statContent}>
+                  <h3 className={styles.statLabel}>Alunos</h3>
+                  <p className={styles.statValue}>{studentsCount}</p>
+                  <span className={styles.statChange}>cadastrados</span>
+                </div>
+                <div className={styles.statActions}>
+                  <button
+                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                    onClick={() => navigate('/dashboard/students/register')}
+                  >
+                    Cadastrar Aluno
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>👥</div>
+                <div className={styles.statContent}>
+                  <h3 className={styles.statLabel}>Professores</h3>
+                  <p className={styles.statValue}>{teachersCount}</p>
+                  <span className={styles.statChange}>cadastrados</span>
+                </div>
+                <div className={styles.statActions}>
+                  <button
+                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                    onClick={() => navigate('/dashboard/teachers/register')}
+                  >
+                    Cadastrar Professor
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>⚙️</div>
+                <div className={styles.statContent}>
+                  <h3 className={styles.statLabel}>Configurações</h3>
+                  <p className={styles.statValue}>—</p>
+                  <span className={styles.statChange}>Perfil e preferências</span>
+                </div>
+                <div className={styles.statActions}>
+                  <button
+                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                    onClick={() => navigate('/dashboard/settings')}
+                  >
+                    Acessar Configurações
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Cards para Recepcionista (COMUM) - Ver/Cadastrar Alunos e Professores */}
+          {!isTeacher && !isAdmin && (
             <>
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>👨‍🎓</div>
@@ -104,32 +162,6 @@ export function DashboardPage() {
                     onClick={() => navigate('/dashboard/students/register')}
                   >
                     Cadastrar Aluno
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>📚</div>
-                <div className={styles.statContent}>
-                  <h3 className={styles.statLabel}>Turmas Ativas</h3>
-                  <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
-                  <span className={styles.statChange}>
-                    {classes.filter((c) => c.shift === 'MANHA').length} manhã ·{' '}
-                    {classes.filter((c) => c.shift === 'TARDE').length} tarde
-                  </span>
-                </div>
-                <div className={styles.statActions}>
-                  <button
-                    className={styles.statButton}
-                    onClick={() => navigate('/dashboard/classes')}
-                  >
-                    Ver Turmas
-                  </button>
-                  <button
-                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
-                    onClick={() => navigate('/dashboard/classes?action=create')}
-                  >
-                    Criar Turma
                   </button>
                 </div>
               </div>

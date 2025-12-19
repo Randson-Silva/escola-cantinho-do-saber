@@ -38,6 +38,7 @@ export interface MonthlyFeeSummary {
   dueDate: string;
   paidAt?: string;
   paymentMethod?: PaymentMethod;
+  overdueMonths?: string[]; // Lista de meses atrasados (formato YYYY-MM)
 }
 
 export interface DashboardFinanceSummary {
@@ -98,6 +99,57 @@ function savePaymentStatus(key: string, status: Map<string, PaymentStatus>): voi
 // SERVIÇO
 // ============================================================================
 
+/**
+ * Retorna a lista de meses atrasados para um aluno
+ * A primeira mensalidade só é contada a partir do mês do primeiro cadastro
+ */
+function getOverdueMonthsForStudent(
+  studentId: string,
+  targetMonth: string,
+  enrollmentDate?: string,
+): string[] {
+  // Se não tem data de matrícula, não verifica meses anteriores
+  if (!enrollmentDate) {
+    return [];
+  }
+
+  const overdueMonths: string[] = [];
+  const [targetYear, targetMonthNum] = targetMonth.split('-').map(Number);
+
+  // Determina o mês de início (mês da matrícula)
+  const enrollmentDateObj = new Date(enrollmentDate);
+  const enrollmentYear = enrollmentDateObj.getFullYear();
+  const enrollmentMonthNum = enrollmentDateObj.getMonth() + 1;
+  const enrollmentMonth = `${enrollmentYear}-${String(enrollmentMonthNum).padStart(2, '0')}`;
+
+  // Se o mês alvo é anterior ou igual ao mês de matrícula, não há meses atrasados
+  if (targetMonth <= enrollmentMonth) {
+    return [];
+  }
+
+  // Percorre os meses desde a matrícula até o mês anterior ao alvo
+  let currentDate = new Date(enrollmentYear, enrollmentMonthNum - 1, 1);
+  const targetDate = new Date(targetYear, targetMonthNum - 1, 1);
+
+  while (currentDate < targetDate) {
+    const monthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+    // Carrega status de pagamento para este mês
+    const status = loadPaymentStatus(`${STUDENT_PAYMENTS_STATUS_KEY}_${monthStr}`);
+    const paymentInfo = status.get(studentId);
+
+    // Se não tem pagamento ou status não é PAGO, está atrasado
+    if (!paymentInfo || paymentInfo.status !== 'PAGO') {
+      overdueMonths.push(monthStr);
+    }
+
+    // Avança para o próximo mês
+    currentDate.setMonth(currentDate.getMonth() + 1);
+  }
+
+  return overdueMonths; // Já está ordenado do mais antigo para o mais recente
+}
+
 export const dashboardFinanceService = {
   /**
    * Obtém o resumo financeiro para o dashboard
@@ -117,6 +169,18 @@ export const dashboardFinanceService = {
     // Filtra apenas alunos ativos
     const activeStudents = students.filter((s) => s.status === 'active');
 
+    // Filtra alunos que já estavam matriculados no mês alvo
+    // A mensalidade só conta a partir do mês de cadastro
+    const enrolledStudentsForMonth = activeStudents.filter((student) => {
+      if (!student.enrollmentDate) {
+        return true; // Se não tem data de matrícula, considera como matriculado
+      }
+      const enrollmentDate = new Date(student.enrollmentDate);
+      const enrollmentMonth = `${enrollmentDate.getFullYear()}-${String(enrollmentDate.getMonth() + 1).padStart(2, '0')}`;
+      // Aluno aparece se o mês de matrícula for igual ou anterior ao mês alvo
+      return enrollmentMonth <= targetMonth;
+    });
+
     // Carrega status de pagamentos para o mês específico
     const teacherPaymentStatus = loadPaymentStatus(`${TEACHER_PAYMENTS_STATUS_KEY}_${targetMonth}`);
     const studentPaymentStatus = loadPaymentStatus(`${STUDENT_PAYMENTS_STATUS_KEY}_${targetMonth}`);
@@ -127,8 +191,8 @@ export const dashboardFinanceService = {
     const isFutureMonth = targetMonth > currentMonth;
     const isPastMonth = targetMonth < currentMonth;
 
-    // Calcula mensalidades dos alunos
-    const studentPayments: MonthlyFeeSummary[] = activeStudents.map((student) => {
+    // Calcula mensalidades dos alunos (apenas os matriculados no mês)
+    const studentPayments: MonthlyFeeSummary[] = enrolledStudentsForMonth.map((student) => {
       const cls = classes.find((c) => c.id === student.class || c.name === student.class);
       const teacher = teachers.find((t) => t.id === student.teacher || t.nome === student.teacher);
 
@@ -145,6 +209,13 @@ export const dashboardFinanceService = {
         }
       }
 
+      // Obtém lista de meses atrasados do aluno (a partir da data de matrícula)
+      const overdueMonths = getOverdueMonthsForStudent(
+        student.id,
+        targetMonth,
+        student.enrollmentDate,
+      );
+
       return {
         studentId: student.id,
         studentName: student.name,
@@ -155,13 +226,14 @@ export const dashboardFinanceService = {
         dueDate: this.getMonthDueDate(targetMonth),
         paidAt: paymentInfo?.paidAt,
         paymentMethod: paymentInfo?.paymentMethod,
+        overdueMonths: overdueMonths.length > 0 ? overdueMonths : undefined,
       };
     });
 
-    // Agrupa alunos por professor e calcula pagamentos
+    // Agrupa alunos por professor e calcula pagamentos (apenas os matriculados no mês)
     const teacherStudentMap = new Map<string, { teacher: Teacher; students: Student[] }>();
 
-    for (const student of activeStudents) {
+    for (const student of enrolledStudentsForMonth) {
       // Encontra o professor do aluno (por turma ou direto)
       const cls = classes.find((c) => c.id === student.class || c.name === student.class);
       const teacherId = cls?.teacherId || student.teacher;

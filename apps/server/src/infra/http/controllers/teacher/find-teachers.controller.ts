@@ -25,7 +25,7 @@ export class FindTeachersController {
     this.router.get(
       '/teachers',
       checkJwt,
-      requireAnyRole(['ADMIN', 'PROFESSOR']),
+      requireAnyRole(['ADMIN', 'COMUM', 'PROFESSOR']),
       this.handle.bind(this),
     );
   }
