@@ -122,6 +122,23 @@ export function DashboardPage() {
               </div>
 
               <div className={styles.statCard}>
+                <div className={styles.statIcon}>🏫</div>
+                <div className={styles.statContent}>
+                  <h3 className={styles.statLabel}>Turmas</h3>
+                  <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
+                  <span className={styles.statChange}>cadastradas</span>
+                </div>
+                <div className={styles.statActions}>
+                  <button
+                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                    onClick={() => navigate('/dashboard/classes?action=create')}
+                  >
+                    Criar Turma
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
                 <div className={styles.statIcon}>⚙️</div>
                 <div className={styles.statContent}>
                   <h3 className={styles.statLabel}>Configurações</h3>
@@ -185,6 +202,29 @@ export function DashboardPage() {
                     onClick={() => navigate('/dashboard/teachers/register')}
                   >
                     Cadastrar Professor
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>🏫</div>
+                <div className={styles.statContent}>
+                  <h3 className={styles.statLabel}>Turmas</h3>
+                  <p className={styles.statValue}>{isLoading ? '...' : classes.length}</p>
+                  <span className={styles.statChange}>cadastradas</span>
+                </div>
+                <div className={styles.statActions}>
+                  <button
+                    className={styles.statButton}
+                    onClick={() => navigate('/dashboard/classes')}
+                  >
+                    Ver Turmas
+                  </button>
+                  <button
+                    className={`${styles.statButton} ${styles.statButtonPrimary}`}
+                    onClick={() => navigate('/dashboard/classes?action=create')}
+                  >
+                    Criar Turma
                   </button>
                 </div>
               </div>
